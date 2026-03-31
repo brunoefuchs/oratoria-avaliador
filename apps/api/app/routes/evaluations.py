@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 from app.models.evaluation import (
     ApiErrorResponse,
@@ -126,3 +127,115 @@ async def get_evaluation_status(evaluation_id: str):
             "current_step": current_step,
         },
     }
+
+
+@router.get("/evaluations/{evaluation_id}/report")
+async def get_evaluation_report(evaluation_id: str):
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    evaluation = await evaluation_repo.get_evaluation(evaluation_id)
+    if not evaluation:
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+
+    # Get aggregated metrics
+    agg = (
+        supabase.table("aggregated_metrics")
+        .select("*")
+        .eq("evaluation_id", evaluation_id)
+        .execute()
+    )
+
+    # Get report
+    report = (
+        supabase.table("reports")
+        .select("*")
+        .eq("evaluation_id", evaluation_id)
+        .execute()
+    )
+
+    return {
+        "evaluation": {
+            "id": evaluation["id"],
+            "status": evaluation["status"],
+            "duration_seconds": evaluation.get("duration_seconds"),
+        },
+        "overall_score": agg.data[0]["overall_score"] if agg.data else 0,
+        "dimension_scores": (agg.data[0]["dimension_scores"] if agg.data else {}),
+        "detailed_metrics": (agg.data[0]["detailed_metrics"] if agg.data else {}),
+        "incomplete_dimensions": (
+            agg.data[0]["incomplete_dimensions"] if agg.data else []
+        ),
+        "report": {
+            "summary": report.data[0]["summary"] if report.data else "",
+            "dimension_feedback": (
+                report.data[0]["dimension_feedback"] if report.data else {}
+            ),
+        },
+    }
+
+
+@router.get("/evaluations/{evaluation_id}/report/{dimension}")
+async def get_dimension_detail(evaluation_id: str, dimension: str):
+    valid = ["posture", "gesture", "voice", "fillers"]
+    if dimension not in valid:
+        raise HTTPException(status_code=400, detail=f"Invalid dimension: {dimension}")
+
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    # Get analysis result for dimension
+    result = (
+        supabase.table("analysis_results")
+        .select("*")
+        .eq("evaluation_id", evaluation_id)
+        .eq("dimension", dimension)
+        .execute()
+    )
+
+    # Get report feedback for dimension
+    report = (
+        supabase.table("reports")
+        .select("dimension_feedback")
+        .eq("evaluation_id", evaluation_id)
+        .execute()
+    )
+
+    feedback = {}
+    if report.data:
+        feedback = report.data[0].get("dimension_feedback", {}).get(dimension, {})
+
+    return {
+        "dimension": dimension,
+        "score": result.data[0]["score"] if result.data else 0,
+        "confidence": result.data[0]["confidence"] if result.data else "failed",
+        "metrics": result.data[0]["metrics"] if result.data else {},
+        "feedback": feedback,
+    }
+
+
+class RatingRequest(BaseModel):
+    rating: int
+    comment: str | None = None
+
+
+@router.post("/evaluations/{evaluation_id}/rating", status_code=201)
+async def create_rating(evaluation_id: str, body: RatingRequest):
+    if body.rating < 1 or body.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be 1-5")
+
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    data = {
+        "evaluation_id": evaluation_id,
+        "rating": body.rating,
+    }
+    if body.comment:
+        data["comment"] = body.comment
+
+    supabase.table("report_ratings").upsert(data).execute()
+    return {"ok": True}

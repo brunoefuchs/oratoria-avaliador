@@ -209,7 +209,25 @@ async def _run_pipeline(req: ProcessRequest):
             }
         ).execute()
 
-        await _notify_complete(req.callback_url, req.evaluation_id, "analyzed")
+        # Step 8: Generate LLM report
+        await _notify_status(req.callback_url, req.evaluation_id, "generating_report")
+        try:
+            from workers.report_generator import generate_report
+
+            report = generate_report(aggregated)
+            supabase.table("reports").insert(
+                {
+                    "evaluation_id": req.evaluation_id,
+                    "summary": report["summary"],
+                    "dimension_feedback": report["dimension_feedback"],
+                    "llm_model": report["llm_model"],
+                    "llm_cost_usd": report["llm_cost_usd"],
+                }
+            ).execute()
+        except Exception as e:
+            logger.error("report_generation_failed", error=str(e))
+
+        await _notify_complete(req.callback_url, req.evaluation_id, "completed")
 
     except Exception as e:
         logger.error(

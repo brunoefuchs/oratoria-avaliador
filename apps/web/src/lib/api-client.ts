@@ -36,3 +36,25 @@ export async function uploadVideo(
     xhr.send(formData);
   });
 }
+
+export async function fetchReport(evaluationId: string) {
+  const res = await fetch(`${API_URL}/evaluations/${evaluationId}/report`);
+  if (!res.ok) throw new Error("Falha ao carregar relatorio");
+  return res.json();
+}
+
+export async function fetchDimensionDetail(evaluationId: string, dimension: string) {
+  const res = await fetch(`${API_URL}/evaluations/${evaluationId}/report/${dimension}`);
+  if (!res.ok) throw new Error("Falha ao carregar dimensao");
+  return res.json();
+}
+
+export async function submitRating(evaluationId: string, rating: number, comment?: string) {
+  const res = await fetch(`${API_URL}/evaluations/${evaluationId}/rating`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ rating, comment }),
+  });
+  if (!res.ok) throw new Error("Falha ao enviar avaliacao");
+  return res.json();
+}
