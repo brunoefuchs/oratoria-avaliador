@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import tempfile
 import time
 from pathlib import Path
@@ -13,7 +14,7 @@ from workers.video_processor import split_video
 
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(
-        structlog.get_level_from_name(config.LOG_LEVEL)
+        logging.getLevelName(config.LOG_LEVEL)
     ),
 )
 

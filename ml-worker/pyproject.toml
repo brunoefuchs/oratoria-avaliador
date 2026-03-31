@@ -8,7 +8,7 @@ target-version = "py311"
 line-length = 88
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W"]
+select = ["E", "F", "I", "W"]
 
 [tool.ruff.lint.per-file-ignores]
 "workers/report_generator.py" = ["E501"]

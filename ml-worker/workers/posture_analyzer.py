@@ -8,7 +8,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-mp_pose = mp.solutions.pose
+POSE_MODEL_PATH = "/tmp/mediapipe_models/pose_landmarker.task"
 
 
 def extract_frames(video_path: str, fps: int = 2) -> list[str]:
@@ -47,7 +47,7 @@ def _angle_between(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
 
 
 def analyze_posture(video_path: str) -> dict:
-    """Analyze posture from video frames using MediaPipe Pose."""
+    """Analyze posture from video frames using MediaPipe PoseLandmarker."""
     start = time.time()
     logger.info("posture_analysis_start", video_path=video_path)
 
@@ -56,27 +56,35 @@ def analyze_posture(video_path: str) -> dict:
         logger.warning("no_frames_extracted")
         return {"score": 0, "confidence": "failed", "metrics": {}}
 
-    import cv2
+    # Setup PoseLandmarker
+    BaseOptions = mp.tasks.BaseOptions
+    PoseLandmarker = mp.tasks.vision.PoseLandmarker
+    PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
+    VisionRunningMode = mp.tasks.vision.RunningMode
+
+    options = PoseLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=POSE_MODEL_PATH),
+        running_mode=VisionRunningMode.IMAGE,
+        num_poses=1,
+    )
 
     alignment_scores = []
     open_posture_count = 0
     centers_of_mass = []
     detected_frames = 0
 
-    with mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.5) as pose:
+    with PoseLandmarker.create_from_options(options) as landmarker:
         for frame_path in frames:
-            image = cv2.imread(frame_path)
-            if image is None:
-                continue
+            image = mp.Image.create_from_file(frame_path)
+            results = landmarker.detect(image)
 
-            results = pose.process(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
-            if not results.pose_landmarks:
+            if not results.pose_landmarks or len(results.pose_landmarks) == 0:
                 continue
 
             detected_frames += 1
-            lm = results.pose_landmarks.landmark
+            lm = results.pose_landmarks[0]
 
-            # Key landmarks
+            # Key landmarks (normalized coordinates)
             left_shoulder = np.array([lm[11].x, lm[11].y])
             right_shoulder = np.array([lm[12].x, lm[12].y])
             left_hip = np.array([lm[23].x, lm[23].y])
@@ -104,7 +112,7 @@ def analyze_posture(video_path: str) -> dict:
             alignment = round((shoulder_score + head_score + spine_score) / 3)
             alignment_scores.append(alignment)
 
-            # Open vs closed posture (shoulder width relative to hip width)
+            # Open vs closed posture
             shoulder_width = np.linalg.norm(left_shoulder - right_shoulder)
             hip_width = np.linalg.norm(left_hip - right_hip)
             if shoulder_width > hip_width * 0.9:
@@ -115,14 +123,13 @@ def analyze_posture(video_path: str) -> dict:
             centers_of_mass.append(com)
 
     if detected_frames == 0:
-        logger.warning("no_poses_detected")
+        logger.warning("no_poses_detected", total_frames=len(frames))
         return {"score": 0, "confidence": "failed", "metrics": {}}
 
     # Calculate final metrics
     avg_alignment = round(float(np.mean(alignment_scores)))
     open_posture_pct = round(open_posture_count / detected_frames * 100, 1)
 
-    # Stability score (lower variance = more stable)
     if len(centers_of_mass) > 1:
         com_array = np.array(centers_of_mass)
         com_variance = float(np.var(com_array, axis=0).sum())
@@ -130,7 +137,6 @@ def analyze_posture(video_path: str) -> dict:
     else:
         stability_score = 50
 
-    # Overall posture score
     posture_score = round(
         avg_alignment * 0.4 + min(100, open_posture_pct) * 0.3 + stability_score * 0.3
     )

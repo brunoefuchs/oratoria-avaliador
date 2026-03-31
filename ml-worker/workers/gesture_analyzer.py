@@ -1,6 +1,5 @@
 import time
 
-import cv2
 import mediapipe as mp
 import numpy as np
 import structlog
@@ -9,41 +8,23 @@ from workers.posture_analyzer import extract_frames
 
 logger = structlog.get_logger()
 
-mp_hands = mp.solutions.hands
-mp_face_mesh = mp.solutions.face_mesh
-
-# Iris landmarks for gaze estimation
-LEFT_IRIS = [468, 469, 470, 471, 472]
-RIGHT_IRIS = [473, 474, 475, 476, 477]
-LEFT_EYE_CORNERS = [33, 133]
-RIGHT_EYE_CORNERS = [362, 263]
+HAND_MODEL_PATH = "/tmp/mediapipe_models/hand_landmarker.task"
+FACE_MODEL_PATH = "/tmp/mediapipe_models/face_landmarker.task"
 
 
 def _estimate_gaze_centered(face_landmarks) -> bool:
-    """Estimate if person is looking at camera based on iris position."""
-    lm = face_landmarks.landmark
+    """Estimate if person is looking at camera based on nose/eye alignment."""
+    lm = face_landmarks
+    # Simple gaze: check if nose tip is centered between eyes
+    left_eye = np.array([lm[33].x, lm[33].y])
+    right_eye = np.array([lm[263].x, lm[263].y])
+    nose_tip = np.array([lm[1].x, lm[1].y])
 
-    # Left eye: check if iris is centered between eye corners
-    left_corner_l = np.array([lm[33].x, lm[33].y])
-    left_corner_r = np.array([lm[133].x, lm[133].y])
-    left_iris = np.array([lm[468].x, lm[468].y])
+    eye_center = (left_eye + right_eye) / 2
+    offset = np.linalg.norm(nose_tip - eye_center)
+    eye_dist = np.linalg.norm(right_eye - left_eye)
 
-    left_eye_width = np.linalg.norm(left_corner_r - left_corner_l)
-    left_iris_offset = np.linalg.norm(left_iris - (left_corner_l + left_corner_r) / 2)
-    left_centered = left_iris_offset / (left_eye_width + 1e-8) < 0.25
-
-    # Right eye
-    right_corner_l = np.array([lm[362].x, lm[362].y])
-    right_corner_r = np.array([lm[263].x, lm[263].y])
-    right_iris = np.array([lm[473].x, lm[473].y])
-
-    right_eye_width = np.linalg.norm(right_corner_r - right_corner_l)
-    right_iris_offset = np.linalg.norm(
-        right_iris - (right_corner_l + right_corner_r) / 2
-    )
-    right_centered = right_iris_offset / (right_eye_width + 1e-8) < 0.25
-
-    return left_centered and right_centered
+    return offset / (eye_dist + 1e-8) < 0.35
 
 
 def analyze_gestures(video_path: str) -> dict:
@@ -55,6 +36,25 @@ def analyze_gestures(video_path: str) -> dict:
     if not frames:
         return {"score": 0, "confidence": "failed", "metrics": {}}
 
+    BaseOptions = mp.tasks.BaseOptions
+    HandLandmarker = mp.tasks.vision.HandLandmarker
+    HandLandmarkerOptions = mp.tasks.vision.HandLandmarkerOptions
+    FaceLandmarker = mp.tasks.vision.FaceLandmarker
+    FaceLandmarkerOptions = mp.tasks.vision.FaceLandmarkerOptions
+    VisionRunningMode = mp.tasks.vision.RunningMode
+
+    hand_options = HandLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=HAND_MODEL_PATH),
+        running_mode=VisionRunningMode.IMAGE,
+        num_hands=2,
+    )
+
+    face_options = FaceLandmarkerOptions(
+        base_options=BaseOptions(model_asset_path=FACE_MODEL_PATH),
+        running_mode=VisionRunningMode.IMAGE,
+        num_faces=1,
+    )
+
     hands_visible_count = 0
     above_waist_count = 0
     eye_contact_count = 0
@@ -62,48 +62,33 @@ def analyze_gestures(video_path: str) -> dict:
     hand_detected_count = 0
     total_frames = len(frames)
 
-    hands = mp_hands.Hands(
-        static_image_mode=True,
-        max_num_hands=2,
-        min_detection_confidence=0.5,
-    )
-    face_mesh = mp_face_mesh.FaceMesh(
-        static_image_mode=True,
-        max_num_faces=1,
-        refine_landmarks=True,
-        min_detection_confidence=0.5,
-    )
+    hand_landmarker = HandLandmarker.create_from_options(hand_options)
+    face_landmarker = FaceLandmarker.create_from_options(face_options)
 
     for frame_path in frames:
-        image = cv2.imread(frame_path)
-        if image is None:
-            continue
-
-        rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = mp.Image.create_from_file(frame_path)
 
         # Hand detection
-        hand_results = hands.process(rgb)
-        if hand_results.multi_hand_landmarks:
+        hand_results = hand_landmarker.detect(image)
+        if hand_results.hand_landmarks and len(hand_results.hand_landmarks) > 0:
             hand_detected_count += 1
             hands_visible_count += 1
 
-            # Check if hands are above waist (y < 0.6 in normalized coords)
-            for hand_lm in hand_results.multi_hand_landmarks:
-                wrist_y = hand_lm.landmark[0].y
+            for hand_lm in hand_results.hand_landmarks:
+                wrist_y = hand_lm[0].y
                 if wrist_y < 0.6:
                     above_waist_count += 1
                     break
 
         # Face/gaze detection
-        face_results = face_mesh.process(rgb)
-        if face_results.multi_face_landmarks:
+        face_results = face_landmarker.detect(image)
+        if face_results.face_landmarks and len(face_results.face_landmarks) > 0:
             face_detected_count += 1
-            face_lm = face_results.multi_face_landmarks[0]
-            if _estimate_gaze_centered(face_lm):
+            if _estimate_gaze_centered(face_results.face_landmarks[0]):
                 eye_contact_count += 1
 
-    hands.close()
-    face_mesh.close()
+    hand_landmarker.close()
+    face_landmarker.close()
 
     # Calculate metrics
     gesticulation_pct = (
@@ -112,27 +97,26 @@ def analyze_gestures(video_path: str) -> dict:
     above_waist_pct = round(above_waist_count / max(1, hands_visible_count) * 100, 1)
     eye_contact_pct = round(eye_contact_count / max(1, face_detected_count) * 100, 1)
 
-    # Gesture score (0-100)
-    # Moderate gesticulation (30-70%) is ideal
+    # Gesture score
     if gesticulation_pct < 10:
-        gesture_sub = 30  # Too little
+        gesture_sub = 30
     elif gesticulation_pct > 80:
-        gesture_sub = 60  # Too much
+        gesture_sub = 60
     else:
         gesture_sub = min(100, 50 + gesticulation_pct)
 
     eye_sub = min(100, eye_contact_pct * 1.2)
-    zone_sub = above_waist_pct  # Above waist = positive
+    zone_sub = above_waist_pct
 
     gesture_score = round(gesture_sub * 0.35 + eye_sub * 0.4 + zone_sub * 0.25)
     gesture_score = max(0, min(100, gesture_score))
 
-    # Confidence
     detection_rate = (
         (hand_detected_count + face_detected_count) / (total_frames * 2)
         if total_frames > 0
         else 0
     )
+
     if detection_rate > 0.5:
         confidence = "high"
     elif detection_rate > 0.25:

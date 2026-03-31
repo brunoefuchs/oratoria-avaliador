@@ -79,7 +79,7 @@ def generate_report(aggregated: dict) -> dict:
     logger.info("report_generation_start")
 
     genai.configure(api_key=config.GEMINI_API_KEY)
-    model = genai.GenerativeModel("gemini-2.0-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     dimension_scores = aggregated.get("dimension_scores", {})
     detailed = aggregated.get("detailed_metrics", {})
@@ -122,7 +122,7 @@ def generate_report(aggregated: dict) -> dict:
             return {
                 "summary": report.get("summary", ""),
                 "dimension_feedback": report.get("dimension_feedback", {}),
-                "llm_model": "gemini-2.0-flash",
+                "llm_model": "gemini-2.5-flash",
                 "llm_cost_usd": 0.0,
             }
 
