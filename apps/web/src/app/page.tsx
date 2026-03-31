@@ -1,17 +1,26 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { VideoUploader } from "@/components/video-uploader";
+
 export default function Home() {
+  const router = useRouter();
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight">
-          Oratoria Avaliador
-        </h1>
-        <p className="text-lg text-gray-600">
-          IA que avalia oratoria em video
-        </p>
-        <div className="inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-medium text-green-800">
-          <span className="h-2 w-2 rounded-full bg-green-500" />
-          Running
+      <div className="w-full max-w-xl space-y-8 text-center">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight">
+            Oratoria Avaliador
+          </h1>
+          <p className="text-lg text-gray-600">
+            Envie um video e receba feedback sobre sua oratoria
+          </p>
         </div>
+
+        <VideoUploader
+          onUploadComplete={(id) => router.push(`/processing/${id}`)}
+        />
       </div>
     </main>
   );
