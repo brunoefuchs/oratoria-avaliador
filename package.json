@@ -1,0 +1,17 @@
+{
+  "name": "oratoria-avaliador",
+  "version": "0.1.0",
+  "private": true,
+  "description": "IA que avalia oratória em vídeo — postura, gestual, tom de voz e vícios de linguagem",
+  "scripts": {
+    "dev:web": "cd apps/web && npm run dev",
+    "dev:api": "cd apps/api && source .venv/bin/activate && uvicorn app.main:app --reload",
+    "dev:ml": "cd ml-worker && source .venv/bin/activate && uvicorn app:app --port 7860 --reload",
+    "lint:web": "cd apps/web && npm run lint",
+    "lint:api": "cd apps/api && ruff check . && ruff format --check .",
+    "lint:ml": "cd ml-worker && ruff check . && ruff format --check .",
+    "test:web": "cd apps/web && npm test",
+    "test:api": "cd apps/api && pytest",
+    "test:ml": "cd ml-worker && pytest"
+  }
+}

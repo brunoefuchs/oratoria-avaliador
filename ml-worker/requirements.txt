@@ -1,0 +1,10 @@
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+supabase>=2.0.0
+httpx>=0.27.0
+google-generativeai>=0.5.0
+mediapipe>=0.10.0
+openai-whisper>=20231117
+parselmouth>=0.4.3
+structlog>=24.1.0
+python-multipart>=0.0.9
