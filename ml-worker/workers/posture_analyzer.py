@@ -133,7 +133,7 @@ def analyze_posture(video_path: str) -> dict:
     if len(centers_of_mass) > 1:
         com_array = np.array(centers_of_mass)
         com_variance = float(np.var(com_array, axis=0).sum())
-        stability_score = round(max(0, 100 - com_variance * 10000))
+        stability_score = round(max(0, 100 - com_variance * 1000))
     else:
         stability_score = 50
 
