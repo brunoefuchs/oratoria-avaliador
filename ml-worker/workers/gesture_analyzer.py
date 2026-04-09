@@ -78,7 +78,6 @@ def _classificar_posicao_mao(hand_landmarks) -> dict:
     middle_tip = np.array([hand_landmarks[12].x, hand_landmarks[12].y])
     index_tip = np.array([hand_landmarks[8].x, hand_landmarks[8].y])
     pinky_tip = np.array([hand_landmarks[20].x, hand_landmarks[20].y])
-    thumb_tip = np.array([hand_landmarks[4].x, hand_landmarks[4].y])
 
     # Zona vertical (expandida: peito-cintura e pouco alem e aceitavel)
     if wrist[1] < 0.30:

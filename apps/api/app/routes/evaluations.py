@@ -351,7 +351,18 @@ async def get_replay_data(evaluation_id: str):
     )
     if variety_result.data:
         metrics = variety_result.data[0].get("metrics", {})
-        for trecho in metrics.get("trechos_monotonos", []):
+        trechos_raw = metrics.get("trechos_monotonos", [])
+        # trechos_monotonos pode ser dict {velocidade: [...], volume: [...], pitch: [...]} ou lista
+        trechos_flat = []
+        if isinstance(trechos_raw, dict):
+            for v in trechos_raw.values():
+                if isinstance(v, list):
+                    trechos_flat.extend(v)
+        elif isinstance(trechos_raw, list):
+            trechos_flat = trechos_raw
+        for trecho in trechos_flat:
+            if not isinstance(trecho, dict):
+                continue
             events.append({
                 "type": "monotono",
                 "start": trecho.get("inicio", 0),

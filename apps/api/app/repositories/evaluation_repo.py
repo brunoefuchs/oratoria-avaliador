@@ -9,10 +9,15 @@ _supabase_client = None
 def _get_supabase():
     global _supabase_client
     if _supabase_client is None:
-        from supabase import create_client
+        from supabase import ClientOptions, create_client
 
         _supabase_client = create_client(
-            settings.supabase_url, settings.supabase_service_key
+            settings.supabase_url,
+            settings.supabase_service_key,
+            options=ClientOptions(
+                postgrest_client_timeout=30,
+                storage_client_timeout=120,
+            ),
         )
     return _supabase_client
 
