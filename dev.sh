@@ -54,6 +54,25 @@ if [ "$PORTS_OK" = false ]; then
     exit 1
 fi
 
+# Verificar modelos do MediaPipe (baixar se necessario)
+MEDIAPIPE_DIR="/tmp/mediapipe_models"
+mkdir -p "$MEDIAPIPE_DIR"
+
+download_model() {
+    local file=$1
+    local url=$2
+    if [ ! -f "$MEDIAPIPE_DIR/$file" ]; then
+        echo -e "${YELLOW}Baixando MediaPipe model: $file...${NC}"
+        curl -sL -o "$MEDIAPIPE_DIR/$file" "$url" && \
+            echo -e "${GREEN}  ✓ $file${NC}" || \
+            echo -e "${RED}  ✗ Falha ao baixar $file${NC}"
+    fi
+}
+
+download_model "pose_landmarker.task" "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task"
+download_model "hand_landmarker.task" "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task"
+download_model "face_landmarker.task" "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task"
+
 cleanup() {
     echo -e "\n${YELLOW}Encerrando servicos...${NC}"
     for pid in "${PIDS[@]}"; do

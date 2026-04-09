@@ -32,9 +32,30 @@ def _avg(values: list) -> float:
     return round(sum(values) / max(1, len(values)), 1)
 
 
-def _count_in_range(items: list, start: float, end: float, key: str = "inicio") -> int:
-    """Conta itens cujo timestamp cai dentro de um range."""
-    return sum(1 for item in items if start <= item.get(key, item.get("start", 0)) < end)
+def _count_in_range(items, start: float, end: float, key: str = "inicio") -> int:
+    """Conta itens cujo timestamp cai dentro de um range.
+
+    Aceita lista de dicts OU dict de listas (flatten automatico).
+    """
+    if isinstance(items, dict):
+        # Flatten dict de listas (ex: {"velocidade": [...], "volume": [...]})
+        flat = []
+        for v in items.values():
+            if isinstance(v, list):
+                flat.extend(v)
+        items = flat
+
+    if not isinstance(items, list):
+        return 0
+
+    count = 0
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        ts = item.get(key, item.get("start", 0))
+        if isinstance(ts, (int, float)) and start <= ts < end:
+            count += 1
+    return count
 
 
 def analyze_temporal(
