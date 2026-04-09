@@ -17,17 +17,23 @@ STEP_ORDER = [
     "analyzing_gesture",
     "analyzing_voice",
     "analyzing_fillers",
+    "analyzing_variety",
+    "analyzing_archetypes",
     "generating_report",
 ]
 
 STEP_LABELS = {
     "splitting": "Separando audio e video...",
     "analyzing_posture": "Analisando postura...",
-    "analyzing_gesture": "Analisando gestual...",
-    "analyzing_voice": "Analisando tom de voz...",
+    "analyzing_gesture": "Analisando gestual e contato visual...",
+    "analyzing_voice": "Analisando voz e prosodia...",
     "analyzing_fillers": "Detectando vicios de linguagem...",
-    "generating_report": "Gerando relatorio...",
+    "analyzing_variety": "Analisando variedade vocal...",
+    "analyzing_archetypes": "Classificando arquetipos vocais...",
+    "generating_report": "Gerando relatorio de coaching...",
 }
+
+VALID_DIMENSIONS = ["posture", "gesture", "voice", "fillers", "variety", "archetypes"]
 
 ALLOWED_CONTENT_TYPES = {"video/mp4", "video/webm"}
 MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
@@ -155,31 +161,37 @@ async def get_evaluation_report(evaluation_id: str):
         .execute()
     )
 
+    report_data = report.data[0] if report.data else {}
+    agg_data = agg.data[0] if agg.data else {}
+
     return {
         "evaluation": {
             "id": evaluation["id"],
             "status": evaluation["status"],
             "duration_seconds": evaluation.get("duration_seconds"),
         },
-        "overall_score": agg.data[0]["overall_score"] if agg.data else 0,
-        "dimension_scores": (agg.data[0]["dimension_scores"] if agg.data else {}),
-        "detailed_metrics": (agg.data[0]["detailed_metrics"] if agg.data else {}),
-        "incomplete_dimensions": (
-            agg.data[0]["incomplete_dimensions"] if agg.data else []
-        ),
+        "overall_score": agg_data.get("overall_score", 0),
+        "dimension_scores": agg_data.get("dimension_scores", {}),
+        "detailed_metrics": agg_data.get("detailed_metrics", {}),
+        "incomplete_dimensions": agg_data.get("incomplete_dimensions", []),
         "report": {
-            "summary": report.data[0]["summary"] if report.data else "",
-            "dimension_feedback": (
-                report.data[0]["dimension_feedback"] if report.data else {}
-            ),
+            # Campos novos (v2)
+            "resumo": report_data.get("summary", ""),
+            "forcas": report_data.get("forcas", []),
+            "melhorias_80_20": report_data.get("melhorias", []),
+            "dimensoes": report_data.get("dimension_feedback", {}),
+            "plano_12_semanas": report_data.get("plano_12_semanas", []),
+            "mensagem_final": report_data.get("mensagem_final", ""),
+            # Retrocompatibilidade (v1)
+            "summary": report_data.get("summary", ""),
+            "dimension_feedback": report_data.get("dimension_feedback", {}),
         },
     }
 
 
 @router.get("/evaluations/{evaluation_id}/report/{dimension}")
 async def get_dimension_detail(evaluation_id: str, dimension: str):
-    valid = ["posture", "gesture", "voice", "fillers"]
-    if dimension not in valid:
+    if dimension not in VALID_DIMENSIONS:
         raise HTTPException(status_code=400, detail=f"Invalid dimension: {dimension}")
 
     from app.repositories.evaluation_repo import _get_supabase
@@ -214,6 +226,55 @@ async def get_dimension_detail(evaluation_id: str, dimension: str):
         "metrics": result.data[0]["metrics"] if result.data else {},
         "feedback": feedback,
     }
+
+
+class ContextRequest(BaseModel):
+    sentimento: int | None = None
+    maior_medo: list[str] | None = None
+    contexto: str | None = None
+    avaliado_antes: bool | None = None
+    objetivo: str | None = None
+
+
+@router.post("/evaluations/{evaluation_id}/context", status_code=201)
+async def save_context(evaluation_id: str, body: ContextRequest):
+    if body.sentimento is not None and (body.sentimento < 1 or body.sentimento > 5):
+        raise HTTPException(status_code=400, detail="Sentimento must be 1-5")
+
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    data: dict = {"evaluation_id": evaluation_id}
+    if body.sentimento is not None:
+        data["sentimento"] = body.sentimento
+    if body.maior_medo is not None:
+        data["maior_medo"] = body.maior_medo
+    if body.contexto is not None:
+        data["contexto"] = body.contexto
+    if body.avaliado_antes is not None:
+        data["avaliado_antes"] = body.avaliado_antes
+    if body.objetivo is not None:
+        data["objetivo"] = body.objetivo
+
+    supabase.table("evaluation_context").upsert(data).execute()
+    return {"ok": True}
+
+
+@router.get("/evaluations/{evaluation_id}/context")
+async def get_context(evaluation_id: str):
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+    result = (
+        supabase.table("evaluation_context")
+        .select("*")
+        .eq("evaluation_id", evaluation_id)
+        .execute()
+    )
+    if not result.data:
+        return {"context": None}
+    return {"context": result.data[0]}
 
 
 class RatingRequest(BaseModel):

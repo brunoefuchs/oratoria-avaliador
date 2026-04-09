@@ -20,7 +20,7 @@ structlog.configure(
 
 logger = structlog.get_logger()
 
-app = FastAPI(title="Oratoria ML Worker", version="0.1.0")
+app = FastAPI(title="Oratoria ML Worker", version="2.0.0")
 
 
 class ProcessRequest(BaseModel):
@@ -31,7 +31,7 @@ class ProcessRequest(BaseModel):
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"}
+    return {"status": "ok", "version": "2.0.0"}
 
 
 async def _notify_status(callback_url: str, evaluation_id: str, substatus: str):
@@ -64,7 +64,7 @@ async def _notify_complete(
 
 
 def _save_analysis(supabase, evaluation_id: str, dimension: str, result: dict):
-    """Save analysis result to database."""
+    """Salva resultado de analise no banco."""
     supabase.table("analysis_results").upsert(
         {
             "evaluation_id": evaluation_id,
@@ -81,7 +81,7 @@ async def _run_pipeline(req: ProcessRequest):
     logger.info("pipeline_start", evaluation_id=req.evaluation_id)
 
     try:
-        # Step 1: Download video from Supabase Storage
+        # Step 1: Download video do Supabase Storage
         await _notify_status(req.callback_url, req.evaluation_id, "splitting")
 
         from supabase import create_client
@@ -104,7 +104,7 @@ async def _run_pipeline(req: ProcessRequest):
             duration_seconds=round(time.time() - download_start, 2),
         )
 
-        # Step 2: Split video into audio + video
+        # Step 2: Separar video em audio + video
         audio_path, video_path = split_video(video_path)
 
         logger.info(
@@ -114,7 +114,7 @@ async def _run_pipeline(req: ProcessRequest):
             total_seconds=round(time.time() - start, 2),
         )
 
-        # Step 3: Posture analysis
+        # Step 3: Analise de postura
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_posture")
         try:
             from workers.posture_analyzer import analyze_posture
@@ -126,7 +126,7 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "posture", posture_result)
 
-        # Step 4: Gesture & gaze analysis
+        # Step 4: Analise gestual e contato visual
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_gesture")
         try:
             from workers.gesture_analyzer import analyze_gestures
@@ -138,7 +138,7 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "gesture", gesture_result)
 
-        # Step 5: Voice analysis (Whisper + Parselmouth)
+        # Step 5: Analise de voz (Whisper + Parselmouth)
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_voice")
         try:
             from workers.voice_analyzer import (
@@ -151,7 +151,7 @@ async def _run_pipeline(req: ProcessRequest):
             prosody = analyze_prosody(audio_path)
             voice_result = calculate_voice_metrics(transcription, prosody)
 
-            # Save transcription
+            # Salvar transcricao
             supabase.table("transcriptions").insert(
                 {
                     "evaluation_id": req.evaluation_id,
@@ -168,7 +168,7 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "voice", voice_result)
 
-        # Step 6: Filler detection
+        # Step 6: Deteccao de vicios de linguagem
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_fillers")
         try:
             from workers.filler_detector import detect_fillers
@@ -180,7 +180,31 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "fillers", filler_result)
 
-        # Step 7: Aggregate metrics
+        # Step 7: Analise de variedade (meta-analyzer) — NOVO
+        await _notify_status(req.callback_url, req.evaluation_id, "analyzing_variety")
+        try:
+            from workers.variety_analyzer import analyze_variety
+
+            variety_result = analyze_variety(voice_result, gesture_result)
+        except Exception as e:
+            logger.error("variety_analysis_failed", error=str(e))
+            variety_result = {"score": 0, "confidence": "failed", "metrics": {}}
+
+        _save_analysis(supabase, req.evaluation_id, "variety", variety_result)
+
+        # Step 8: Classificacao de arquetipos vocais — NOVO
+        await _notify_status(req.callback_url, req.evaluation_id, "analyzing_archetypes")
+        try:
+            from workers.archetype_classifier import classify_archetypes
+
+            archetype_result = classify_archetypes(audio_path)
+        except Exception as e:
+            logger.error("archetype_classification_failed", error=str(e))
+            archetype_result = {"score": 0, "confidence": "failed", "metrics": {}}
+
+        _save_analysis(supabase, req.evaluation_id, "archetypes", archetype_result)
+
+        # Step 9: Buscar contexto do orador + Agregar metricas (6 dimensoes)
         from workers.aggregator import aggregate_metrics
 
         video_metadata = {
@@ -190,13 +214,25 @@ async def _run_pipeline(req: ProcessRequest):
             ),
         }
 
+        # Buscar contexto do questionario pre-avaliacao
+        eval_contexto = None
+        try:
+            ctx_result = supabase.table("evaluation_context").select("contexto").eq("evaluation_id", req.evaluation_id).execute()
+            if ctx_result.data and ctx_result.data[0].get("contexto"):
+                eval_contexto = ctx_result.data[0]["contexto"]
+        except Exception:
+            pass
+
         aggregated = aggregate_metrics(
             req.evaluation_id,
             posture_result,
             gesture_result,
             voice_result,
             filler_result,
+            variety_result,
+            archetype_result,
             video_metadata,
+            contexto=eval_contexto,
         )
 
         supabase.table("aggregated_metrics").insert(
@@ -210,23 +246,44 @@ async def _run_pipeline(req: ProcessRequest):
             }
         ).execute()
 
-        # Step 8: Generate LLM report
+        # Step 10: Gerar relatorio de coaching com LLM
         await _notify_status(req.callback_url, req.evaluation_id, "generating_report")
         try:
             from workers.report_generator import generate_report
 
-            report = generate_report(aggregated)
+            # Buscar contexto completo do orador para o LLM
+            eval_context = None
+            try:
+                ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
+                if ctx_result.data:
+                    eval_context = ctx_result.data[0]
+            except Exception:
+                pass
+
+            report = generate_report(aggregated, context=eval_context)
             supabase.table("reports").insert(
                 {
                     "evaluation_id": req.evaluation_id,
-                    "summary": report["summary"],
-                    "dimension_feedback": report["dimension_feedback"],
-                    "llm_model": report["llm_model"],
-                    "llm_cost_usd": report["llm_cost_usd"],
+                    "summary": report.get("resumo", report.get("summary", "")),
+                    "dimension_feedback": report.get("dimensoes", report.get("dimension_feedback", {})),
+                    "forcas": report.get("forcas", []),
+                    "melhorias": report.get("melhorias_80_20", []),
+                    "plano_12_semanas": report.get("plano_12_semanas", []),
+                    "mensagem_final": report.get("mensagem_final", ""),
+                    "llm_model": report.get("llm_model", "gemini-2.5-flash"),
+                    "llm_cost_usd": report.get("llm_cost_usd", 0.0),
                 }
             ).execute()
         except Exception as e:
             logger.error("report_generation_failed", error=str(e))
+
+        elapsed = time.time() - start
+        logger.info(
+            "pipeline_complete",
+            evaluation_id=req.evaluation_id,
+            overall_score=aggregated["overall_score"],
+            duration_seconds=round(elapsed, 2),
+        )
 
         await _notify_complete(req.callback_url, req.evaluation_id, "completed")
 
@@ -249,7 +306,7 @@ async def process_video(
     if x_callback_secret != config.CALLBACK_SECRET:
         raise HTTPException(status_code=403, detail="Invalid callback secret")
 
-    # Fire-and-forget: run pipeline in background
+    # Fire-and-forget: pipeline roda em background
     asyncio.create_task(_run_pipeline(req))
 
     return {"accepted": True, "evaluation_id": req.evaluation_id}

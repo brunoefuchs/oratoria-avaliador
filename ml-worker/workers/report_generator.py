@@ -160,7 +160,40 @@ def _format_metrics(metrics: dict, max_depth: int = 2) -> str:
     return "\n".join(lines) if lines else "- Dados indisponiveis"
 
 
-def generate_report(aggregated: dict) -> dict:
+def _build_context_section(context: dict | None) -> str:
+    """Constroi secao de contexto do orador para o prompt."""
+    if not context:
+        return ""
+
+    sentimento_map = {1: "muito nervoso", 2: "nervoso", 3: "neutro", 4: "confiante", 5: "muito confiante"}
+    contexto_map = {
+        "vendas": "vendas/pitch", "palco": "palco/palestra", "aula": "aula/treinamento",
+        "rede_social": "rede social/video", "reuniao": "reuniao", "podcast": "podcast/audio", "outro": "outro"
+    }
+
+    lines = ["\n\n## Contexto do Orador"]
+    if context.get("sentimento"):
+        lines.append(f"- Sentimento ao gravar: {sentimento_map.get(context['sentimento'], 'desconhecido')}")
+    if context.get("maior_medo"):
+        lines.append(f"- Maior medo: {', '.join(context['maior_medo'])}")
+    if context.get("contexto"):
+        lines.append(f"- Contexto da apresentacao: {contexto_map.get(context['contexto'], context['contexto'])}")
+    if context.get("avaliado_antes") is not None:
+        lines.append(f"- Experiencia: {'ja se avaliou antes' if context['avaliado_antes'] else 'primeira avaliacao'}")
+    if context.get("objetivo"):
+        lines.append(f"- Objetivo: {context['objetivo']}")
+
+    lines.append("")
+    lines.append("ADAPTE seu tom de coaching conforme este contexto:")
+    lines.append("- Se nervoso (1-2): seja EXTRA encorajador, destaque forcas primeiro, minimize criticas")
+    lines.append("- Se confiante (4-5): seja mais direto e desafiador, eleve o padrao")
+    lines.append("- Se primeira avaliacao: explique brevemente o que cada metrica significa")
+    lines.append("- Adapte exercicios ao contexto (vendas, palco, podcast, etc)")
+
+    return "\n".join(lines)
+
+
+def generate_report(aggregated: dict, context: dict | None = None) -> dict:
     """Gera relatorio qualitativo de coaching usando Gemini."""
     start = time.time()
     logger.info("report_generation_start")
@@ -170,6 +203,18 @@ def generate_report(aggregated: dict) -> dict:
 
     dimension_scores = aggregated.get("dimension_scores", {})
     detailed = aggregated.get("detailed_metrics", {})
+    incomplete = aggregated.get("incomplete_dimensions", [])
+
+    # Guard rails: instrucao ao LLM para nao dar coaching em dimensoes com baixa confianca
+    guard_rails = ""
+    if incomplete:
+        dims_str = ", ".join(incomplete)
+        guard_rails = (
+            f"\n\n## ATENCAO — Dimensoes com Confianca Baixa\n"
+            f"As seguintes dimensoes tiveram confianca BAIXA ou FALHARAM na analise: {dims_str}\n"
+            f"NAO de coaching especifico sobre essas dimensoes. "
+            f"Apenas mencione brevemente que a analise foi inconclusiva e sugira regravar com melhor qualidade de video/audio.\n"
+        )
 
     prompt = REPORT_PROMPT.format(
         overall_score=aggregated.get("overall_score", 0),
@@ -186,6 +231,13 @@ def generate_report(aggregated: dict) -> dict:
         archetype_score=dimension_scores.get("archetypes", 0),
         archetype_metrics=_format_metrics(detailed.get("archetypes", {})),
     )
+
+    if guard_rails:
+        prompt += guard_rails
+
+    context_section = _build_context_section(context)
+    if context_section:
+        prompt += context_section
 
     last_error = None
     for attempt in range(3):

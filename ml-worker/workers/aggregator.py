@@ -2,16 +2,31 @@ import structlog
 
 logger = structlog.get_logger()
 
-# Pesos de cada dimensao no score geral
-# Arquetipos removidos do score principal (extra a ser desbloqueado)
-# Pesos redistribuidos proporcionalmente entre as 5 dimensoes restantes
-PESOS_DIMENSOES = {
-    "variety": 0.29,     # Variedade e o mais importante — o meta-principio
-    "voice": 0.24,       # Voz e diccao
-    "gesture": 0.18,     # Presenca visual (gestual + contato visual)
-    "posture": 0.18,     # Postura e presenca fisica
-    "fillers": 0.11,     # Clareza verbal
+# Pesos default (sem contexto ou contexto "outro")
+PESOS_DEFAULT = {
+    "variety": 0.29,
+    "voice": 0.24,
+    "gesture": 0.18,
+    "posture": 0.18,
+    "fillers": 0.11,
 }
+
+# Pesos contextuais por tipo de apresentacao
+PESOS_POR_CONTEXTO = {
+    "palco":       {"variety": 0.25, "voice": 0.20, "gesture": 0.18, "posture": 0.22, "fillers": 0.15},
+    "podcast":     {"variety": 0.30, "voice": 0.35, "gesture": 0.10, "posture": 0.05, "fillers": 0.20},
+    "vendas":      {"variety": 0.20, "voice": 0.25, "gesture": 0.20, "posture": 0.15, "fillers": 0.20},
+    "rede_social": {"variety": 0.25, "voice": 0.20, "gesture": 0.20, "posture": 0.15, "fillers": 0.20},
+    "reuniao":     {"variety": 0.20, "voice": 0.25, "gesture": 0.15, "posture": 0.20, "fillers": 0.20},
+    "aula":        {"variety": 0.25, "voice": 0.25, "gesture": 0.20, "posture": 0.15, "fillers": 0.15},
+}
+
+
+def _get_pesos(contexto: str | None) -> dict:
+    """Retorna pesos baseados no contexto da apresentacao."""
+    if contexto and contexto in PESOS_POR_CONTEXTO:
+        return PESOS_POR_CONTEXTO[contexto]
+    return PESOS_DEFAULT
 
 
 def aggregate_metrics(
@@ -23,6 +38,7 @@ def aggregate_metrics(
     variety_result: dict,
     archetype_result: dict,
     video_metadata: dict,
+    contexto: str | None = None,
 ) -> dict:
     """Agrega metricas de todas as 6 dimensoes em um payload unico."""
     dimension_scores = {}
@@ -48,11 +64,12 @@ def aggregate_metrics(
                 dimension=dimension,
             )
 
-    # Score geral PONDERADO (nao mais media simples)
+    # Score geral PONDERADO com pesos contextuais
+    pesos = _get_pesos(contexto)
     overall_score = 0.0
     peso_total = 0.0
 
-    for dimension, peso in PESOS_DIMENSOES.items():
+    for dimension, peso in pesos.items():
         if dimension in dimension_scores:
             overall_score += dimension_scores[dimension] * peso
             peso_total += peso
@@ -88,6 +105,7 @@ def aggregate_metrics(
         "incomplete_dimensions": incomplete_dimensions,
         "dimensoes_fortes": dimensoes_fortes,
         "dimensoes_fracas": dimensoes_fracas,
-        "pesos_utilizados": PESOS_DIMENSOES,
+        "contexto": contexto,
+        "pesos_utilizados": pesos,
         "video_metadata": video_metadata,
     }

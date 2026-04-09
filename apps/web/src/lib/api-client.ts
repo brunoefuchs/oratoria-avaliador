@@ -49,6 +49,31 @@ export async function fetchDimensionDetail(evaluationId: string, dimension: stri
   return res.json();
 }
 
+export async function saveContext(
+  evaluationId: string,
+  context: {
+    sentimento?: number;
+    maior_medo?: string[];
+    contexto?: string;
+    avaliado_antes?: boolean;
+    objetivo?: string;
+  }
+) {
+  const res = await fetch(`${API_URL}/evaluations/${evaluationId}/context`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(context),
+  });
+  if (!res.ok) throw new Error("Falha ao salvar contexto");
+  return res.json();
+}
+
+export async function fetchEvaluationStatus(evaluationId: string) {
+  const res = await fetch(`${API_URL}/evaluations/${evaluationId}/status`);
+  if (!res.ok) throw new Error("Falha ao carregar status");
+  return res.json();
+}
+
 export async function submitRating(evaluationId: string, rating: number, comment?: string) {
   const res = await fetch(`${API_URL}/evaluations/${evaluationId}/rating`, {
     method: "POST",

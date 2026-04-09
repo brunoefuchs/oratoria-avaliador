@@ -121,6 +121,7 @@ export default function ReportPage() {
             <ScoreCard
               key={dimension}
               title={DIMENSION_LABELS[dimension] || dimension}
+              dimensionKey={dimension}
               score={score}
               summary={feedback?.dica || feedback?.tip}
               onClick={() => router.push(`/report/${id}/${dimension}`)}

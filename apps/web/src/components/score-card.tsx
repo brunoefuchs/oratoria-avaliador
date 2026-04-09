@@ -3,6 +3,7 @@
 interface ScoreCardProps {
   title: string;
   score: number;
+  dimensionKey?: string;
   summary?: string;
   onClick?: () => void;
 }
@@ -15,14 +16,16 @@ function getScoreColor(score: number) {
 
 const DIMENSION_ICONS: Record<string, string> = {
   posture: "🧍",
-  gesture: "🤲",
-  voice: "🎤",
+  gesture: "👁️",
+  voice: "🎙️",
   fillers: "💬",
+  variety: "🎹",
+  archetypes: "🎭",
 };
 
-export function ScoreCard({ title, score, summary, onClick }: ScoreCardProps) {
+export function ScoreCard({ title, score, dimensionKey, summary, onClick }: ScoreCardProps) {
   const color = getScoreColor(score);
-  const icon = DIMENSION_ICONS[title.toLowerCase()] || "📊";
+  const icon = DIMENSION_ICONS[dimensionKey || ""] || "📊";
 
   return (
     <button
