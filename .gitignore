@@ -42,3 +42,5 @@ out/
 # Temp files
 *.tmp
 tmp/
+.tunnel-logs/
+.dev-logs/

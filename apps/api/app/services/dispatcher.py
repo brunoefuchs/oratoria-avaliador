@@ -8,7 +8,7 @@ logger = structlog.get_logger()
 
 
 async def dispatch_to_ml_worker(evaluation_id: str, video_url: str) -> None:
-    callback_url = f"{settings.ml_worker_url.rstrip('/')}"
+    callback_url = "http://localhost:8002"
 
     await evaluation_repo.update_evaluation(
         evaluation_id, {"status": "processing", "substatus": "splitting"}
