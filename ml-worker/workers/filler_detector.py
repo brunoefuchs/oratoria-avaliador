@@ -115,6 +115,19 @@ def _detectar_clusters(fillers_found: list) -> list:
     return clusters
 
 
+def _has_hesitation_pause(words: list, filler: dict, all_fillers: list) -> bool:
+    """Verifica se ha pausa de hesitacao (>1s) antes do filler."""
+    ts = filler["timestamp"]
+    for w in words:
+        if abs(w.get("start", 0) - ts) < 0.1:
+            idx = words.index(w)
+            if idx > 0:
+                prev_end = words[idx - 1].get("end", 0)
+                gap = w.get("start", 0) - prev_end
+                return gap > 1.0
+    return False
+
+
 def detect_fillers(transcription: dict) -> dict:
     """Detecta vicios de linguagem com classificacao por gravidade e clusters."""
     words = transcription.get("words", [])
@@ -149,6 +162,33 @@ def detect_fillers(transcription: dict) -> dict:
             normalized = word.lower().strip()
             filler_counts[normalized] = filler_counts.get(normalized, 0) + 1
 
+    # Classificacao contextual (nervoso vs estilistico)
+    clusters = _detectar_clusters(fillers_found)
+    cluster_timestamps = set()
+    for cl in clusters:
+        for t in range(int(cl["inicio"]), int(cl["fim"]) + 1):
+            cluster_timestamps.add(t)
+
+    for filler in fillers_found:
+        ts = filler["timestamp"]
+        words_before_count = len(filler["context"].split("[")[0].strip().split())
+
+        # Dentro de cluster → nervoso (peso 2x)
+        if int(ts) in cluster_timestamps:
+            filler["contexto_uso"] = "nervoso"
+            filler["peso_contextual"] = 2.0
+        # Apos pausa de hesitacao (gap > 1s com palavra anterior)
+        elif _has_hesitation_pause(words, filler, fillers_found):
+            filler["contexto_uso"] = "nervoso"
+            filler["peso_contextual"] = 1.5
+        # Fim de frase completa (5+ palavras antes) → estilistico
+        elif words_before_count >= 5:
+            filler["contexto_uso"] = "estilistico"
+            filler["peso_contextual"] = 0.2
+        else:
+            filler["contexto_uso"] = "padrao"
+            filler["peso_contextual"] = 1.0
+
     # Metricas por minuto
     duration_minutes = audio_duration / 60 if audio_duration > 0 else 1
     fillers_per_minute = round(len(fillers_found) / duration_minutes, 1)
@@ -180,12 +220,9 @@ def detect_fillers(transcription: dict) -> dict:
     # Hesitacoes pesam 2x mais que muletas retoricas
     # Clusters sao penalidade extra
 
-    # Score base: fillers ponderados por gravidade
-    fillers_ponderados_por_min = (
-        hesitacoes_per_minute * 2.0  # Hesitacoes pesam dobro
-        + contagem_por_categoria["muleta_conexao"] / duration_minutes * 1.0
-        + contagem_por_categoria["muleta_retorica"] / duration_minutes * 0.5
-    )
+    # Score base: fillers ponderados por gravidade E contexto de uso
+    peso_total_contextual = sum(f.get("peso_contextual", 1.0) for f in fillers_found)
+    fillers_ponderados_por_min = peso_total_contextual / duration_minutes if duration_minutes > 0 else 0
 
     # Escala: < 3 ponderado/min = 100, > 12 ponderado/min = 0
     if fillers_ponderados_por_min <= 3:

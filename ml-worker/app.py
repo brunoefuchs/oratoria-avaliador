@@ -235,6 +235,28 @@ async def _run_pipeline(req: ProcessRequest):
             contexto=eval_contexto,
         )
 
+        # Step 9.5: Analise de congruencia (cruzar sinais entre canais)
+        try:
+            from workers.congruence_analyzer import analyze_congruence
+
+            congruence = analyze_congruence(aggregated["detailed_metrics"])
+            aggregated["congruence"] = congruence
+        except Exception as e:
+            logger.warning("congruence_analysis_failed", error=str(e))
+
+        # Step 9.6: Analise temporal (3 tercos)
+        try:
+            from workers.temporal_analyzer import analyze_temporal
+
+            temporal = analyze_temporal(
+                voice_result, variety_result, filler_result,
+                duration_seconds=video_metadata.get("duration_seconds", 0),
+            )
+            aggregated["temporal"] = temporal
+        except Exception as e:
+            logger.warning("temporal_analysis_failed", error=str(e))
+            aggregated["temporal"] = {"disponivel": False, "motivo": str(e)}
+
         supabase.table("aggregated_metrics").insert(
             {
                 "evaluation_id": req.evaluation_id,

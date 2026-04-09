@@ -239,6 +239,27 @@ def generate_report(aggregated: dict, context: dict | None = None) -> dict:
     if context_section:
         prompt += context_section
 
+    # Dados de congruencia
+    congruence = aggregated.get("congruence", {})
+    if congruence.get("contradicoes"):
+        prompt += "\n\n## Congruencia Entre Canais\n"
+        prompt += f"Score de congruencia: {congruence.get('score', '?')}/100 ({congruence.get('diagnostico', '')})\n"
+        prompt += "Contradicoes detectadas:\n"
+        for c in congruence["contradicoes"]:
+            prompt += f"- {c['descricao']}\n"
+        prompt += "\nMencione as incongruencias de forma construtiva — o orador pode nao estar ciente que corpo e voz enviam mensagens diferentes.\n"
+
+    # Dados temporais (3 tercos)
+    temporal = aggregated.get("temporal", {})
+    if temporal.get("disponivel"):
+        tercos = temporal.get("por_terco", {})
+        prompt += "\n\n## Arco Temporal da Performance\n"
+        prompt += f"Padrao detectado: {temporal.get('padrao', 'desconhecido')} — {temporal.get('padrao_descricao', '')}\n"
+        for label in ["abertura", "meio", "fechamento"]:
+            t = tercos.get(label, {})
+            prompt += f"- {label.capitalize()}: score {t.get('score', '?')}, fillers {t.get('fillers', 0)}, trechos monotonos {t.get('trechos_monotonos', 0)}\n"
+        prompt += "\nComente sobre o arco temporal: o orador mantem energia, perde no meio, ou constroi crescendo?\n"
+
     last_error = None
     for attempt in range(3):
         try:

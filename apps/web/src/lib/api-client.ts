@@ -74,6 +74,26 @@ export async function fetchEvaluationStatus(evaluationId: string) {
   return res.json();
 }
 
+export async function createShare(evaluationId: string) {
+  const res = await fetch(`${API_URL}/evaluations/${evaluationId}/share`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Falha ao criar link de compartilhamento");
+  return res.json();
+}
+
+export async function fetchSharedReport(shareToken: string) {
+  const res = await fetch(`${API_URL}/shared/${shareToken}`);
+  if (!res.ok) throw new Error("Relatorio nao encontrado ou expirado");
+  return res.json();
+}
+
+export async function fetchEvolution(userToken: string) {
+  const res = await fetch(`${API_URL}/evaluations?user_token=${userToken}`);
+  if (!res.ok) throw new Error("Falha ao carregar evolucao");
+  return res.json();
+}
+
 export async function submitRating(evaluationId: string, rating: number, comment?: string) {
   const res = await fetch(`${API_URL}/evaluations/${evaluationId}/rating`, {
     method: "POST",

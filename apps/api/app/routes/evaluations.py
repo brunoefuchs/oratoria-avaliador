@@ -300,3 +300,187 @@ async def create_rating(evaluation_id: str, body: RatingRequest):
 
     supabase.table("report_ratings").upsert(data).execute()
     return {"ok": True}
+
+
+@router.get("/evaluations/{evaluation_id}/replay")
+async def get_replay_data(evaluation_id: str):
+    """Retorna URL assinada do video + eventos temporais para replay."""
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    evaluation = await evaluation_repo.get_evaluation(evaluation_id)
+    if not evaluation:
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+
+    # URL assinada do video (expira em 1h)
+    video_url = evaluation.get("video_url", "")
+    try:
+        signed = supabase.storage.from_("videos").create_signed_url(video_url, 3600)
+        signed_url = signed.get("signedURL", "") if isinstance(signed, dict) else ""
+    except Exception:
+        signed_url = ""
+
+    # Buscar eventos temporais das analises
+    events = []
+
+    # Clusters de fillers
+    fillers_result = (
+        supabase.table("analysis_results")
+        .select("metrics")
+        .eq("evaluation_id", evaluation_id)
+        .eq("dimension", "fillers")
+        .execute()
+    )
+    if fillers_result.data:
+        metrics = fillers_result.data[0].get("metrics", {})
+        for cluster in metrics.get("clusters", []):
+            events.append({
+                "type": "cluster",
+                "start": cluster.get("inicio", 0),
+                "end": cluster.get("fim", cluster.get("inicio", 0) + 5),
+            })
+
+    # Trechos monotonos
+    variety_result = (
+        supabase.table("analysis_results")
+        .select("metrics")
+        .eq("evaluation_id", evaluation_id)
+        .eq("dimension", "variety")
+        .execute()
+    )
+    if variety_result.data:
+        metrics = variety_result.data[0].get("metrics", {})
+        for trecho in metrics.get("trechos_monotonos", []):
+            events.append({
+                "type": "monotono",
+                "start": trecho.get("inicio", 0),
+                "end": trecho.get("fim", trecho.get("inicio", 0) + 15),
+            })
+
+    # Pausas estrategicas (momentos de alta performance)
+    voice_result = (
+        supabase.table("analysis_results")
+        .select("metrics")
+        .eq("evaluation_id", evaluation_id)
+        .eq("dimension", "voice")
+        .execute()
+    )
+    if voice_result.data:
+        metrics = voice_result.data[0].get("metrics", {})
+        pausas = metrics.get("pausas", {})
+        for pausa in pausas.get("estrategicas", []):
+            events.append({
+                "type": "alta_performance",
+                "start": pausa.get("start", 0),
+                "end": pausa.get("end", pausa.get("start", 0) + 2),
+            })
+
+    return {
+        "video_url": signed_url,
+        "events": events,
+        "duration_seconds": evaluation.get("duration_seconds", 0),
+    }
+
+
+@router.post("/evaluations/{evaluation_id}/share", status_code=201)
+async def create_share(evaluation_id: str):
+    """Gera link de compartilhamento para um relatorio."""
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    evaluation = await evaluation_repo.get_evaluation(evaluation_id)
+    if not evaluation:
+        raise HTTPException(status_code=404, detail="Evaluation not found")
+
+    # Verificar se ja existe share ativo
+    existing = (
+        supabase.table("report_shares")
+        .select("share_token, expires_at")
+        .eq("evaluation_id", evaluation_id)
+        .gte("expires_at", "now()")
+        .execute()
+    )
+
+    if existing.data:
+        return {"share_token": existing.data[0]["share_token"], "expires_at": existing.data[0]["expires_at"]}
+
+    result = (
+        supabase.table("report_shares")
+        .insert({"evaluation_id": evaluation_id})
+        .execute()
+    )
+
+    share = result.data[0]
+    return {"share_token": share["share_token"], "expires_at": share["expires_at"]}
+
+
+@router.get("/shared/{share_token}")
+async def get_shared_report(share_token: str):
+    """Acessa relatorio via link de compartilhamento (sem auth)."""
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    share = (
+        supabase.table("report_shares")
+        .select("evaluation_id, expires_at")
+        .eq("share_token", share_token)
+        .execute()
+    )
+
+    if not share.data:
+        raise HTTPException(status_code=404, detail="Link nao encontrado")
+
+    from datetime import datetime, timezone
+
+    expires = datetime.fromisoformat(share.data[0]["expires_at"].replace("Z", "+00:00"))
+    if expires < datetime.now(timezone.utc):
+        raise HTTPException(status_code=410, detail="Link expirado")
+
+    evaluation_id = share.data[0]["evaluation_id"]
+
+    # Reutilizar logica do get_evaluation_report
+    return await get_evaluation_report(evaluation_id)
+
+
+@router.get("/evaluations")
+async def list_evaluations(user_token: str | None = None):
+    """Lista avaliacoes por user_token para dashboard de evolucao."""
+    if not user_token:
+        raise HTTPException(status_code=400, detail="user_token is required")
+
+    from app.repositories.evaluation_repo import _get_supabase
+
+    supabase = _get_supabase()
+
+    evals = (
+        supabase.table("evaluations")
+        .select("id, status, created_at, duration_seconds")
+        .eq("user_token", user_token)
+        .eq("status", "completed")
+        .order("created_at")
+        .execute()
+    )
+
+    if not evals.data:
+        return {"evaluations": []}
+
+    results = []
+    for ev in evals.data:
+        agg = (
+            supabase.table("aggregated_metrics")
+            .select("overall_score, dimension_scores")
+            .eq("evaluation_id", ev["id"])
+            .execute()
+        )
+        agg_data = agg.data[0] if agg.data else {}
+        results.append({
+            "id": ev["id"],
+            "created_at": ev["created_at"],
+            "overall_score": agg_data.get("overall_score", 0),
+            "dimension_scores": agg_data.get("dimension_scores", {}),
+        })
+
+    return {"evaluations": results}
