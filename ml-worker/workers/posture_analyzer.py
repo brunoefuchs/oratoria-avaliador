@@ -72,7 +72,7 @@ def _classificar_movimento(centers_of_mass: list, detected_frames: int) -> dict:
 
     # Detectar deslocamentos significativos (> threshold entre frames consecutivos)
     # Calibrado para match com avaliacao de referencia (ratio_parado ~0.23)
-    threshold_deslocamento = 0.008
+    threshold_deslocamento = 0.005
     deslocamentos = []
     frames_parado = 0
 

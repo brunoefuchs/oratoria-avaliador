@@ -161,9 +161,11 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
     pausas_hesitacao = []
     pausas_respiracao = []
 
-    fillers_set = {
-        "ne", "né", "tipo", "então", "entao", "hum", "humm",
-        "ai", "aí", "assim", "basicamente", "ta", "tá", "eee", "eeee", "eeeee"
+    # Apenas sons de hesitacao REAIS (nao muletas como "entao", "ai")
+    # Muletas nao tornam a pausa antes delas uma "hesitacao"
+    hesitacao_sounds = {
+        "hum", "humm", "hummm", "eee", "eeee", "eeeee",
+        "ãã", "aaa", "uhh", "éee",
     }
 
     for i in range(1, len(words)):
@@ -181,14 +183,14 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
         }
 
         # Classificacao sem depender de pontuacao (Whisper nao coloca nas words)
-        # 1. Antes de filler = hesitacao
-        if next_word in fillers_set:
+        # 1. Antes de som de hesitacao = hesitacao
+        if next_word in hesitacao_sounds:
             pausas_hesitacao.append(pausa)
-        # 2. Pausa estrategica: 0.6-3s e NAO antes de filler
-        elif 0.6 <= gap <= 3.0:
+        # 2. Pausa estrategica: 0.5-3s
+        elif 0.5 <= gap <= 3.0:
             pausas_estrategicas.append(pausa)
-        # 3. Micro-pausa 0.2-0.6s = respiracao
-        elif 0.2 <= gap < 0.6:
+        # 3. Micro-pausa 0.2-0.5s = respiracao
+        elif 0.2 <= gap < 0.5:
             pausas_respiracao.append(pausa)
         # 4. Pausa muito longa > 3s = hesitacao
         elif gap > 3.0:
