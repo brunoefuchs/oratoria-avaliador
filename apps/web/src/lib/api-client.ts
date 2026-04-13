@@ -54,9 +54,10 @@ export async function saveContext(
   context: {
     sentimento?: number;
     maior_medo?: string[];
-    contexto?: string;
+    motivacao?: string[];
     avaliado_antes?: boolean;
-    objetivo?: string;
+    desejo_transmitir?: string[];
+    desejo_melhorar?: string[];
   }
 ) {
   const res = await fetch(`${API_URL}/evaluations/${evaluationId}/context`, {

@@ -22,10 +22,33 @@ PESOS_POR_CONTEXTO = {
 }
 
 
-def _get_pesos(contexto: str | None) -> dict:
-    """Retorna pesos baseados no contexto da apresentacao."""
+# Mapeamento motivacao (questionario V2) → pesos contextuais
+MOTIVACAO_TO_CONTEXTO = {
+    "redes_sociais": "rede_social",
+    "vender_mais": "vendas",
+    "carreira": "reuniao",
+    "palestrar": "palco",
+    "satisfacao_pessoal": None,  # usa default
+    "outro": None,
+}
+
+
+def _get_pesos(contexto: str | None = None, motivacao: list | None = None) -> dict:
+    """Retorna pesos baseados no contexto ou motivacao.
+
+    Prioridade: contexto direto > primeira motivacao com mapeamento > default.
+    """
+    # Backward compat: contexto direto (V1 do questionario)
     if contexto and contexto in PESOS_POR_CONTEXTO:
         return PESOS_POR_CONTEXTO[contexto]
+
+    # V2: mapear motivacao para contexto
+    if motivacao:
+        for m in motivacao:
+            mapped = MOTIVACAO_TO_CONTEXTO.get(m)
+            if mapped and mapped in PESOS_POR_CONTEXTO:
+                return PESOS_POR_CONTEXTO[mapped]
+
     return PESOS_DEFAULT
 
 
@@ -39,6 +62,7 @@ def aggregate_metrics(
     archetype_result: dict,
     video_metadata: dict,
     contexto: str | None = None,
+    motivacao: list | None = None,
 ) -> dict:
     """Agrega metricas de todas as 6 dimensoes em um payload unico."""
     dimension_scores = {}
@@ -65,7 +89,7 @@ def aggregate_metrics(
             )
 
     # Score geral PONDERADO com pesos contextuais
-    pesos = _get_pesos(contexto)
+    pesos = _get_pesos(contexto=contexto, motivacao=motivacao)
     overall_score = 0.0
     peso_total = 0.0
 

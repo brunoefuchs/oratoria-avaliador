@@ -161,36 +161,216 @@ def _format_metrics(metrics: dict, max_depth: int = 2) -> str:
 
 
 def _build_context_section(context: dict | None) -> str:
-    """Constroi secao de contexto do orador para o prompt."""
+    """Constroi secao de contexto do orador para o prompt (V2 — 6 perguntas)."""
     if not context:
         return ""
 
     sentimento_map = {1: "muito nervoso", 2: "nervoso", 3: "neutro", 4: "confiante", 5: "muito confiante"}
-    contexto_map = {
-        "vendas": "vendas/pitch", "palco": "palco/palestra", "aula": "aula/treinamento",
-        "rede_social": "rede social/video", "reuniao": "reuniao", "podcast": "podcast/audio", "outro": "outro"
-    }
 
-    lines = ["\n\n## Contexto do Orador"]
+    lines = ["\n\n## CONTEXTO DO ORADOR (questionario pre-avaliacao)"]
+
     if context.get("sentimento"):
-        lines.append(f"- Sentimento ao gravar: {sentimento_map.get(context['sentimento'], 'desconhecido')}")
+        lines.append(f"- Sentimento ao gravar: {sentimento_map.get(context['sentimento'], 'desconhecido')} ({context['sentimento']}/5)")
     if context.get("maior_medo"):
-        lines.append(f"- Maior medo: {', '.join(context['maior_medo'])}")
-    if context.get("contexto"):
-        lines.append(f"- Contexto da apresentacao: {contexto_map.get(context['contexto'], context['contexto'])}")
+        medos = context["maior_medo"] if isinstance(context["maior_medo"], list) else [context["maior_medo"]]
+        lines.append(f"- Maiores medos: {', '.join(medos)}")
+    if context.get("motivacao"):
+        motivacoes = context["motivacao"] if isinstance(context["motivacao"], list) else [context["motivacao"]]
+        lines.append(f"- Motivacao para melhorar: {', '.join(motivacoes)}")
     if context.get("avaliado_antes") is not None:
-        lines.append(f"- Experiencia: {'ja se avaliou antes' if context['avaliado_antes'] else 'primeira avaliacao'}")
-    if context.get("objetivo"):
-        lines.append(f"- Objetivo: {context['objetivo']}")
+        lines.append(f"- Ja se avaliou antes: {'sim' if context['avaliado_antes'] else 'nao, primeira vez'}")
+    if context.get("desejo_transmitir"):
+        desejos = context["desejo_transmitir"] if isinstance(context["desejo_transmitir"], list) else [context["desejo_transmitir"]]
+        lines.append(f"- Deseja transmitir: {', '.join(desejos)}")
+    if context.get("desejo_melhorar"):
+        melhorar = context["desejo_melhorar"] if isinstance(context["desejo_melhorar"], list) else [context["desejo_melhorar"]]
+        lines.append(f"- Quer melhorar: {', '.join(melhorar)}")
 
     lines.append("")
-    lines.append("ADAPTE seu tom de coaching conforme este contexto:")
-    lines.append("- Se nervoso (1-2): seja EXTRA encorajador, destaque forcas primeiro, minimize criticas")
-    lines.append("- Se confiante (4-5): seja mais direto e desafiador, eleve o padrao")
-    lines.append("- Se primeira avaliacao: explique brevemente o que cada metrica significa")
-    lines.append("- Adapte exercicios ao contexto (vendas, palco, podcast, etc)")
+    lines.append("INSTRUCOES DE ADAPTACAO:")
+    lines.append("1. SENTIMENTO: Se nervoso (1-2), tom EXTRA encorajador. Se confiante (4-5), mais direto/desafiador.")
+    lines.append("2. MEDOS: Enderece pelo menos 1 medo mencionado no feedback — mostre que a avaliacao ajuda a superar.")
+    lines.append("3. MOTIVACAO: Conecte o feedback ao MOTIVO do orador. Se quer 'vender mais', linke melhoria a resultado.")
+    lines.append("4. PRIMEIRA VEZ: Se nao se avaliou antes, explique brevemente o que cada metrica significa.")
+    lines.append("5. DESEJO_TRANSMITIR: Avalie se a comunicacao REALMENTE transmite o que o orador quer. Se quer 'autoridade' mas usa linguagem hesitante, aponte o gap.")
+    lines.append("6. DESEJO_MELHORAR: Priorize feedback nas dimensoes que o orador PEDIU. Comece por elas.")
 
     return "\n".join(lines)
+
+
+def _build_cross_insights(aggregated: dict) -> list[str]:
+    """Gera insights cruzados pre-calculados combinando 2+ metricas."""
+    insights = []
+    scores = aggregated.get("dimension_scores", {})
+    metrics = aggregated.get("detailed_metrics", {})
+    voice = metrics.get("voice", {})
+    gesture = metrics.get("gesture", {})
+    posture = metrics.get("posture", {})
+    variety = metrics.get("variety", {})
+    fillers = metrics.get("fillers", {})
+    archetypes = metrics.get("archetypes", {})
+    temporal = aggregated.get("temporal", {})
+
+    # X01: Instrumento rico sub-utilizado
+    pitch_range = voice.get("pitch_range_semitones", 0)
+    cv_pitch = voice.get("cv_pitch", 0)
+    if pitch_range >= 15 and cv_pitch < 0.08:
+        insights.append(
+            f"INSIGHT CRITICO: orador tem range de tom de {pitch_range} semitons "
+            f"(instrumento rico) mas CV pitch de {cv_pitch} (praticamente plano). "
+            f"Metafora: voce tem um Ferrari e dirige na segunda marcha."
+        )
+
+    # X02: Fala rapida + uniforme
+    wpm = voice.get("wpm", 0)
+    cv_vel = voice.get("cv_velocidade", 0)
+    if wpm > 170 and cv_vel < 0.10:
+        insights.append(
+            f"INSIGHT CRITICO: fala a {wpm} WPM (acima do ideal 130-170) E sem variacao "
+            f"(CV {cv_vel}). Dois problemas que se amplificam — rapidez sem respiro."
+        )
+
+    # X03: Gesticula muito fora da zona
+    gest_pct = gesture.get("gesticulation_pct", 0)
+    zona = gesture.get("zona_ideal_pct", 100)
+    if gest_pct >= 90 and zona < 30:
+        insights.append(
+            f"INSIGHT: gesticula {gest_pct}% do tempo mas apenas {zona}% na zona ideal "
+            f"(peito-cintura). O gesto e ruido visual, nao enfase."
+        )
+
+    # X04: Friend + volume alto
+    arq_dom = archetypes.get("arquetipo_dominante", "")
+    vol_base = voice.get("volume_base_1_10", 0)
+    if arq_dom == "amigo" and vol_base > 8:
+        insights.append(
+            f"INSIGHT: lock-in no arquetipo Amigo (casual) mas com volume {vol_base}/10. "
+            f"Amigo deveria ser caloroso e calmo — nao gritando."
+        )
+
+    # X05: Olhar fixo num ponto
+    eye = gesture.get("eye_contact_pct", 0)
+    dist_olhar = gesture.get("distribuicao_olhar", 1)
+    if eye >= 95 and dist_olhar < 0.3:
+        insights.append(
+            f"INSIGHT: contato visual excelente ({eye}%) mas olhar fixo em um ponto "
+            f"(distribuicao {dist_olhar}). Falta distribuir para toda a audiencia."
+        )
+
+    # X06: Postura boa mas instavel
+    align = posture.get("alignment_score", 0)
+    ground = posture.get("grounding_score", 100)
+    if align >= 80 and ground < 50:
+        insights.append(
+            f"INSIGHT: postura alinhada ({align}) mas instavel ({ground}). "
+            f"O corpo esta certo mas os pes nao estao firmes."
+        )
+
+    # X07: Monotono APESAR de ter range
+    pct_mono = variety.get("pct_tempo_monotono", 0)
+    if pct_mono > 70 and pitch_range >= 12:
+        insights.append(
+            f"INSIGHT CRITICO: monotono em {pct_mono}% do tempo APESAR de ter range "
+            f"vocal de {pitch_range} semitons. O instrumento esta ali — voce escolheu nao usar."
+        )
+
+    # X08: Vicios substituem pausas
+    fpm = fillers.get("fillers_per_minute", 0)
+    pausas = voice.get("pausas", {})
+    qtd_estr = pausas.get("qtd_estrategicas", 0)
+    if fpm > 5 and qtd_estr < 2:
+        insights.append(
+            f"INSIGHT: {fpm} vicios/min e apenas {qtd_estr} pausas estrategicas. "
+            f"Os vicios SUBSTITUEM as pausas — quando deveria ter silencio, voce preenche."
+        )
+
+    # X09: Voz razoavel mas variedade baixa
+    voice_score = scores.get("voice", 0)
+    variety_score = scores.get("variety", 0)
+    if voice_score >= 60 and variety_score < 30:
+        insights.append(
+            f"INSIGHT: voz tecnicamente razoavel ({voice_score}) mas variedade muito baixa "
+            f"({variety_score}). Voce tem a tecnica mas a usa de forma monotona."
+        )
+
+    # X10: Abertura fraca mas pico no meio
+    por_terco = temporal.get("por_terco", {})
+    ab = por_terco.get("abertura", {}).get("score", 0)
+    meio = por_terco.get("meio", {}).get("score", 0)
+    if ab and meio and ab < 50 and meio >= 70:
+        insights.append(
+            f"INSIGHT: abriu fraco ({ab}) mas pegou forca no meio ({meio}). "
+            f"Voce demora pra esquentar — vamos trabalhar a abertura."
+        )
+
+    return insights
+
+
+def _rank_problems(aggregated: dict) -> list[dict]:
+    """Rankeia problemas do orador por impacto real (weight × severity)."""
+    PROBLEM_DEFS = [
+        {"key": "voice.cv_volume", "threshold": 0.05, "op": "<", "weight": 10, "label": "Volume uniforme (sem peaks and troughs)"},
+        {"key": "variety.pct_tempo_monotono", "threshold": 50, "op": ">", "weight": 10, "label": "Fala previsivel/monotona"},
+        {"key": "voice.cv_pitch", "threshold": 0.08, "op": "<", "weight": 9, "label": "Tom de voz sem variacao"},
+        {"key": "archetypes.lock_in", "threshold": True, "op": "==", "weight": 8, "label": "Lock-in em 1 arquetipo vocal"},
+        {"key": "voice.wpm", "threshold": 170, "op": ">", "weight": 7, "label": "Velocidade de fala acima do ideal"},
+        {"key": "gesture.zona_ideal_pct", "threshold": 30, "op": "<", "weight": 6, "label": "Gestos fora da zona de poder"},
+        {"key": "voice.pausas.ratio_estrategicas", "threshold": 0.2, "op": "<", "weight": 6, "label": "Poucas pausas estrategicas"},
+        {"key": "gesture.gesto_repetitivo", "threshold": True, "op": "==", "weight": 5, "label": "Gesto repetitivo (default gestual)"},
+        {"key": "fillers.fillers_per_minute", "threshold": 4, "op": ">", "weight": 5, "label": "Vicios de linguagem frequentes"},
+        {"key": "posture.grounding_score", "threshold": 50, "op": "<", "weight": 4, "label": "Instabilidade corporal"},
+    ]
+
+    metrics = aggregated.get("detailed_metrics", {})
+
+    def _get_value(key: str):
+        parts = key.split(".")
+        obj = metrics
+        for p in parts:
+            if isinstance(obj, dict):
+                obj = obj.get(p)
+            else:
+                return None
+        return obj
+
+    problems = []
+    for defn in PROBLEM_DEFS:
+        value = _get_value(defn["key"])
+        if value is None:
+            continue
+
+        threshold = defn["threshold"]
+        op = defn["op"]
+        is_problem = False
+
+        if op == "<" and isinstance(value, (int, float)):
+            is_problem = value < threshold
+        elif op == ">" and isinstance(value, (int, float)):
+            is_problem = value > threshold
+        elif op == "==":
+            is_problem = value == threshold
+
+        if is_problem:
+            if isinstance(value, (int, float)) and isinstance(threshold, (int, float)):
+                severity = abs(value - threshold) / max(abs(threshold), 1)
+            else:
+                severity = 1.0
+
+            priority = defn["weight"] * severity
+            level = "CRITICO" if priority > 8 else "ALTO" if priority > 5 else "MEDIO" if priority > 3 else "BAIXO"
+
+            problems.append({
+                "label": defn["label"],
+                "value": value,
+                "threshold": threshold,
+                "weight": defn["weight"],
+                "severity": round(severity, 2),
+                "priority": round(priority, 2),
+                "level": level,
+            })
+
+    problems.sort(key=lambda p: p["priority"], reverse=True)
+    return problems[:6]
 
 
 def generate_report(aggregated: dict, context: dict | None = None) -> dict:
@@ -231,6 +411,56 @@ def generate_report(aggregated: dict, context: dict | None = None) -> dict:
         archetype_score=dimension_scores.get("archetypes", 0),
         archetype_metrics=_format_metrics(detailed.get("archetypes", {})),
     )
+
+    # Hierarquia de problemas (ranking por impacto)
+    problems = _rank_problems(aggregated)
+    if problems:
+        prompt += "\n\n## HIERARQUIA DE PROBLEMAS (rankeados por impacto — 80/20)\n"
+        for i, p in enumerate(problems, 1):
+            prompt += f"#{i} {p['level']} — {p['label']} (valor: {p['value']}, ideal: {p['threshold']})\n"
+        prompt += "\nINSTRUCAO: concentre 80% do feedback nos problemas #1 e #2. O orador SAI com 1 prioridade: o problema #1.\n"
+
+    # Insights cruzados
+    insights = _build_cross_insights(aggregated)
+    if insights:
+        prompt += "\n\n## INSIGHTS PRE-CALCULADOS (cruzamento de metricas — USE como base)\n"
+        for insight in insights:
+            prompt += f"- {insight}\n"
+        prompt += "\nINSTRUCAO: use esses insights como BASE do feedback. NAO copie literal — reescreva no seu tom de coach.\n"
+
+    # Identidade comunicativa (Story 6.8)
+    identity = aggregated.get("identity", {})
+    if identity.get("score") is not None and identity.get("diagnostico") != "failed":
+        prompt += "\n\n## IDENTIDADE COMUNICATIVA DO ORADOR\n"
+        prompt += f"Score de identidade: {identity['score']}/100 ({identity.get('diagnostico', '')})\n"
+        prompt += f"Linguagem de autoridade: {identity.get('autoridade_count', 0)} marcadores ({identity.get('autoridade_ratio', 0):.0%})\n"
+        prompt += f"Linguagem de vitima: {identity.get('vitima_count', 0)} marcadores\n"
+        total_vicios = identity.get("total_vicios", 0)
+        if total_vicios > 0:
+            prompt += f"Vicios emocionais detectados: {total_vicios} (dominante: {identity.get('vicio_dominante', 'nenhum')})\n"
+        exemplos = identity.get("exemplos", [])
+        if exemplos:
+            prompt += "Exemplos: " + ", ".join(f'"{e["texto"]}"' for e in exemplos[:3]) + "\n"
+        prompt += "\nINSTRUCAO: Se identidade_bloqueada ou identidade_fragil, aborde PRIMEIRO — antes de tecnica.\n"
+        prompt += "Cruze com desejo_transmitir do questionario: se orador quer 'autoridade' mas linguagem indica vitima, aponte o gap.\n"
+
+    # Analise de abertura (Story 6.10)
+    opening = aggregated.get("opening", {})
+    if opening.get("disponivel"):
+        prompt += "\n\n## ANALISE DE ABERTURA\n"
+        prompt += f"Score de abertura: {opening['score']}/100 ({opening.get('diagnostico', '')})\n"
+        tecnicas = opening.get("tecnicas_detectadas", [])
+        if tecnicas:
+            prompt += "Tecnicas detectadas: " + ", ".join(t["label"] for t in tecnicas) + "\n"
+        else:
+            prompt += "Tecnicas detectadas: NENHUMA\n"
+        prompt += f"Feedback: {opening.get('feedback', '')}\n"
+        ausentes = opening.get("tecnicas_ausentes", [])
+        if ausentes:
+            prompt += "Sugestoes de tecnicas nao usadas:\n"
+            for a in ausentes:
+                prompt += f"- {a['sugestao']}\n"
+        prompt += "\nINSTRUCAO: Se abertura_fraca, comece o feedback por isso. A abertura e o momento mais critico.\n"
 
     if guard_rails:
         prompt += guard_rails

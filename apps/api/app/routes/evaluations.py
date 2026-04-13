@@ -231,9 +231,10 @@ async def get_dimension_detail(evaluation_id: str, dimension: str):
 class ContextRequest(BaseModel):
     sentimento: int | None = None
     maior_medo: list[str] | None = None
-    contexto: str | None = None
+    motivacao: list[str] | None = None
     avaliado_antes: bool | None = None
-    objetivo: str | None = None
+    desejo_transmitir: list[str] | None = None
+    desejo_melhorar: list[str] | None = None
 
 
 @router.post("/evaluations/{evaluation_id}/context", status_code=201)
@@ -250,12 +251,14 @@ async def save_context(evaluation_id: str, body: ContextRequest):
         data["sentimento"] = body.sentimento
     if body.maior_medo is not None:
         data["maior_medo"] = body.maior_medo
-    if body.contexto is not None:
-        data["contexto"] = body.contexto
+    if body.motivacao is not None:
+        data["motivacao"] = body.motivacao
     if body.avaliado_antes is not None:
         data["avaliado_antes"] = body.avaliado_antes
-    if body.objetivo is not None:
-        data["objetivo"] = body.objetivo
+    if body.desejo_transmitir is not None:
+        data["desejo_transmitir"] = body.desejo_transmitir
+    if body.desejo_melhorar is not None:
+        data["desejo_melhorar"] = body.desejo_melhorar
 
     supabase.table("evaluation_context").upsert(data).execute()
     return {"ok": True}
@@ -304,7 +307,15 @@ async def create_rating(evaluation_id: str, body: RatingRequest):
 
 @router.get("/evaluations/{evaluation_id}/replay")
 async def get_replay_data(evaluation_id: str):
-    """Retorna URL assinada do video + eventos temporais para replay."""
+    """Retorna URL assinada do video + timeline com 5 tipos de eventos pontuais.
+
+    Eventos:
+    - cluster: cluster de vicios de linguagem (3+ em sequencia rapida)
+    - filler: vicio de linguagem isolado
+    - pausa_hesitacao: pausa de hesitacao (antes de filler)
+    - pausa_estrategica: pausa intencional apos ponto importante (poder)
+    - olhar_baixo: trecho com olhar para baixo prolongado
+    """
     from app.repositories.evaluation_repo import _get_supabase
 
     supabase = _get_supabase()
@@ -313,7 +324,7 @@ async def get_replay_data(evaluation_id: str):
     if not evaluation:
         raise HTTPException(status_code=404, detail="Evaluation not found")
 
-    # URL assinada do video (expira em 1h)
+    # URL assinada do video
     video_url = evaluation.get("video_url", "")
     try:
         signed = supabase.storage.from_("videos").create_signed_url(video_url, 3600)
@@ -321,10 +332,33 @@ async def get_replay_data(evaluation_id: str):
     except Exception:
         signed_url = ""
 
-    # Buscar eventos temporais das analises
-    events = []
+    # Buscar duration
+    duration = evaluation.get("duration_seconds") or 0
+    if not duration:
+        agg = (
+            supabase.table("aggregated_metrics")
+            .select("video_metadata")
+            .eq("evaluation_id", evaluation_id)
+            .execute()
+        )
+        if agg.data:
+            video_meta = agg.data[0].get("video_metadata") or {}
+            duration = video_meta.get("duration_seconds", 0)
 
-    # Clusters de fillers
+    if not duration or duration <= 0:
+        return {"video_url": signed_url, "events": [], "duration_seconds": 0, "stats": {}}
+
+    events = []
+    stats = {
+        "total_fillers": 0,
+        "total_clusters": 0,
+        "pausas_estrategicas": 0,
+        "pausas_hesitacao": 0,
+    }
+
+    # ============================================================
+    # Fillers e clusters
+    # ============================================================
     fillers_result = (
         supabase.table("analysis_results")
         .select("metrics")
@@ -334,42 +368,42 @@ async def get_replay_data(evaluation_id: str):
     )
     if fillers_result.data:
         metrics = fillers_result.data[0].get("metrics", {})
+
+        # Clusters (3+ fillers em sequencia)
+        cluster_timestamps = set()
         for cluster in metrics.get("clusters", []):
+            start = cluster.get("inicio", 0)
+            end = cluster.get("fim", start + 5)
             events.append({
                 "type": "cluster",
-                "start": cluster.get("inicio", 0),
-                "end": cluster.get("fim", cluster.get("inicio", 0) + 5),
+                "start": start,
+                "end": end,
+                "label": f"{cluster.get('quantidade', 3)} vicios em {round(end - start, 1)}s",
             })
+            stats["total_clusters"] += 1
+            # Marcar timestamps cobertos pelo cluster pra nao duplicar como filler isolado
+            for t in range(int(start), int(end) + 1):
+                cluster_timestamps.add(t)
 
-    # Trechos monotonos
-    variety_result = (
-        supabase.table("analysis_results")
-        .select("metrics")
-        .eq("evaluation_id", evaluation_id)
-        .eq("dimension", "variety")
-        .execute()
-    )
-    if variety_result.data:
-        metrics = variety_result.data[0].get("metrics", {})
-        trechos_raw = metrics.get("trechos_monotonos", [])
-        # trechos_monotonos pode ser dict {velocidade: [...], volume: [...], pitch: [...]} ou lista
-        trechos_flat = []
-        if isinstance(trechos_raw, dict):
-            for v in trechos_raw.values():
-                if isinstance(v, list):
-                    trechos_flat.extend(v)
-        elif isinstance(trechos_raw, list):
-            trechos_flat = trechos_raw
-        for trecho in trechos_flat:
-            if not isinstance(trecho, dict):
+        # Fillers individuais (fora de cluster)
+        for filler in metrics.get("fillers", []):
+            if not isinstance(filler, dict):
                 continue
+            ts = filler.get("timestamp", 0)
+            if int(ts) in cluster_timestamps:
+                continue
+            word = filler.get("word", "?")
             events.append({
-                "type": "monotono",
-                "start": trecho.get("inicio", 0),
-                "end": trecho.get("fim", trecho.get("inicio", 0) + 15),
+                "type": "filler",
+                "start": ts,
+                "end": ts + 0.5,
+                "label": f'"{word}"',
             })
+            stats["total_fillers"] += 1
 
-    # Pausas estrategicas (momentos de alta performance)
+    # ============================================================
+    # Pausas (estrategicas + hesitacao)
+    # ============================================================
     voice_result = (
         supabase.table("analysis_results")
         .select("metrics")
@@ -380,17 +414,54 @@ async def get_replay_data(evaluation_id: str):
     if voice_result.data:
         metrics = voice_result.data[0].get("metrics", {})
         pausas = metrics.get("pausas", {})
+
         for pausa in pausas.get("estrategicas", []):
+            start = pausa.get("start", 0)
+            end = pausa.get("end", start + 1)
             events.append({
-                "type": "alta_performance",
-                "start": pausa.get("start", 0),
-                "end": pausa.get("end", pausa.get("start", 0) + 2),
+                "type": "pausa_estrategica",
+                "start": start,
+                "end": end,
+                "label": f"Pausa estrategica ({round(end - start, 1)}s)",
             })
+            stats["pausas_estrategicas"] += 1
+
+        for pausa in pausas.get("hesitacao", []):
+            start = pausa.get("start", 0)
+            end = pausa.get("end", start + 1)
+            events.append({
+                "type": "pausa_hesitacao",
+                "start": start,
+                "end": end,
+                "label": f"Hesitacao ({round(end - start, 1)}s)",
+            })
+            stats["pausas_hesitacao"] += 1
+
+    # ============================================================
+    # Olhar para baixo (presente?)
+    # ============================================================
+    gesture_result = (
+        supabase.table("analysis_results")
+        .select("metrics")
+        .eq("evaluation_id", evaluation_id)
+        .eq("dimension", "gesture")
+        .execute()
+    )
+    if gesture_result.data:
+        metrics = gesture_result.data[0].get("metrics", {})
+        # Se ha % significativa de olhar baixo, marcar como evento informativo
+        olhar_baixo_pct = metrics.get("olhar_baixo_pct", 0)
+        if olhar_baixo_pct > 10:
+            stats["olhar_baixo_pct"] = olhar_baixo_pct
+
+    # Ordenar eventos por timestamp
+    events.sort(key=lambda e: e["start"])
 
     return {
         "video_url": signed_url,
         "events": events,
-        "duration_seconds": evaluation.get("duration_seconds", 0),
+        "duration_seconds": duration,
+        "stats": stats,
     }
 
 

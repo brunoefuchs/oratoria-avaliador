@@ -180,6 +180,31 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "fillers", filler_result)
 
+        # Step 6.5: Analise de identidade comunicativa (Epic 6)
+        await _notify_status(req.callback_url, req.evaluation_id, "analyzing_identity")
+        try:
+            from workers.identity_analyzer import analyze_identity
+
+            identity_result = analyze_identity(transcription)
+        except Exception as e:
+            logger.error("identity_analysis_failed", error=str(e))
+            identity_result = {"score": 0, "diagnostico": "failed"}
+
+        _save_analysis(supabase, req.evaluation_id, "identity", identity_result)
+
+        # Step 6.6: Analise de abertura (Epic 6)
+        try:
+            from workers.opening_analyzer import analyze_opening
+
+            opening_result = analyze_opening(
+                transcription,
+                voice_result.get("metrics", voice_result),
+                voice_result.get("audio_duration_seconds", voice_result.get("metrics", {}).get("audio_duration_seconds", 0)),
+            )
+        except Exception as e:
+            logger.error("opening_analysis_failed", error=str(e))
+            opening_result = {"disponivel": False, "motivo": str(e)}
+
         # Step 7: Analise de variedade (meta-analyzer) — NOVO
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_variety")
         try:
@@ -214,12 +239,15 @@ async def _run_pipeline(req: ProcessRequest):
             ),
         }
 
-        # Buscar contexto do questionario pre-avaliacao
+        # Buscar contexto do questionario pre-avaliacao (V2 — 6 perguntas)
         eval_contexto = None
+        eval_motivacao = None
         try:
-            ctx_result = supabase.table("evaluation_context").select("contexto").eq("evaluation_id", req.evaluation_id).execute()
-            if ctx_result.data and ctx_result.data[0].get("contexto"):
-                eval_contexto = ctx_result.data[0]["contexto"]
+            ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
+            if ctx_result.data:
+                ctx = ctx_result.data[0]
+                eval_contexto = ctx.get("contexto")  # backward compat V1
+                eval_motivacao = ctx.get("motivacao")  # V2
         except Exception:
             pass
 
@@ -233,7 +261,12 @@ async def _run_pipeline(req: ProcessRequest):
             archetype_result,
             video_metadata,
             contexto=eval_contexto,
+            motivacao=eval_motivacao,
         )
+
+        # Adicionar identity e opening ao aggregated (informativo)
+        aggregated["identity"] = identity_result
+        aggregated["opening"] = opening_result
 
         # Step 9.5: Analise de congruencia (cruzar sinais entre canais)
         try:
