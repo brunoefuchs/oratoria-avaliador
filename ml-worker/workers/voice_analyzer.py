@@ -181,21 +181,18 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
         }
 
         # Classificacao sem depender de pontuacao (Whisper nao coloca nas words)
-        # Pausa de hesitacao: antes de filler ou gap curto com repeticao
-        if next_word in fillers_set or (0.3 <= gap <= 2.0 and next_word == prev_word):
+        # 1. Antes de filler = hesitacao
+        if next_word in fillers_set:
             pausas_hesitacao.append(pausa)
-        # Pausa estrategica: 0.8-3s + pelo menos 5 palavras antes (fim de ideia)
-        elif 0.8 <= gap <= 3.0 and i >= 5:
+        # 2. Pausa estrategica: 0.6-3s e NAO antes de filler
+        elif 0.6 <= gap <= 3.0:
             pausas_estrategicas.append(pausa)
-        # Pausa de respiracao: micro-pausa 0.2-0.5s
-        elif 0.2 <= gap <= 0.5:
+        # 3. Micro-pausa 0.2-0.6s = respiracao
+        elif 0.2 <= gap < 0.6:
             pausas_respiracao.append(pausa)
-        # Pausa longa sem contexto (> 3s) = hesitacao
+        # 4. Pausa muito longa > 3s = hesitacao
         elif gap > 3.0:
             pausas_hesitacao.append(pausa)
-        # Pausas medias 0.5-0.8s = respiracao
-        else:
-            pausas_respiracao.append(pausa)
 
     total_pausas = len(pausas_estrategicas) + len(pausas_hesitacao) + len(pausas_respiracao)
     duration_minutes = prosody.get("audio_duration_seconds", 1) / 60
