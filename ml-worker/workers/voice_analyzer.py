@@ -71,9 +71,6 @@ def analyze_prosody(audio_path: str) -> dict:
     else:
         pitch_range_semitones = 0.0
 
-    # CV de pitch
-    cv_pitch = float(pitch_std / (pitch_mean + 1e-8)) if pitch_mean > 0 else 0.0
-
     # Intensity (volume)
     intensity = sound.to_intensity()
     intensity_values = intensity.values[0]
@@ -81,9 +78,6 @@ def analyze_prosody(audio_path: str) -> dict:
     intensity_std = float(np.std(intensity_values))
     intensity_min = float(np.min(intensity_values))
     intensity_max = float(np.max(intensity_values))
-
-    # CV de volume
-    cv_volume = float(intensity_std / (abs(intensity_mean) + 1e-8))
 
     # Speech rate and silence detection
     intensity_threshold = intensity_mean - 10
@@ -115,6 +109,19 @@ def analyze_prosody(audio_path: str) -> dict:
         janela_int = intensity_values[mask_int]
         volume_por_janela.append(round(float(np.mean(janela_int)), 1) if len(janela_int) > 0 else 0.0)
 
+    # CV de pitch e volume calculados a partir das MEDIAS POR JANELA (nao valores brutos)
+    # Isso garante que medimos variacao TEMPORAL, nao variacao frame-a-frame
+    if len(pitch_por_janela) >= 2:
+        valid_pitch = [p for p in pitch_por_janela if p > 0]
+        cv_pitch = round(float(np.std(valid_pitch) / (abs(np.mean(valid_pitch)) + 1e-8)), 4) if valid_pitch else 0.0
+    else:
+        cv_pitch = 0.0
+
+    if len(volume_por_janela) >= 2:
+        cv_volume = round(float(np.std(volume_por_janela) / (abs(np.mean(volume_por_janela)) + 1e-8)), 4)
+    else:
+        cv_volume = 0.0
+
     # Volume base (1-10 scale)
     volume_base_1_10 = round(min(10, max(1, (intensity_mean - 40) / 4)), 1) if intensity_mean > 40 else 1.0
 
@@ -123,8 +130,8 @@ def analyze_prosody(audio_path: str) -> dict:
         "prosody_analysis_complete",
         duration_seconds=round(elapsed, 2),
         pitch_mean=round(pitch_mean, 1),
-        cv_pitch=round(cv_pitch, 4),
-        cv_volume=round(cv_volume, 4),
+        cv_pitch=cv_pitch,
+        cv_volume=cv_volume,
     )
 
     return {
@@ -133,12 +140,12 @@ def analyze_prosody(audio_path: str) -> dict:
         "pitch_min_hz": round(pitch_min, 1),
         "pitch_max_hz": round(pitch_max, 1),
         "pitch_range_semitones": round(float(pitch_range_semitones), 1),
-        "cv_pitch": round(cv_pitch, 4),
+        "cv_pitch": cv_pitch,
         "intensity_mean_db": round(intensity_mean, 1),
         "intensity_std_db": round(intensity_std, 1),
         "intensity_min_db": round(intensity_min, 1),
         "intensity_max_db": round(intensity_max, 1),
-        "cv_volume": round(cv_volume, 4),
+        "cv_volume": cv_volume,
         "volume_base_1_10": volume_base_1_10,
         "speech_silence_ratio": round(speech_ratio, 3),
         "audio_duration_seconds": round(duration_s, 2),
@@ -173,19 +180,20 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
             "duration": round(gap, 2),
         }
 
+        # Classificacao sem depender de pontuacao (Whisper nao coloca nas words)
         # Pausa de hesitacao: antes de filler ou gap curto com repeticao
         if next_word in fillers_set or (0.3 <= gap <= 2.0 and next_word == prev_word):
             pausas_hesitacao.append(pausa)
-        # Pausa estrategica: 0.8-3s apos fim de frase (. ! ?)
-        elif 0.8 <= gap <= 3.0 and words[i - 1]["word"].strip()[-1:] in ".!?":
+        # Pausa estrategica: 0.8-3s + pelo menos 5 palavras antes (fim de ideia)
+        elif 0.8 <= gap <= 3.0 and i >= 5:
             pausas_estrategicas.append(pausa)
         # Pausa de respiracao: micro-pausa 0.2-0.5s
         elif 0.2 <= gap <= 0.5:
             pausas_respiracao.append(pausa)
-        # Pausa longa sem contexto = hesitacao
-        elif gap > 2.0:
+        # Pausa longa sem contexto (> 3s) = hesitacao
+        elif gap > 3.0:
             pausas_hesitacao.append(pausa)
-        # Pausas medias sem pontuacao = respiracao
+        # Pausas medias 0.5-0.8s = respiracao
         else:
             pausas_respiracao.append(pausa)
 

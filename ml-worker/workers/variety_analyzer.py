@@ -1,0 +1,245 @@
+"""Variety Analyzer — O Meta-Analyzer de Variacao Temporal.
+
+Principio central: "Sempre que qualquer coisa se torna padrao, ela se torna nao-funcional."
+
+Este analyzer mede a VARIACAO ao longo do tempo de TODAS as dimensoes.
+Nao importa se o WPM medio e 150 (perfeito) — se e 150 do inicio ao fim,
+e monotonia. O cerebro desliga quando consegue prever o que vem a seguir.
+
+Dimensoes avaliadas:
+- Variacao de velocidade (WPM entre janelas)
+- Variacao de volume (dB entre janelas)
+- Variacao de pitch (Hz entre janelas)
+- Variacao de gesticulacao (presenca de gestos entre janelas)
+- Score de monotonia geral
+"""
+
+import structlog
+
+logger = structlog.get_logger()
+
+# Ranges ideais de coeficiente de variacao (CV)
+# CV = desvio padrao / media — quanto mais alto, mais variacao
+# Muito baixo = monotono, muito alto = caotico
+CV_RANGES = {
+    "velocidade": {"min_ideal": 0.08, "max_ideal": 0.30, "label": "Velocidade de Fala"},
+    "volume": {"min_ideal": 0.03, "max_ideal": 0.25, "label": "Volume"},
+    "pitch": {"min_ideal": 0.05, "max_ideal": 0.20, "label": "Entonacao"},
+    "gesticulacao": {"min_ideal": 0.10, "max_ideal": 0.40, "label": "Gesticulacao"},
+}
+
+
+def _score_variacao(cv: float, dimensao: str) -> dict:
+    """Calcula score de variacao para uma dimensao baseado no CV.
+
+    Retorna score (0-100) e diagnostico textual.
+    """
+    config = CV_RANGES.get(dimensao, {"min_ideal": 0.05, "max_ideal": 0.30})
+    min_ideal = config["min_ideal"]
+    max_ideal = config["max_ideal"]
+
+    if cv < min_ideal * 0.3:
+        score = 10
+        diagnostico = "travado"  # Quase zero variacao
+    elif cv < min_ideal:
+        # Abaixo do ideal — subindo linearmente
+        score = round(10 + (cv / min_ideal) * 40)
+        diagnostico = "pouca_variacao"
+    elif cv <= max_ideal:
+        # Range ideal — score alto
+        posicao = (cv - min_ideal) / (max_ideal - min_ideal)
+        # Pico no meio do range ideal
+        if posicao <= 0.5:
+            score = round(80 + posicao * 40)
+        else:
+            score = round(100 - (posicao - 0.5) * 20)
+        diagnostico = "ideal"
+    elif cv <= max_ideal * 1.5:
+        # Acima do ideal — descendo
+        excesso = (cv - max_ideal) / (max_ideal * 0.5)
+        score = round(80 - excesso * 40)
+        diagnostico = "excessiva"
+    else:
+        score = max(10, round(40 - (cv - max_ideal * 1.5) * 100))
+        diagnostico = "caotica"
+
+    return {
+        "score": max(0, min(100, score)),
+        "cv": round(cv, 4),
+        "diagnostico": diagnostico,
+        "range_ideal": f"{min_ideal:.2f}-{max_ideal:.2f}",
+    }
+
+
+def _detectar_trechos_monotonos(valores_janela: list, limiar_cv: float = 0.03) -> list:
+    """Detecta trechos onde o orador ficou monotono (3+ janelas consecutivas sem variacao)."""
+    if len(valores_janela) < 3:
+        return []
+
+    trechos = []
+    inicio_monotono = None
+    janela_segundos = 15  # Cada janela tem 15s
+
+    for i in range(1, len(valores_janela)):
+        variacao = abs(valores_janela[i] - valores_janela[i - 1]) / (abs(valores_janela[i - 1]) + 1e-8)
+
+        if variacao < limiar_cv:
+            if inicio_monotono is None:
+                inicio_monotono = i - 1
+        else:
+            if inicio_monotono is not None and (i - inicio_monotono) >= 3:
+                trechos.append({
+                    "inicio_segundos": inicio_monotono * janela_segundos,
+                    "fim_segundos": i * janela_segundos,
+                    "duracao_segundos": (i - inicio_monotono) * janela_segundos,
+                    "num_janelas": i - inicio_monotono,
+                })
+            inicio_monotono = None
+
+    # Checar se terminou monotono
+    if inicio_monotono is not None and (len(valores_janela) - inicio_monotono) >= 3:
+        trechos.append({
+            "inicio_segundos": inicio_monotono * janela_segundos,
+            "fim_segundos": len(valores_janela) * janela_segundos,
+            "duracao_segundos": (len(valores_janela) - inicio_monotono) * janela_segundos,
+            "num_janelas": len(valores_janela) - inicio_monotono,
+        })
+
+    return trechos
+
+
+def analyze_variety(voice_result: dict, gesture_result: dict) -> dict:
+    """Analisa variacao temporal cruzando dados de voz e gestual.
+
+    Args:
+        voice_result: Resultado do voice_analyzer (com janelas temporais)
+        gesture_result: Resultado do gesture_analyzer
+
+    Returns:
+        Analise de variedade com score, diagnostico por dimensao e trechos monotonos
+    """
+    logger.info("variety_analysis_start")
+
+    # Extrair dados de janelas do voice_analyzer
+    # Suporta tanto voice_result flat quanto voice_result.metrics nested
+    voice = voice_result.get("metrics", voice_result)
+    wpm_janelas = voice.get("wpm_por_janela", [])
+    pitch_janelas = voice.get("pitch_por_janela", [])
+    volume_janelas = voice.get("volume_por_janela", [])
+    cv_velocidade = voice.get("cv_velocidade", 0.0)
+    cv_pitch = voice.get("cv_pitch", 0.0)
+    cv_volume = voice.get("cv_volume", 0.0)
+
+    # CV de gesticulacao (estimativa baseada em detecoes de mao)
+    metrics_gesture = gesture_result.get("metrics", {})
+    metrics_gesture.get("gesticulation_pct", 0)
+    # Usar vocabulario como proxy de variacao gestual
+    vocabulario = metrics_gesture.get("vocabulario_gestos", 0)
+    # Normalizar: 9 posicoes no grid = max, quanto mais = mais variacao
+    cv_gesticulacao = min(1.0, vocabulario / 9.0) if vocabulario > 0 else 0.0
+
+    # =============================================
+    # SCORES POR DIMENSAO
+    # =============================================
+    variacao_velocidade = _score_variacao(cv_velocidade, "velocidade")
+    variacao_volume = _score_variacao(cv_volume, "volume")
+    variacao_pitch = _score_variacao(cv_pitch, "pitch")
+    variacao_gesticulacao = _score_variacao(cv_gesticulacao, "gesticulacao")
+
+    # Detectar trechos monotonos
+    trechos_monotonos_velocidade = _detectar_trechos_monotonos(wpm_janelas, 0.05)
+    trechos_monotonos_volume = _detectar_trechos_monotonos(volume_janelas, 0.02)
+    trechos_monotonos_pitch = _detectar_trechos_monotonos(pitch_janelas, 0.03)
+
+    todos_trechos = (
+        trechos_monotonos_velocidade
+        + trechos_monotonos_volume
+        + trechos_monotonos_pitch
+    )
+
+    # Tempo total monotono (segundos)
+    tempo_monotono_total = sum(t["duracao_segundos"] for t in todos_trechos)
+    duracao_audio = voice.get("audio_duration_seconds", 1)
+    pct_tempo_monotono = round(
+        min(100, tempo_monotono_total / max(1, duracao_audio) * 100), 1
+    )
+
+    # =============================================
+    # SCORE GERAL DE VARIEDADE (0-100)
+    # =============================================
+    # "Sua voz e um instrumento com 88 teclas. A maioria das pessoas usa apenas 20."
+    # Esse score mede quantas teclas voce esta usando.
+
+    variety_score = round(
+        variacao_velocidade["score"] * 0.30   # Velocidade e o mais perceptivel
+        + variacao_volume["score"] * 0.25     # Volume cria peaks and troughs
+        + variacao_pitch["score"] * 0.25      # Entonacao da vida a fala
+        + variacao_gesticulacao["score"] * 0.20  # Gestual complementa
+    )
+
+    # Penalidade por tempo monotono (>30% monotono = penalidade significativa)
+    if pct_tempo_monotono > 30:
+        penalidade_monotonia = min(20, (pct_tempo_monotono - 30) * 0.4)
+        variety_score = max(0, round(variety_score - penalidade_monotonia))
+
+    variety_score = max(0, min(100, variety_score))
+
+    # Diagnostico geral
+    if variety_score >= 80:
+        diagnostico_geral = "excelente"
+    elif variety_score >= 60:
+        diagnostico_geral = "bom"
+    elif variety_score >= 40:
+        diagnostico_geral = "moderado"
+    elif variety_score >= 20:
+        diagnostico_geral = "monotono"
+    else:
+        diagnostico_geral = "muito_monotono"
+
+    # Dimensoes com defaults detectados (travadas)
+    defaults_detectados = []
+    for nome, resultado in [
+        ("velocidade", variacao_velocidade),
+        ("volume", variacao_volume),
+        ("entonacao", variacao_pitch),
+        ("gesticulacao", variacao_gesticulacao),
+    ]:
+        if resultado["diagnostico"] in ("travado", "pouca_variacao"):
+            defaults_detectados.append(nome)
+
+    logger.info(
+        "variety_analysis_complete",
+        score=variety_score,
+        diagnostico=diagnostico_geral,
+        defaults=defaults_detectados,
+        pct_monotono=pct_tempo_monotono,
+    )
+
+    return {
+        "score": variety_score,
+        "confidence": "high",
+        "metrics": {
+            "diagnostico_geral": diagnostico_geral,
+            "defaults_detectados": defaults_detectados,
+            "pct_tempo_monotono": pct_tempo_monotono,
+            "dimensoes": {
+                "velocidade": variacao_velocidade,
+                "volume": variacao_volume,
+                "entonacao": variacao_pitch,
+                "gesticulacao": variacao_gesticulacao,
+            },
+            "trechos_monotonos": {
+                "velocidade": trechos_monotonos_velocidade,
+                "volume": trechos_monotonos_volume,
+                "entonacao": trechos_monotonos_pitch,
+                "total": len(todos_trechos),
+                "tempo_total_segundos": round(tempo_monotono_total, 1),
+            },
+            "sub_scores": {
+                "variacao_velocidade": variacao_velocidade["score"],
+                "variacao_volume": variacao_volume["score"],
+                "variacao_entonacao": variacao_pitch["score"],
+                "variacao_gesticulacao": variacao_gesticulacao["score"],
+            },
+        },
+    }
