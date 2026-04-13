@@ -1,5 +1,5 @@
 -- Analysis results per dimension
-CREATE TABLE analysis_results (
+CREATE TABLE IF NOT EXISTS analysis_results (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     evaluation_id UUID NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE,
     dimension TEXT NOT NULL
@@ -13,7 +13,7 @@ CREATE TABLE analysis_results (
 );
 
 -- Transcriptions with word-level timestamps
-CREATE TABLE transcriptions (
+CREATE TABLE IF NOT EXISTS transcriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     evaluation_id UUID NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE UNIQUE,
     full_text TEXT NOT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE transcriptions (
 );
 
 -- Aggregated metrics from all dimensions
-CREATE TABLE aggregated_metrics (
+CREATE TABLE IF NOT EXISTS aggregated_metrics (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     evaluation_id UUID NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE UNIQUE,
     overall_score INTEGER NOT NULL CHECK (overall_score >= 0 AND overall_score <= 100),
@@ -36,5 +36,5 @@ CREATE TABLE aggregated_metrics (
 );
 
 -- Indexes
-CREATE INDEX idx_analysis_results_eval ON analysis_results(evaluation_id);
-CREATE INDEX idx_transcriptions_eval ON transcriptions(evaluation_id);
+CREATE INDEX IF NOT EXISTS idx_analysis_results_eval ON analysis_results(evaluation_id);
+CREATE INDEX IF NOT EXISTS idx_transcriptions_eval ON transcriptions(evaluation_id);

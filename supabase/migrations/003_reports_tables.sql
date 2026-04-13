@@ -1,5 +1,5 @@
 -- LLM-generated reports
-CREATE TABLE reports (
+CREATE TABLE IF NOT EXISTS reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     evaluation_id UUID NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE UNIQUE,
     summary TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE reports (
 );
 
 -- User ratings for reports
-CREATE TABLE report_ratings (
+CREATE TABLE IF NOT EXISTS report_ratings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     evaluation_id UUID NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE UNIQUE,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),

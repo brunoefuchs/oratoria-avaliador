@@ -3,10 +3,12 @@
 const STEPS = [
   { key: "splitting", label: "Separando audio e video" },
   { key: "analyzing_posture", label: "Analisando postura" },
-  { key: "analyzing_gesture", label: "Analisando gestual" },
-  { key: "analyzing_voice", label: "Analisando tom de voz" },
+  { key: "analyzing_gesture", label: "Analisando gestual e contato visual" },
+  { key: "analyzing_voice", label: "Analisando voz e prosodia" },
   { key: "analyzing_fillers", label: "Detectando vicios de linguagem" },
-  { key: "generating_report", label: "Gerando relatorio" },
+  { key: "analyzing_variety", label: "Analisando variedade vocal" },
+  { key: "analyzing_archetypes", label: "Classificando arquetipos vocais" },
+  { key: "generating_report", label: "Gerando relatorio de coaching" },
 ];
 
 interface ProcessingStatusProps {

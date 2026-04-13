@@ -13,5 +13,8 @@
     "test:web": "cd apps/web && npm test",
     "test:api": "cd apps/api && pytest",
     "test:ml": "cd ml-worker && pytest"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.1"
   }
 }
