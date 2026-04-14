@@ -290,12 +290,24 @@ async def _run_pipeline(req: ProcessRequest):
             logger.warning("temporal_analysis_failed", error=str(e))
             aggregated["temporal"] = {"disponivel": False, "motivo": str(e)}
 
+        # Incluir identity, opening, temporal e congruence no detailed_metrics
+        # para que a API possa retornar ao frontend
+        full_detailed = {**aggregated["detailed_metrics"]}
+        if aggregated.get("identity"):
+            full_detailed["identity"] = aggregated["identity"]
+        if aggregated.get("opening"):
+            full_detailed["opening"] = aggregated["opening"]
+        if aggregated.get("temporal"):
+            full_detailed["temporal"] = aggregated["temporal"]
+        if aggregated.get("congruence"):
+            full_detailed["congruence"] = aggregated["congruence"]
+
         supabase.table("aggregated_metrics").insert(
             {
                 "evaluation_id": req.evaluation_id,
                 "overall_score": aggregated["overall_score"],
                 "dimension_scores": aggregated["dimension_scores"],
-                "detailed_metrics": aggregated["detailed_metrics"],
+                "detailed_metrics": full_detailed,
                 "incomplete_dimensions": aggregated["incomplete_dimensions"],
                 "video_metadata": aggregated["video_metadata"],
             }
