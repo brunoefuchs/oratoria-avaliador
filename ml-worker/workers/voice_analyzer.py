@@ -89,13 +89,16 @@ def analyze_prosody(audio_path: str) -> dict:
     pitch_timestamps = pitch.xs()
     pitch_all = pitch.selected_array["frequency"]
 
-    janela_count = max(1, int(duration_s / JANELA_SEGUNDOS))
+    # N janelas uniformes cobrindo 100% da duracao (evita cauda ignorada).
+    # Tamanho-alvo ~15s; arredonda para o inteiro mais proximo, minimo 1.
+    janela_count = max(1, round(duration_s / JANELA_SEGUNDOS))
+    janela_size = duration_s / janela_count
     pitch_por_janela = []
     volume_por_janela = []
 
     for j in range(janela_count):
-        t_start = j * JANELA_SEGUNDOS
-        t_end = (j + 1) * JANELA_SEGUNDOS
+        t_start = j * janela_size
+        t_end = (j + 1) * janela_size
 
         # Pitch medio na janela
         mask_pitch = (pitch_timestamps >= t_start) & (pitch_timestamps < t_end)
@@ -152,6 +155,7 @@ def analyze_prosody(audio_path: str) -> dict:
         "pitch_por_janela": pitch_por_janela,
         "volume_por_janela": volume_por_janela,
         "num_janelas": janela_count,
+        "janela_size_seconds": round(janela_size, 2),
     }
 
 
@@ -222,15 +226,20 @@ def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:
     duration_minutes = audio_duration / 60 if audio_duration > 0 else 1
     wpm = round(word_count / duration_minutes)
 
-    # WPM por janela
+    # WPM por janela — usa o mesmo tamanho de janela real do prosody (cobre 100%).
     janela_count = prosody.get("num_janelas", 1)
+    janela_size = prosody.get("janela_size_seconds") or (
+        audio_duration / janela_count if janela_count > 0 else JANELA_SEGUNDOS
+    )
+    janela_dur_min = janela_size / 60
     wpm_por_janela = []
     for j in range(janela_count):
-        t_start = j * JANELA_SEGUNDOS
-        t_end = (j + 1) * JANELA_SEGUNDOS
+        t_start = j * janela_size
+        t_end = (j + 1) * janela_size
         words_in_janela = [w for w in words if t_start <= w.get("start", 0) < t_end]
-        janela_dur_min = JANELA_SEGUNDOS / 60
-        wpm_por_janela.append(round(len(words_in_janela) / janela_dur_min))
+        wpm_por_janela.append(
+            round(len(words_in_janela) / janela_dur_min) if janela_dur_min > 0 else 0
+        )
 
     # CV de velocidade (entre janelas)
     if len(wpm_por_janela) >= 2:

@@ -10,14 +10,20 @@ logger = structlog.get_logger()
 TERCO_LABELS = ["abertura", "meio", "fechamento"]
 
 
-def _split_windows_by_terco(windows: list, duration: float) -> dict:
-    """Divide janelas temporais em 3 tercos baseado no timestamp."""
+def _split_windows_by_terco(windows: list, duration: float, window_size: float = 15.0) -> dict:
+    """Divide janelas temporais em 3 tercos pelo CENTRO da janela.
+
+    Usar o centro (nao o inicio) evita que a ultima janela fique sem alocacao
+    quando `duration` nao e multiplo exato de `window_size`.
+    Tambem ignora valores zerados (janelas sem sinal de voz).
+    """
     terco_dur = duration / 3
     tercos = {"abertura": [], "meio": [], "fechamento": []}
 
     for i, val in enumerate(windows):
-        # Estima timestamp pelo indice (janelas de ~15s)
-        t = i * 15.0
+        if val == 0:
+            continue
+        t = (i + 0.5) * window_size
         if t < terco_dur:
             tercos["abertura"].append(val)
         elif t < terco_dur * 2:
@@ -78,18 +84,22 @@ def analyze_temporal(
 
     por_terco = {}
 
+    # Tamanho real da janela usada pelo voice_analyzer (pode nao ser 15s fixo)
+    pitch_windows = voice_metrics.get("pitch_por_janela", [])
+    volume_windows = voice_metrics.get("volume_por_janela", [])
+    num_janelas = voice_metrics.get("num_janelas") or max(1, len(pitch_windows))
+    janela_size = voice_metrics.get("janela_size_seconds") or (
+        duration_seconds / num_janelas if num_janelas > 0 else 15.0
+    )
+
+    pitch_tercos = _split_windows_by_terco(pitch_windows, duration_seconds, janela_size)
+    volume_tercos = _split_windows_by_terco(volume_windows, duration_seconds, janela_size)
+
     for i, label in enumerate(TERCO_LABELS):
         t_start = i * terco_dur
         t_end = (i + 1) * terco_dur
 
         terco_info: dict = {"label": label}
-
-        # Voz: pitch e volume por janela
-        pitch_windows = voice_metrics.get("pitch_por_janela", [])
-        volume_windows = voice_metrics.get("volume_por_janela", [])
-
-        pitch_tercos = _split_windows_by_terco(pitch_windows, duration_seconds)
-        volume_tercos = _split_windows_by_terco(volume_windows, duration_seconds)
 
         terco_info["pitch_medio"] = _avg(pitch_tercos.get(label, [0]))
         terco_info["volume_medio"] = _avg(volume_tercos.get(label, [0]))

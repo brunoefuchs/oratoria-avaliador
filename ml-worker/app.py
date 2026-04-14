@@ -242,16 +242,25 @@ async def _run_pipeline(req: ProcessRequest):
         }
 
         # Buscar contexto do questionario pre-avaliacao (V2 — 6 perguntas)
+        # Race-safe: usuario pode ainda estar preenchendo o questionario enquanto
+        # o pipeline roda. Aguarda ate 15s pelo contexto antes de cair no default.
         eval_contexto = None
         eval_motivacao = None
-        try:
-            ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
-            if ctx_result.data:
-                ctx = ctx_result.data[0]
-                eval_contexto = ctx.get("contexto")  # backward compat V1
-                eval_motivacao = ctx.get("motivacao")  # V2
-        except Exception:
-            pass
+        ctx_wait_deadline = time.time() + 15
+        while True:
+            try:
+                ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
+                if ctx_result.data:
+                    ctx = ctx_result.data[0]
+                    eval_contexto = ctx.get("contexto")  # backward compat V1
+                    eval_motivacao = ctx.get("motivacao")  # V2
+                    break
+            except Exception:
+                pass
+            if time.time() >= ctx_wait_deadline:
+                logger.info("evaluation_context_timeout", evaluation_id=req.evaluation_id)
+                break
+            time.sleep(1)
 
         aggregated = aggregate_metrics(
             req.evaluation_id,

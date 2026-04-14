@@ -71,14 +71,17 @@ def _score_variacao(cv: float, dimensao: str) -> dict:
     }
 
 
-def _detectar_trechos_monotonos(valores_janela: list, limiar_cv: float = 0.03) -> list:
+def _detectar_trechos_monotonos(
+    valores_janela: list,
+    limiar_cv: float = 0.03,
+    janela_segundos: float = 15.0,
+) -> list:
     """Detecta trechos onde o orador ficou monotono (3+ janelas consecutivas sem variacao)."""
     if len(valores_janela) < 3:
         return []
 
     trechos = []
     inicio_monotono = None
-    janela_segundos = 15  # Cada janela tem 15s
 
     for i in range(1, len(valores_janela)):
         variacao = abs(valores_janela[i] - valores_janela[i - 1]) / (abs(valores_janela[i - 1]) + 1e-8)
@@ -146,10 +149,11 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> dict:
     variacao_pitch = _score_variacao(cv_pitch, "pitch")
     variacao_gesticulacao = _score_variacao(cv_gesticulacao, "gesticulacao")
 
-    # Detectar trechos monotonos
-    trechos_monotonos_velocidade = _detectar_trechos_monotonos(wpm_janelas, 0.05)
-    trechos_monotonos_volume = _detectar_trechos_monotonos(volume_janelas, 0.02)
-    trechos_monotonos_pitch = _detectar_trechos_monotonos(pitch_janelas, 0.03)
+    # Detectar trechos monotonos — usa janela real do voice_analyzer
+    janela_segundos = voice.get("janela_size_seconds") or 15.0
+    trechos_monotonos_velocidade = _detectar_trechos_monotonos(wpm_janelas, 0.05, janela_segundos)
+    trechos_monotonos_volume = _detectar_trechos_monotonos(volume_janelas, 0.02, janela_segundos)
+    trechos_monotonos_pitch = _detectar_trechos_monotonos(pitch_janelas, 0.03, janela_segundos)
 
     todos_trechos = (
         trechos_monotonos_velocidade

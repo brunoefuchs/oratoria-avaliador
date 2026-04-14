@@ -164,13 +164,15 @@ def classify_archetypes(audio_path: str) -> dict:
 
     sound = parselmouth.Sound(audio_path)
     duracao = sound.get_total_duration()
-    num_janelas = max(1, int(duracao / JANELA_ARQUETIPO))
+    # N janelas uniformes cobrindo 100% da duracao (alvo ~10s cada)
+    num_janelas = max(1, round(duracao / JANELA_ARQUETIPO))
+    janela_dur = duracao / num_janelas
 
     # Primeira passada: extrair features de todas as janelas
     features_por_janela = []
     for j in range(num_janelas):
-        t_inicio = j * JANELA_ARQUETIPO
-        t_fim = min((j + 1) * JANELA_ARQUETIPO, duracao)
+        t_inicio = j * janela_dur
+        t_fim = (j + 1) * janela_dur
         features = _extrair_features_janela(sound, t_inicio, t_fim)
         if features:
             features["t_inicio"] = t_inicio
