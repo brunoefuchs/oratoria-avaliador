@@ -157,7 +157,12 @@ def analyze_gestures(video_path: str) -> dict:
     posicoes_grid_vistas = set()  # vocabulario de posicoes
     maos_abertas_count = 0
     maos_fechadas_count = 0
-    frames_com_gesto = 0
+    frames_com_mao_detectada = 0  # maos visiveis no frame
+    frames_com_gesto_ativo = 0    # maos COM MOVIMENTO significativo
+
+    # Tracking de posicao para medir MOVIMENTO real (nao so presenca)
+    prev_wrist_positions = []  # posicoes do frame anterior
+    GESTO_MOVEMENT_THRESHOLD = 0.02  # deslocamento minimo para contar como gesto ativo
 
     # Consistencia temporal do gesto (mesmo gesto repetido = default)
     ultimas_posicoes = []
@@ -174,7 +179,7 @@ def analyze_gestures(video_path: str) -> dict:
 
         if hand_results.hand_landmarks and len(hand_results.hand_landmarks) > 0:
             hand_detected_count += 1
-            frames_com_gesto += 1
+            frames_com_mao_detectada += 1
             num_maos_no_frame = len(hand_results.hand_landmarks)
 
             if num_maos_no_frame >= 2:
@@ -182,8 +187,11 @@ def analyze_gestures(video_path: str) -> dict:
             else:
                 uma_mao_count += 1
 
+            # Coletar posicoes dos pulsos para medir MOVIMENTO
+            current_wrist_positions = []
             for hand_lm in hand_results.hand_landmarks:
                 info = _classificar_posicao_mao(hand_lm)
+                current_wrist_positions.append(info["wrist_y"])
 
                 if info["zona"] == "alta":
                     zona_alta_count += 1
@@ -199,6 +207,23 @@ def analyze_gestures(video_path: str) -> dict:
 
                 posicoes_grid_vistas.add(info["posicao_grid"])
                 ultimas_posicoes.append(info["posicao_grid"])
+
+            # Medir MOVIMENTO real: comparar posicao com frame anterior
+            if prev_wrist_positions:
+                max_displacement = 0.0
+                for curr_y in current_wrist_positions:
+                    for prev_y in prev_wrist_positions:
+                        displacement = abs(curr_y - prev_y)
+                        max_displacement = max(max_displacement, displacement)
+                if max_displacement > GESTO_MOVEMENT_THRESHOLD:
+                    frames_com_gesto_ativo += 1
+            else:
+                # Primeiro frame com maos — nao conta como gesto ativo
+                pass
+
+            prev_wrist_positions = current_wrist_positions
+        else:
+            prev_wrist_positions = []  # reset se maos saem do frame
 
         # --- DETECCAO DE ROSTO / OLHAR ---
         face_results = face_landmarker.detect(image)
@@ -219,10 +244,12 @@ def analyze_gestures(video_path: str) -> dict:
     # METRICAS CALCULADAS
     # =============================================
 
-    gesticulation_pct = round(frames_com_gesto / total_frames * 100, 1) if total_frames > 0 else 0.0
+    # gesticulation_pct mede MOVIMENTO ATIVO das maos, nao apenas deteccao/presenca
+    gesticulation_pct = round(frames_com_gesto_ativo / max(1, total_frames) * 100, 1) if total_frames > 0 else 0.0
+    hand_visible_pct = round(frames_com_mao_detectada / max(1, total_frames) * 100, 1)
     eye_contact_pct = round(contato_visual_frames / max(1, face_detected_count) * 100, 1)
     olhar_baixo_pct = round(olhar_baixo_frames / max(1, face_detected_count) * 100, 1)
-    duas_maos_pct = round(duas_maos_count / max(1, frames_com_gesto) * 100, 1)
+    duas_maos_pct = round(duas_maos_count / max(1, frames_com_mao_detectada) * 100, 1)
 
     # Vocabulario de gestos (quantas posicoes diferentes usa)
     vocabulario_gestos = len(posicoes_grid_vistas)
@@ -332,6 +359,7 @@ def analyze_gestures(video_path: str) -> dict:
         "confidence": confidence,
         "metrics": {
             "gesticulation_pct": gesticulation_pct,
+            "hand_visible_pct": hand_visible_pct,
             "eye_contact_pct": eye_contact_pct,
             "olhar_baixo_pct": olhar_baixo_pct,
             "duas_maos_pct": duas_maos_pct,

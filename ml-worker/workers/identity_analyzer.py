@@ -165,22 +165,32 @@ def analyze_identity(transcription: dict) -> dict:
     else:
         autoridade_ratio = 0.5  # neutro
 
-    # Score: Base 60, penalidade vicios (-5 cada, max -40), bonus/penalidade autoridade
-    base = 60
-    penalidade_vicios = min(40, total_vicios * 5)
-    bonus_autoridade = (autoridade_ratio - 0.5) * 80  # -40 a +40
+    # Amostra suficiente? Se total de marcadores < 3, score e NEUTRO
+    # (nao podemos afirmar identidade firme com 1 marcador)
+    MINIMUM_MARKERS = 3
+    amostra_suficiente = (total_markers + total_vicios) >= MINIMUM_MARKERS
 
-    score = max(0, min(100, int(base - penalidade_vicios + bonus_autoridade)))
-
-    # Diagnostico
-    if score >= 80:
-        diagnostico = "identidade_firme"
-    elif score >= 60:
-        diagnostico = "identidade_media"
-    elif score >= 40:
-        diagnostico = "identidade_fragil"
+    if not amostra_suficiente:
+        # Dados insuficientes — retornar score neutro
+        score = 60
+        diagnostico = "dados_insuficientes"
     else:
-        diagnostico = "identidade_bloqueada"
+        # Score: Base 60, penalidade vicios (-5 cada, max -40), bonus/penalidade autoridade
+        base = 60
+        penalidade_vicios = min(40, total_vicios * 5)
+        bonus_autoridade = (autoridade_ratio - 0.5) * 80  # -40 a +40
+
+        score = max(0, min(100, int(base - penalidade_vicios + bonus_autoridade)))
+
+        # Diagnostico
+        if score >= 80:
+            diagnostico = "identidade_firme"
+        elif score >= 60:
+            diagnostico = "identidade_media"
+        elif score >= 40:
+            diagnostico = "identidade_fragil"
+        else:
+            diagnostico = "identidade_bloqueada"
 
     logger.info(
         "identity_analysis_complete",

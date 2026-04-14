@@ -87,17 +87,48 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
     tecnicas_detectadas = []
     tecnicas_ids = set()
 
-    # 1. Pergunta reflexiva
-    if "?" in opening_text or any(re.search(p, opening_text, re.IGNORECASE) for p in [r'voc[eê] sabe', r'como funciona', r'j[aá] pensou', r'j[aá] parou', r'ser[aá] que']):
+    # 1. Pergunta — distinguir REFLEXIVA (profunda) de CASUAL (superficial)
+    # Reflexiva: faz o ouvinte PENSAR ("ja parou pra pensar...", "por que sera que...")
+    # Casual: pergunta factual simples ("voce sabe...", "como funciona...")
+    PATTERNS_REFLEXIVA = [
+        r'j[aá] parou', r'j[aá] pensou', r'j[aá] se perguntou',
+        r'ser[aá] que', r'por que ser[aá]', r'imagine', r'e se',
+        r'o que aconteceria', r'como seria',
+    ]
+    PATTERNS_CASUAL = [
+        r'voc[eê] sabe', r'como funciona', r'voc[eê] conhece',
+        r'sab[ei]a que',
+    ]
+
+    has_question = "?" in opening_text
+    is_reflexiva = any(re.search(p, opening_text, re.IGNORECASE) for p in PATTERNS_REFLEXIVA)
+    is_casual_question = any(re.search(p, opening_text, re.IGNORECASE) for p in PATTERNS_CASUAL)
+
+    if has_question or is_reflexiva or is_casual_question:
         perguntas = [s.strip() for s in opening_text.split("?") if s.strip()]
+        exemplo = (perguntas[0][:80] + "?") if perguntas else opening_text[:80]
+
+        if is_reflexiva:
+            qualidade = "boa"
+            label = "Pergunta Reflexiva"
+            descricao = "Voce abriu com uma pergunta que faz o ouvinte PENSAR — excelente tecnica de conexao"
+        elif is_casual_question or has_question:
+            qualidade = "fraca"
+            label = "Pergunta Casual"
+            descricao = "Voce abriu com uma pergunta, mas ela e mais informativa que reflexiva. Tente perguntas que facam o ouvinte PARAR e PENSAR."
+        else:
+            qualidade = "fraca"
+            label = "Pergunta"
+            descricao = "Voce usou uma pergunta na abertura"
+
         tecnicas_detectadas.append({
-            "tecnica": "pergunta_reflexiva",
-            "label": "Pergunta Reflexiva",
-            "descricao": "Voce abriu com uma pergunta — isso ativa a curiosidade do ouvinte",
-            "exemplo": (perguntas[0][:80] + "?") if perguntas else opening_text[:80],
-            "qualidade": "boa" if perguntas and len(perguntas[0].split()) >= 5 else "fraca",
+            "tecnica": "pergunta_reflexiva" if is_reflexiva else "pergunta_casual",
+            "label": label,
+            "descricao": descricao,
+            "exemplo": exemplo,
+            "qualidade": qualidade,
         })
-        tecnicas_ids.add("pergunta_reflexiva")
+        tecnicas_ids.add("pergunta_reflexiva" if is_reflexiva else "pergunta_casual")
 
     # 2. Dado chocante
     numeros = re.findall(r'\b\d+[%]?\b|\b\d+[\.,]\d+\b', opening_text)
@@ -149,24 +180,33 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
                     })
                     tecnicas_ids.add("frase_impacto")
 
-    # Score de abertura
+    # Score de abertura — distinguir qualidade das tecnicas
     n = len(tecnicas_detectadas)
+    n_boas = sum(1 for t in tecnicas_detectadas if t.get("qualidade") == "boa")
+    n_fracas = sum(1 for t in tecnicas_detectadas if t.get("qualidade") == "fraca")
+    has_casual_only = "pergunta_casual" in tecnicas_ids and "pergunta_reflexiva" not in tecnicas_ids
+
     if n == 0:
         score = 20
         diagnostico = "abertura_fraca"
         feedback = "Voce comecou falando sem usar nenhuma tecnica de conexao. O objetivo dos primeiros segundos e: fazer TODOS pararem o que estao fazendo e olharem pra voce."
-    elif n == 1:
+    elif n_boas == 0 and n_fracas > 0:
+        # Apenas tecnicas fracas (ex: pergunta casual)
+        score = 40
+        diagnostico = "abertura_fraca"
+        feedback = f"Voce usou uma tecnica ({tecnicas_detectadas[0]['label']}), mas ela nao e forte o suficiente para prender a atencao. Tente uma pergunta REFLEXIVA ou dado chocante."
+    elif n_boas == 1:
         score = 60
         diagnostico = "abertura_razoavel"
-        feedback = f"Voce usou 1 tecnica de abertura ({tecnicas_detectadas[0]['label']}). Bom começo, mas ha espaco pra mais impacto."
-    elif n == 2:
+        feedback = f"Voce usou 1 tecnica forte ({[t['label'] for t in tecnicas_detectadas if t.get('qualidade')=='boa'][0]}). Bom começo, mas ha espaco pra mais impacto."
+    elif n_boas == 2:
         score = 85
         diagnostico = "abertura_forte"
-        feedback = f"Voce usou {n} tecnicas de abertura. Abertura profissional."
+        feedback = f"Voce usou {n_boas} tecnicas fortes. Abertura profissional."
     else:
         score = 95
         diagnostico = "abertura_excelente"
-        feedback = f"Voce usou {n} tecnicas de abertura! Abertura de alto impacto."
+        feedback = f"Voce usou {n_boas} tecnicas fortes! Abertura de alto impacto."
 
     # Bonus combinacoes poderosas
     if "pergunta_reflexiva" in tecnicas_ids and "gancho_historia" in tecnicas_ids:

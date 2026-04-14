@@ -232,8 +232,10 @@ async def _run_pipeline(req: ProcessRequest):
         # Step 9: Buscar contexto do orador + Agregar metricas (6 dimensoes)
         from workers.aggregator import aggregate_metrics
 
+        # voice_result pode ter formato nested {"score":..,"metrics":{...}}
+        voice_metrics_data = voice_result.get("metrics", voice_result)
         video_metadata = {
-            "duration_seconds": voice_result.get("audio_duration_seconds", 0),
+            "duration_seconds": voice_metrics_data.get("audio_duration_seconds", 0),
             "frames_processed": posture_result.get("metrics", {}).get(
                 "total_frames", 0
             ),

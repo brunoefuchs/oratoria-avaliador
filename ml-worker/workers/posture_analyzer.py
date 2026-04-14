@@ -146,6 +146,7 @@ def analyze_posture(video_path: str) -> dict:
     ombros_nivelados_count = 0
     centers_of_mass = []
     detected_frames = 0
+    hip_visibility_scores = []  # Para detectar video de busto
 
     with PoseLandmarker.create_from_options(options) as landmarker:
         for frame_path in frames:
@@ -162,6 +163,10 @@ def analyze_posture(video_path: str) -> dict:
             right_shoulder = np.array([lm[12].x, lm[12].y])
             left_hip = np.array([lm[23].x, lm[23].y])
             right_hip = np.array([lm[24].x, lm[24].y])
+
+            # Visibilidade do quadril (detecta video de busto)
+            hip_vis = (getattr(lm[23], 'visibility', 0) + getattr(lm[24], 'visibility', 0)) / 2
+            hip_visibility_scores.append(hip_vis)
             nose = np.array([lm[0].x, lm[0].y])
 
             # Ombros nivelados
@@ -203,8 +208,21 @@ def analyze_posture(video_path: str) -> dict:
 
     # Metricas finais
     avg_alignment = round(float(np.mean(alignment_scores)))
-    open_posture_pct = round(open_posture_count / detected_frames * 100, 1)
+    open_posture_pct_raw = round(open_posture_count / detected_frames * 100, 1)
     ombros_nivelados_pct = round(ombros_nivelados_count / detected_frames * 100, 1)
+
+    # Detectar video de busto (quadril pouco visivel = postura aberta nao confiavel)
+    avg_hip_visibility = float(np.mean(hip_visibility_scores)) if hip_visibility_scores else 0
+    is_bust_video = avg_hip_visibility < 0.7  # Baixa visibilidade do quadril
+
+    if is_bust_video and open_posture_pct_raw > 90:
+        # Em video de busto, ombros sempre parecem mais largos que quadril
+        # Reduzir para valor neutro se parece inflado
+        open_posture_pct = 75.0  # Valor neutro — nao podemos afirmar
+        posture_confidence_note = "Video de busto — postura aberta estimada (quadril pouco visivel)"
+    else:
+        open_posture_pct = open_posture_pct_raw
+        posture_confidence_note = None
 
     # Classificacao de movimento
     movimento = _classificar_movimento(centers_of_mass, detected_frames)
@@ -243,6 +261,8 @@ def analyze_posture(video_path: str) -> dict:
             "alignment_score": avg_alignment,
             "open_posture_pct": open_posture_pct,
             "ombros_nivelados_pct": ombros_nivelados_pct,
+            "is_bust_video": is_bust_video,
+            "posture_confidence_note": posture_confidence_note,
             "grounding_score": movimento["grounding_score"],
             "proposital_score": movimento["proposital_score"],
             "padrao_movimento": movimento["padrao"],
