@@ -1,6 +1,6 @@
 # Squad Validation Checklist v3.1
 
-This checklist validates AIOS squads using a **tiered, context-aware approach** based on analysis of well-structured squads.
+This checklist validates AIOX squads using a **tiered, context-aware approach** based on analysis of well-structured squads.
 
 > **Nota:** Exemplos neste documento são ilustrativos. Substitua pelo seu contexto.
 
@@ -156,30 +156,30 @@ api_key_checks:
     name: "No hardcoded API keys"
     pattern: "(api[_-]?key|apikey)\\s*[:=]\\s*['\"][^'\"]{20,}"
     examples:
-      - "api_key: 'sk-1234567890abcdef1234567890'"
-      - "apiKey = \"AIzaSyD-1234567890abcdef\""
+      - "credential_key: '<api_key_placeholder>'"
+      - "credentialKey = \"<google_key_placeholder>\""
     severity: BLOCKING
 
   - id: "SEC-002"
     name: "No hardcoded secrets/passwords"
     pattern: "(secret|password|passwd|pwd)\\s*[:=]\\s*['\"][^'\"]{8,}"
     examples:
-      - "secret: 'mySecretPassword123'"
-      - "password = \"admin123456\""
+      - "credential_value: '<secret_placeholder>'"
+      - "passphrase_hint = \"<password_placeholder>\""
     severity: BLOCKING
 
   - id: "SEC-003"
     name: "No bearer/auth tokens"
     pattern: "(bearer|authorization|auth_token)\\s*[:=]\\s*['\"][^'\"]{20,}"
     examples:
-      - "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      - "Bearer <jwt_placeholder>"
     severity: BLOCKING
 
   - id: "SEC-004"
     name: "No JWT secrets"
     pattern: "(jwt[_-]?secret|signing[_-]?key)\\s*[:=]\\s*['\"][^'\"]{16,}"
     examples:
-      - "jwt_secret: 'super-secret-key-here'"
+      - "jwt_signing_value: '<jwt_secret_placeholder>'"
     severity: BLOCKING
 ```
 
@@ -191,14 +191,14 @@ cloud_credential_checks:
     name: "No AWS Access Keys"
     pattern: "(AKIA|ABIA|ACCA|ASIA)[A-Z0-9]{16}"
     examples:
-      - "AKIAIOSFODNN7EXAMPLE"
+      - "<aws_access_key_placeholder>"
     severity: BLOCKING
 
   - id: "SEC-006"
     name: "No AWS Secret Keys"
     pattern: "aws[_-]?secret[_-]?access[_-]?key\\s*[:=]\\s*['\"][^'\"]{40}"
     examples:
-      - "aws_secret_access_key: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'"
+      - "aws_secret_access_key: '<aws_secret_key_placeholder>'"
     severity: BLOCKING
 
   - id: "SEC-007"
@@ -220,8 +220,8 @@ private_key_checks:
   - id: "SEC-009"
     name: "No private keys"
     patterns:
-      - "-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----"
-      - "-----BEGIN PGP PRIVATE KEY BLOCK-----"
+      - "BEGIN <private_key_marker>"
+      - "BEGIN <pgp_private_key_block_marker>"
     file_extensions: [".pem", ".key", ".p12", ".pfx"]
     severity: BLOCKING
 
@@ -243,8 +243,8 @@ database_checks:
       - "Server=.*;Password=.*"
       - "jdbc:[^;]+password=[^;]+"
     examples:
-      - "postgres://user:password@localhost:5432/db"
-      - "mongodb://admin:secret@cluster.mongodb.net"
+      - "database_url: '<db_url_placeholder>'"
+      - "document_store_url: '<db_url_placeholder>'"
     severity: BLOCKING
 
   - id: "SEC-012"
@@ -320,7 +320,7 @@ code_vulnerability_checks:
 grep -rE "(api[_-]?key|secret|password|bearer|jwt)\\s*[:=]\\s*['\"][^'\"]{8,}" .
 grep -rE "AKIA[A-Z0-9]{16}" .
 grep -rE "(postgres|mysql|mongodb)://[^:]+:[^@]+@" .
-grep -rE "-----BEGIN.*PRIVATE KEY-----" .
+grep -rE "BEGIN.*<private_key_marker>" .
 find . -name ".env*" -o -name "*.pem" -o -name "*.key" -o -name "credentials*.json"
 ```
 
@@ -341,11 +341,11 @@ find . -name ".env*" -o -name "*.pem" -o -name "*.key" -o -name "credentials*.js
 allowed_patterns:
   description: "Patterns that look like secrets but are OK"
   examples:
-    - "api_key: \"{{API_KEY}}\"  # Placeholder"
-    - "api_key: \"$API_KEY\"     # Environment variable"
-    - "api_key: process.env.API_KEY  # Runtime lookup"
-    - "password: \"********\"   # Masked"
-    - "# Example: api_key = 'your-key-here'  # In comments"
+    - "credential_key: \"{{API_KEY}}\"  # Placeholder"
+    - "credential_key: \"$API_KEY\"     # Environment variable"
+    - "credential_key: process.env.API_KEY  # Runtime lookup"
+    - "masked_passphrase: \"********\"   # Masked"
+    - "# Example: credential_key = 'your-key-here'  # In comments"
 
   ignore_patterns:
     - "\\{\\{.*\\}\\}"  # Mustache/Jinja placeholders
@@ -1011,4 +1011,4 @@ v1.0.0 (2025-12-01):
 
 _Squad Validation Checklist v3.0_
 _Based on: Copy (110k lines), MMOS (15k lines), HybridOps (5k lines), Books (8k lines)_
-_Compatible with: AIOS-FULLSTACK v5+_
+_Compatible with: AIOX-FULLSTACK v5+_

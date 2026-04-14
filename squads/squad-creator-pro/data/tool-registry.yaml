@@ -1,13 +1,13 @@
-# Tool Registry - AIOS Global Tool Catalog
+# Tool Registry - AIOX Global Tool Catalog
 # ═══════════════════════════════════════════════════════════════════════════════
-# Registro global de ferramentas disponíveis no ecossistema AIOS.
+# Registro global de ferramentas disponíveis no ecossistema AIOX.
 # Atualizado automaticamente pela task `discover-tools.md`
 # ═══════════════════════════════════════════════════════════════════════════════
 
-version: "2.0"
-last_updated: "2026-02-05"
+version: "3.0"
+last_updated: "2026-02-19"
 updated_by: "squad-chief"
-last_discovery: "2026-02-05 - squad-creator domain"
+last_discovery: "2026-02-19 - skill discovery phase added (hybrid local+community)"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CATEGORIAS DE FERRAMENTAS
@@ -49,11 +49,25 @@ categories:
       - "github.com/collections"
 
   skill_library:
-    description: "Pre-built AI agent skills and prompts"
+    description: "Pre-built AI agent skills, prompts, and workflow patterns"
     discovery_sources:
-      - "langchain hub"
-      - "promptbase"
+      - "github.com - Claude Code skills repos (.claude/skills)"
+      - "github.com - Claude agent definitions (.claude/agents)"
+      - "smith.langchain.com/hub - LangChain prompt/chain templates"
+      - "github.com/crewAIInc/crewAI - CrewAI agents/tools"
+      - "github.com/microsoft/autogen - AutoGen agent configs"
+      - "github.com/microsoft/semantic-kernel - Semantic Kernel skills"
+      - "promptbase.com - Commercial prompt marketplace"
+      - "flowgpt.com - Community prompt sharing"
       - "github.com/topics/ai-agents"
+      - "github.com/topics/claude-code"
+      - "github.com/topics/system-prompts"
+    local_sources:
+      - ".claude/skills/*/SKILL.md - Project-level skills"
+      - "~/.claude/skills/*/SKILL.md - Global user-level skills"
+      - "squads/*/config.yaml - Squad-embedded capabilities"
+      - "squads/*/agents/*.md - Squad agent definitions"
+      - "squads/*/tasks/*.md - Squad task definitions"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FERRAMENTAS RECOMENDADAS PARA SQUAD-CREATOR (Discovery 2026-02-05)
@@ -134,7 +148,7 @@ squad_creator_recommendations:
         - "Validar existência de frameworks documentados"
         - "Research iterativo com devil's advocate"
         - "Encontrar fontes primárias de experts"
-      integration_point: "mind-research-loop.md, deep-research-pre-agent.md"
+      integration_point: "wf-mind-research-loop.yaml, deep-research-pre-agent.md"
 
     knowledge-graph-memory:
       status: recommended
@@ -531,6 +545,29 @@ capability_mapping:
   image_generation:
     requires_install: [dalle-api, midjourney-api, stability-api]
 
+  # Business Model Extraction From Code
+  domain_model_mapping:
+    primary: [rules-extractor-map-domain, aiox-codebase-mapper]
+
+  business_rule_classification:
+    primary: [rules-extractor-classify-rules, aiox-pattern-extractor]
+
+  legacy_rule_characterization:
+    primary: [rules-extractor-characterize-legacy, aiox-framework-analyzer, aiox-dependency-analyzer]
+
+  decision_modeling:
+    primary: [rules-extractor-model-decisions]
+
+  rule_expression_sbvr:
+    primary: [rules-extractor-express-rules]
+
+  structural_rule_search:
+    primary: [aiox-ast-structural-model-scanner]
+    requires_install: [ast-grep, semgrep, comby]
+
+  deep_rule_flow_analysis:
+    requires_install: [joern]
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # DOMAIN → RECOMMENDED TOOLS
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -574,12 +611,39 @@ domain_recommendations:
 
   design:
     essential:
-      - desktop-commander  # File operations
-      - playwright  # Screenshots
+      - workspace-design-system-mcp  # Native DS MCP runtime in workspace/domains/design-system/mcp
+      - aiox-ast-structural-model-scanner  # scripts/ast/scan-structural-model.cjs --profile design-system
+      - design-manifest-sync  # scripts/design-system/sync_design_manifest.cjs
+      - design-manifest-drift-check  # scripts/design-system/validate_design_manifest_drift.cjs
+      - design-components-metadata-gen  # scripts/design-system/generate_components_metadata.cjs
+      - design-components-metadata-validate  # scripts/design-system/validate_components_metadata.cjs
+      - design-task-checklist-validate  # scripts/design-system/validate_task_checklist_bindings.cjs
+      - design-mcp-skeleton-validate  # scripts/design-system/validate_mcp_skeleton.cjs
     recommended:
-      - figma-api  # Design files
+      - playwright  # Local visual regression / evidence capture
+      - design-mcp-tools-healthcheck  # scripts/design-system/test_mcp_tools.cjs
     optional:
-      - cloudinary-api  # Image optimization
+      - figma-api  # Design files sync when external integration is required
+      - chromatic  # Managed visual regression SaaS
+      - percy  # Managed visual regression SaaS
+
+  spy:
+    essential:
+      - exa  # Competitive research
+      - etl-ops-process  # Internal routing/orchestration for extraction
+      - etl-cli-youtube-transcript  # Native transcript pipeline
+      - etl-cli-youtube-metadata  # Native metadata pipeline
+      - etl-cli-fetch-page  # Native deterministic page extraction
+    recommended:
+      - youtube-data-api-v3  # Channel/video metadata enrichment
+      - yt-dlp  # Metadata/download fallback
+      - hyperfine  # Deterministic benchmark timing
+      - playwright  # Dynamic pages and screenshot evidence (when ETL is insufficient)
+      - apify-api  # Social extraction fallback
+    optional:
+      - meta-graph-api  # Instagram official integration
+      - instaloader  # Local fallback for IG extraction
+      - youtube-transcript-api  # Programmatic transcript fallback
 
   marketing:
     essential:
@@ -590,6 +654,26 @@ domain_recommendations:
       - social-media-apis
     optional:
       - mailchimp-api  # Email marketing
+
+  domain_decoder:
+    essential:
+      - rules-extractor-wf-extract-rules  # Canonical extraction orchestration
+      - rules-extractor-map-domain  # Bounded context + glossary
+      - rules-extractor-classify-rules  # Ross taxonomy
+      - rules-extractor-characterize-legacy  # Characterization + seams
+      - rules-extractor-model-decisions  # Decision model + DMN
+      - rules-extractor-express-rules  # RuleSpeak/SBVR-style expression
+      - aiox-ast-structural-model-scanner  # scripts/ast/scan-structural-model.cjs --profile domain-decoder
+      - aiox-codebase-mapper  # Codebase structure map
+      - aiox-pattern-extractor  # Pattern inventory for rule candidates
+      - aiox-dependency-analyzer  # Traceability and dependency graph
+    recommended:
+      - ast-grep  # Structural AST search for rule mining
+      - semgrep  # Rule-based static analysis
+      - tree-sitter  # Parser foundation for custom extractors
+    optional:
+      - comby  # Structural search/rewrite fallback
+      - joern  # CPG-based deep flow analysis
 
   development:
     essential:
@@ -632,6 +716,17 @@ discovery_queries:
     - "python {domain} library"
     - "node {domain} package npm"
     - "{domain} SDK"
+
+  skills_and_prompts:
+    - "claude code skills {domain} site:github.com"
+    - ".claude/skills {domain} site:github.com"
+    - "claude agent {domain} site:github.com"
+    - "crewai {domain} agents"
+    - "langchain {domain} chain prompt"
+    - "awesome prompts {domain} github"
+    - "system prompt {domain} site:github.com"
+    - "ai agent {domain} workflow"
+    - "n8n workflow {domain}"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # QUALITY SCORING FOR DISCOVERED TOOLS
@@ -689,12 +784,33 @@ quality_criteria:
       weight: 0.1
       check: "Active community/support?"
 
+  skill:
+    - name: "domain_relevance"
+      weight: 0.30
+      check: "Directly applicable to target domain?"
+    - name: "reusability"
+      weight: 0.25
+      check: "Can be forked/adapted with minimal effort?"
+    - name: "self_contained"
+      weight: 0.20
+      check: "No external dependencies? Works standalone?"
+    - name: "quality"
+      weight: 0.15
+      check: "Has documentation, examples, clear structure?"
+    - name: "community"
+      weight: 0.10
+      check: "Stars, usage, forks?"
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # METADATA
 # ═══════════════════════════════════════════════════════════════════════════════
 
 metadata:
   created: "2026-02-03"
-  purpose: "Central registry of tools available for AIOS squads"
+  updated: "2026-02-19"
+  purpose: "Central registry of tools AND skills available for AIOX squads"
   updated_by_task: "discover-tools.md"
   refresh_frequency: "Per squad creation or monthly"
+  changelog:
+    v3.0: "Added skill_library expanded sources, local_sources, skill quality criteria, skill discovery queries"
+    v2.0: "Initial squad-creator recommendations"

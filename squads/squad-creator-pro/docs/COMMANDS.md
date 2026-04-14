@@ -230,7 +230,7 @@ Valida squad inteiro com análise por componente.
 
 ### `*validate-agent`
 
-Valida agent individual contra AIOS 6-level structure.
+Valida agent individual contra AIOX 6-level structure.
 
 ```bash
 *validate-agent squads/{squad-name}/agents/{agent-name}.md

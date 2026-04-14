@@ -157,10 +157,10 @@ sections:
       {{key_features}}
 
   - id: integration
-    title: Integration with Core AIOS
-    instruction: Explain how this pack integrates with AIOS framework
+    title: Integration with Core AIOX
+    instruction: Explain how this pack integrates with AIOX framework
     template: |
-      ## Integration with Core AIOS
+      ## Integration with Core AIOX
 
       {{pack_name}} integrates seamlessly with:
 
@@ -199,7 +199,7 @@ sections:
 
       This squad requires:
 
-      - Core AIOS-FULLSTACK framework
+      - Core AIOX-FULLSTACK framework
       {{additional_dependencies}}
 
   - id: support
@@ -228,4 +228,4 @@ sections:
       **Ready to {{pack_tagline}}? Let's get started! 🚀**
 
       _Version: {{version}}_
-      _Compatible with: AIOS-FULLSTACK v4+_
+      _Compatible with: AIOX-FULLSTACK v4+_

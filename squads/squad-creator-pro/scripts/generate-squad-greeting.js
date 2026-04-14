@@ -39,8 +39,8 @@ const SessionContextLoader = require('../../../.aiox-core/scripts/session-contex
 const { loadProjectStatus } = require('../../../.aiox-core/infrastructure/scripts/project-status-loader');
 
 const SQUADS_PATH = './squads';
-const REGISTRY_PATH = './squads/squad-creator-pro/data/squad-registry.yaml';
-const TIMEOUT_MS = 200;
+const REGISTRY_PATH = './squads/sinkra-squad/data/ecosystem-registry.yaml';
+const TIMEOUT_MS = 2000;
 
 /**
  * Load agent definition from squad
@@ -218,7 +218,7 @@ async function generateEcosystemReport(settings = {}) {
   const registry = await loadSquadRegistry();
   const counts = getEcosystemCounts(registry);
 
-  let report = `## 📊 AIOS Squad Ecosystem
+  let report = `## 📊 AIOX Squad Ecosystem
 
 **${counts.squadCount} Squads** | **${counts.agentCount} Agents** | **${counts.taskCount} Tasks** | **${counts.checklistCount} Checklists** | **${counts.workflowCount} Workflows**`;
 

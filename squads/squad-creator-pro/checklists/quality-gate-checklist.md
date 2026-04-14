@@ -2,7 +2,7 @@
 
 > **Pattern:** HO-PP-003 (Quality Gate Pattern)
 > **Version:** 1.0.0
-> **Source:** AIOS Quality Gate Standard
+> **Source:** AIOX Quality Gate Standard
 > **Updated:** 2026-01-24
 
 Este checklist valida a estrutura e conformidade de Quality Gates conforme o padrao HO-PP-003.
@@ -375,9 +375,9 @@ Use este checklist rapido para validar Quality Gates:
 
 ## Referencias
 
-- AIOS Quality Gate Standard Section 2.1
+- AIOX Quality Gate Standard Section 2.1
 - [HO-TP-001] Task Anatomy Standard
-- Quality Gates Reference: AIOS Standard Quality Gates
+- Quality Gates Reference: AIOX Standard Quality Gates
 
 ---
 

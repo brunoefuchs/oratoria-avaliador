@@ -1,11 +1,15 @@
 # Task: Validate Final Artifacts
 
 **Task ID:** validate-final-artifacts
-**Version:** 1.0.0
 **Execution Type:** Hybrid (Deterministic checks + Agent for semantic quality)
+**Domain:** `Operational`
 **Purpose:** Validate final squad outputs only, not intermediate artifacts
 **Orchestrator:** @squad-chief
 **Mode:** Blocking quality gate
+**Model:** `Sonnet` (final artifact semantic quality assessment)
+**Haiku Eligible:** NO -- final quality adjudication requires contextual reasoning
+
+**Accountability:** `human: squad-operator | scope: full`
 
 ## Cardinal Rule
 
@@ -16,6 +20,18 @@ A squad passes only if final artifacts are production-ready.
 
 ---
 
+
+<!-- SINKRA_CONTRACT -->
+Domain: `Operational`
+atomic_layer: Atom
+agent: squad-chief
+Input: request::validate_final_artifacts
+Output: artifact::validate_final_artifacts
+pre_condition: contexto mínimo carregado e rota validada
+post_condition: decisão registrada com artefato persistido ou handoff emitido
+performance: registrar evidências, falhas e próximo passo sem erro silencioso
+Completion Criteria: contrato mínimo SINKRA explícito e saída rastreável produzida
+
 ## Final Targets
 
 ```yaml
@@ -25,6 +41,8 @@ required_artifacts:
   - tasks/*.md
   - workflows/*.yaml
   - README.md
+  - .claude/skills/*/{entry_agent}/SKILL.md
+  - .codex/skills/{entry_agent}/SKILL.md
 
 optional_but_scored:
   - checklists/*.md
@@ -51,7 +69,11 @@ optional_but_scored:
 - No critical security findings.
 - No veto condition triggered.
 
-4. `Usability Gate` (warning)
+4. `Chief Activation Gate` (blocking)
+- Chief slash skill exists in `.claude/skills/*/{entry_agent}/SKILL.md`.
+- Chief Codex skill exists in `.codex/skills/{entry_agent}/SKILL.md`.
+
+5. `Usability Gate` (warning)
 - README includes activation and example commands.
 - At least one end-to-end example path.
 
@@ -70,6 +92,8 @@ final_artifact_report:
     - "..."
   recommended_fixes:
     - "..."
+  schema_ref: squads/squad-creator/config/workflow-yaml-schema.yaml
+
 ```
 
 ---
@@ -77,4 +101,4 @@ final_artifact_report:
 ## Success Criteria
 
 - All blocking gates pass.
-- Report generated at `outputs/squad_validation/{squad_name}/final-artifacts.yaml`.
+- Report generated at `.aiox/squad-runtime/squad-validation/{squad_name}/final-artifacts.yaml`.

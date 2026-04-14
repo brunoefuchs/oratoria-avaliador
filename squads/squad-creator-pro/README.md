@@ -17,7 +17,7 @@
 |-----|-----------|
 | [CONCEPTS](docs/CONCEPTS.md) | Entenda DNA, Tiers, Quality Gates |
 | [COMMANDS](docs/COMMANDS.md) | Referência de todos os comandos |
-| [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) | Problemas comuns e soluções |
+| [TROUBLESHOOTING](../squad-creator/docs/TROUBLESHOOTING.md) | Problemas comuns e soluções |
 | [ARCHITECTURE](docs/ARCHITECTURE-DIAGRAMS.md) | Diagramas de fluxo (Mermaid) |
 | [HITL-FLOW](docs/HITL-FLOW.md) | Human-in-the-Loop detalhado |
 
@@ -25,7 +25,7 @@
 
 ## Sobre o Squad Creator
 
-O Squad Creator gerencia os squads da sua instalação AIOS. Use o comando `*refresh-registry` para ver estatísticas atualizadas do seu ecossistema.
+O Squad Creator gerencia os squads da sua instalação AIOX. Use o comando `*refresh-registry` para ver estatísticas atualizadas do seu ecossistema.
 
 **Características:**
 - Cria squads baseados em elite minds reais
@@ -407,7 +407,7 @@ Máxima fidelidade com materiais do usuário:
 | Comando | Descrição | Gate |
 |---------|-----------|------|
 | `*validate-squad {name}` | Validação completa (9 fases) | Blocking |
-| `*validate-agent {file}` | AIOS 6-level structure | SC_AGT_001 |
+| `*validate-agent {file}` | AIOX 6-level structure | SC_AGT_001 |
 | `*validate-task {file}` | Task Anatomy (8 campos) | - |
 | `*validate-workflow {file}` | Phases + checkpoints | - |
 | `*quality-dashboard {name}` | Métricas visuais | - |
@@ -453,7 +453,7 @@ Máxima fidelidade com materiais do usuário:
 - `create-agent.md` - Criação individual de agent para squads (756 linhas)
 - `create-task.md` - Criação de task para workflows
 - `create-template.md` - Criação de template para outputs
-- `extract-sop.md` - Extração de SOPs de transcrições (AIOS-ready)
+- `extract-sop.md` - Extração de SOPs de transcrições (AIOX-ready)
 
 **Validação**
 - `validate-squad.md` - Validação granular de squad (795 linhas, 9 fases)
@@ -486,7 +486,7 @@ Scripts Python para operações determinísticas (zero tokens LLM):
 
 | Script | Propósito | Tipo |
 |--------|-----------|------|
-| `sync-ide-command.py` | Sincroniza components para IDEs | Worker |
+| `sync-ide-skills.py` | Sincroniza components para IDEs | Worker |
 | `validate-squad-structure.py` | Validação Phases 0-2 | Worker |
 | `refresh-registry.py` | Escaneia squads, gera JSON | Worker |
 | `squad-analytics.py` | Métricas e estatísticas | Worker |
@@ -494,6 +494,8 @@ Scripts Python para operações determinísticas (zero tokens LLM):
 | `yaml_validator.py` | Validação YAML | Worker |
 
 **Documentação completa:** [scripts/README.md](scripts/README.md)
+
+Observação: `sync-ide-skills.py`, `validate-squad-structure.py`, `squad-analytics.py` e `yaml_validator.py` hoje são wrappers de compatibilidade para workers canônicos do `squad-creator`, enquanto `refresh-registry.py` permanece um worker Pro-native ligado ao registry do pack.
 
 ---
 
@@ -521,8 +523,8 @@ O Squad Creator usa o **Executor Decision Tree** para otimizar custos:
 
 | Task | Tipo | Script Worker |
 |------|------|---------------|
-| `sync-ide-command.md` | Worker | `sync-ide-command.py` |
-| `install-commands.md` | Worker | `sync-ide-command.py` |
+| `sync-ide-skills.md` | Worker | `sync-ide-skills.py` |
+| `install-skills.md` | Worker | `sync-ide-skills.py` |
 | `refresh-registry.md` | Hybrid | `refresh-registry.py` |
 | `squad-analytics.md` | Hybrid | `squad-analytics.py` |
 | `validate-squad.md` | Hybrid | `validate-squad-structure.py` |
@@ -564,7 +566,7 @@ O SOP Extractor transforma transcrições de reuniões em Procedimentos Operacio
 Extrair SOPs de reuniões gravadas onde alguém explicou um processo de negócio, produzindo:
 1. SOP completo seguindo padrão SC-PE-001 (11 partes)
 2. Análise de automação usando heurística PV_PM_001
-3. Blueprint de Squad AIOS pronto para criação imediata
+3. Blueprint de Squad AIOX pronto para criação imediata
 4. Relatório de gaps com perguntas de esclarecimento
 
 ### Fontes de Dados
@@ -723,7 +725,7 @@ squads/nome-do-seu-squad/
 
 - Checklist completo cobrindo todas as dimensões de qualidade
 - Validação de segurança para todo código gerado
-- Verificação de conformidade com padrões AIOS
+- Verificação de conformidade com padrões AIOX
 
 ### Automação de Documentação
 
@@ -731,11 +733,11 @@ squads/nome-do-seu-squad/
 - Exemplos de uso e guias de integração
 - Documentação de melhores práticas
 
-## Integração com AIOS Core
+## Integração com AIOX Core
 
 O Squad Architect integra perfeitamente com:
 
-1. **AIOS Developer Agent** - Pode usar aios-developer para modificações avançadas de componentes
+1. **AIOX Developer Agent** - Pode usar aiox-developer para modificações avançadas de componentes
 2. **Core Workflows** - Squads gerados integram com workflows greenfield e brownfield
 3. **Memory Layer** - Rastreia todos os squads e componentes criados
 4. **Installer** - Squads gerados podem ser instalados via installer padrão
@@ -915,8 +917,8 @@ Você pode customizar squads gerados por:
 
 Este squad requer:
 
-- Framework AIOS-FULLSTACK core
-- AIOS Developer agent (opcional, para modificações avançadas)
+- Framework AIOX-FULLSTACK core
+- AIOX Developer agent (opcional, para modificações avançadas)
 - Entendimento básico da sua expertise de domínio
 
 ## Suporte & Comunidade
@@ -937,7 +939,7 @@ Este squad requer:
 **Soluções:**
 1. Verifique se o arquivo do agent existe: `ls squads/squad-creator-pro/agents/squad-chief.md`
 2. Cheque sintaxe YAML: Garanta que o bloco YAML está formatado corretamente
-3. Verifique se o squad está sincronizado: Cheque se `.claude/commands/squad-creator/` existe
+3. Verifique se o squad está sincronizado: Cheque se `.claude/skills/squad-creator/squad-chief/SKILL.md` existe
 
 ---
 
@@ -1026,7 +1028,7 @@ Veja `CHANGELOG.md` para histórico detalhado de versões.
 
 ## Notas
 
-- Squads gerados seguem padrões AIOS-FULLSTACK automaticamente
+- Squads gerados seguem padrões AIOX-FULLSTACK automaticamente
 - Todos os componentes incluem validação e checks de segurança embutidos
 - O creator usa elicitação interativa para garantir qualidade
 - Documentação gerada inclui exemplos de uso e guias de integração
@@ -1046,7 +1048,7 @@ docs/
 ├── QUICK-START.md           # Tutorial de 5 minutos
 ├── CONCEPTS.md              # Conceitos fundamentais
 ├── COMMANDS.md              # Referência de comandos
-├── TROUBLESHOOTING.md       # Problemas e soluções
+├── ../squad-creator/docs/TROUBLESHOOTING.md # Referência canônica compartilhada
 ├── ARCHITECTURE-DIAGRAMS.md # Diagramas Mermaid
 ├── HITL-FLOW.md             # Human-in-the-Loop
 └── sop-extraction-process.md # Processo de extração SOP
@@ -1055,5 +1057,5 @@ docs/
 ---
 
 _Versão: 2.9.0_
-_Compatível com: AIOS-FULLSTACK v5+_
+_Compatível com: AIOX-FULLSTACK v5+_
 _Última Atualização: 2026-02-05_

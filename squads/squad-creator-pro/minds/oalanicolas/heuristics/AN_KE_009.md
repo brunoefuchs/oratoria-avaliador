@@ -89,6 +89,9 @@ AN_KE_009:
   name: "Meta Decision Flow"
   phase: "any"
   agent: "@oalanicolas"
+  sys_tension:
+    tension_with: "AN_KE_073 (Parallel Subagents for Throughput) — Sequential rigorous flow vs parallelization for speed"
+    resolution: "Use shortcuts (quick_decisions) for low-risk; full flow for high-impact"
 
   application:
     when: "Any significant decision"
@@ -226,6 +229,15 @@ performance:
   user_alignment: "High (decisions match expectations)"
   confidence: "High (evidence-based)"
 ```
+
+---
+
+## Validation
+
+- **Paradox Identified:** SILENCE (7) conflicts with VALIDATE (9) when errors are discovered — silence suggests no communication, validation requires evidence sharing
+- **Resolution:** SILENCE means no self-justification; VALIDATE still requires test evidence to be documented for audit
+- **Tension Resolved:** Silent execution + visible evidence = accountability without excuses
+- **Checkpoint:** Confirm shortcuts match decision risk level before execution
 
 ---
 

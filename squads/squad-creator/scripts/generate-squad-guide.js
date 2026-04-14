@@ -172,6 +172,7 @@ async function loadAgentData(squadName, agentName) {
     modes: findKey(parsedBlocks, 'modes'),
     command_categories: findKey(parsedBlocks, 'command_categories'),
     command_aliases_ptbr: findKey(parsedBlocks, 'command_aliases_ptbr'),
+    pro_detection: findKey(parsedBlocks, 'pro_detection'),
   };
 }
 
@@ -278,7 +279,9 @@ Sou o arquiteto especializado em criar **squads de agentes** baseados em **elite
 
 | Ação | Comando | Descrição |
 |------|---------|-----------|
+| Planejar squad | \`*plan-squad editais --reference docs/projects/editais/epics/epic-editais-squad/epic.md\` | Gero PRD profundo antes da execucao |
 | Criar squad | \`*create-squad-smart legal\` | Detecto contexto e escolho workflow automaticamente |
+| Criar de SOP | \`*create-from-sop aiox --namespace=operations\` | Carrego SOPs canônicos e derivo artefatos |
 | Upgrade brownfield | \`*brownfield-upgrade legal\` | Valido baseline e aplico upgrade seguro |
 | Clonar expert | \`*clone-mind Gary Halbert\` | Extrair Voice DNA + Thinking DNA completo |
 | Validar squad | \`*validate-squad copy\` | Validação granular component-by-component |
@@ -295,10 +298,13 @@ Sou o arquiteto especializado em criar **squads de agentes** baseados em **elite
  *
  * @param {Object} data - Agent data from loadAgentData
  * @param {number} startNumber - First command number
+ * @param {boolean} proMode - Whether pro-only commands should be included
  * @returns {{output: string, nextNumber: number}}
  */
-function generateSquadChiefCommands(data, startNumber) {
+function generateSquadChiefCommands(data, startNumber, proMode = false) {
   const rawCommands = data.commands || [];
+  const proCommandDefs =
+    data.pro_detection?.pro_command_handler?.pro_commands || [];
 
   // Parse all commands from string array
   const allParsed = rawCommands
@@ -310,10 +316,17 @@ function generateSquadChiefCommands(data, startNumber) {
   const cmdMap = new Map();
   for (const cmd of allParsed) {
     const baseName = cmd.command.split(' ')[0];
-    if (!cmdMap.has(baseName)) {
-      cmdMap.set(baseName, cmd);
-    }
+      if (!cmdMap.has(baseName)) {
+        cmdMap.set(baseName, cmd);
+      }
   }
+
+  const proCmdMap = new Map(
+    proCommandDefs.map((cmd) => [cmd.command, {
+      command: cmd.command,
+      description: cmd.description || '',
+    }]),
+  );
 
   const categories = data.command_categories;
   let output = '';
@@ -322,8 +335,14 @@ function generateSquadChiefCommands(data, startNumber) {
   if (categories) {
     // Group by categories (preserves order from YAML)
     for (const [, category] of Object.entries(categories)) {
-      const catCommands = (category.commands || [])
-        .map((cmdName) => cmdMap.get(cmdName) || null)
+      const categoryCommandNames = [
+        ...(category.commands || []),
+        ...(proMode ? (category.pro_commands || []) : []),
+      ];
+
+      const catCommands = categoryCommandNames
+        .map((cmdName) => String(cmdName).replace(/\s+\[PRO\]$/, ''))
+        .map((cmdName) => cmdMap.get(cmdName) || proCmdMap.get(cmdName) || null)
         .filter(Boolean);
 
       if (catCommands.length > 0) {
@@ -461,17 +480,26 @@ function generateAliasesSection(aliases) {
  * @returns {Promise<string>} Complete guide as markdown
  */
 async function generateSquadGuide(squadName) {
-  // Load all 3 agents in parallel
-  const [chiefData, alanData, pedroData] = await Promise.all([
-    loadAgentData(squadName, 'squad-chief'),
-    loadAgentData(squadName, 'oalanicolas'),
-    loadAgentData(squadName, 'pedro-valerio'),
-  ]);
+  // Load squad-chief (always available)
+  const chiefData = await loadAgentData(squadName, 'squad-chief');
 
+  // Try to load PRO agents (graceful fallback if not installed)
+  let alanData = null;
+  let pedroData = null;
+  try {
+    [alanData, pedroData] = await Promise.all([
+      loadAgentData('squad-creator-pro', 'oalanicolas'),
+      loadAgentData('squad-creator-pro', 'pedro-valerio'),
+    ]);
+  } catch {
+    // PRO agents not available — base mode
+  }
+
+  const proMode = alanData && pedroData;
   const parts = [];
 
   // ── Title ──
-  parts.push('🎨 SQUAD CREATOR — Guia Completo & Menu de Comandos');
+  parts.push('SQUAD CREATOR — Guia Completo & Menu de Comandos');
 
   // ── Conceptual Sections ──
   parts.push(generateConceptualSections());
@@ -479,32 +507,38 @@ async function generateSquadGuide(squadName) {
   // ── Squad Chief Commands ──
   const chiefAgent = chiefData.agent || {};
   const chiefLabel = chiefAgent.name || 'Squad Chief';
-  const chiefResult = generateSquadChiefCommands(chiefData, 1);
+  const chiefResult = generateSquadChiefCommands(chiefData, 1, proMode);
   parts.push(
     `## 100% Comandos — @squad-chief (${chiefLabel})\n${chiefResult.output}`,
   );
 
-  // ── oalanicolas Commands ──
-  const alanAgent = alanData.agent || {};
-  const alanLabel = alanAgent.name || 'oalanicolas';
-  const alanResult = generateOalanicolasCommands(
-    alanData,
-    chiefResult.nextNumber,
-  );
-  parts.push(
-    `## 100% Comandos — @oalanicolas (${alanLabel})\n${alanResult.output}`,
-  );
+  let lastNextNumber = chiefResult.nextNumber;
 
-  // ── pedro-valerio Commands ──
-  const pedroAgent = pedroData.agent || {};
-  const pedroLabel = pedroAgent.name || 'pedro-valerio';
-  const pedroResult = generatePedroValerioCommands(
-    pedroData,
-    alanResult.nextNumber,
-  );
-  parts.push(
-    `## 100% Comandos — @pedro-valerio (${pedroLabel})\n${pedroResult.output}`,
-  );
+  // ── PRO: oalanicolas Commands ──
+  if (proMode) {
+    const alanAgent = alanData.agent || {};
+    const alanLabel = alanAgent.name || 'oalanicolas';
+    const alanResult = generateOalanicolasCommands(
+      alanData,
+      lastNextNumber,
+    );
+    parts.push(
+      `## [PRO] Comandos — @oalanicolas (${alanLabel})\n${alanResult.output}`,
+    );
+    lastNextNumber = alanResult.nextNumber;
+
+    // ── PRO: pedro-valerio Commands ──
+    const pedroAgent = pedroData.agent || {};
+    const pedroLabel = pedroAgent.name || 'pedro-valerio';
+    const pedroResult = generatePedroValerioCommands(
+      pedroData,
+      lastNextNumber,
+    );
+    parts.push(
+      `## [PRO] Comandos — @pedro-valerio (${pedroLabel})\n${pedroResult.output}`,
+    );
+    lastNextNumber = pedroResult.nextNumber;
+  }
 
   // ── Aliases PT-BR ──
   const aliasesTable = generateAliasesSection(chiefData.command_aliases_ptbr);
@@ -513,9 +547,13 @@ async function generateSquadGuide(squadName) {
   }
 
   // ── Footer ──
-  const totalCommands = pedroResult.nextNumber - 1;
+  const totalCommands = lastNextNumber - 1;
+  const agentCount = proMode ? 3 : 1;
+  const agentList = proMode
+    ? '@squad-chief, @oalanicolas, @pedro-valerio'
+    : '@squad-chief';
   parts.push(
-    `## Resumo & Próximo Passo\n\n| Métrica | Valor |\n|---------|-------|\n| Comandos totais | **${totalCommands}** |\n| Agentes no squad | **3** (@squad-chief, @oalanicolas, @pedro-valerio) |\n| Aliases PT-BR | **${chiefData.command_aliases_ptbr ? chiefData.command_aliases_ptbr.filter(a => a.includes('->')).length : 0}** |\n\nDigite o **número** ou o **comando** para executar. Qual domínio você quer transformar em squad?`,
+    `## Resumo & Próximo Passo\n\n| Métrica | Valor |\n|---------|-------|\n| Comandos totais | **${totalCommands}** |\n| Agentes no squad | **${agentCount}** (${agentList}) |${proMode ? '' : '\n| Modo | **Base** (AIOX Pro adiciona mind cloning, DNA extraction, otimização) |'}\n| Aliases PT-BR | **${chiefData.command_aliases_ptbr ? chiefData.command_aliases_ptbr.filter(a => a.includes('->')).length : 0}** |\n\nDigite o **número** ou o **comando** para executar. Qual domínio você quer transformar em squad?`,
   );
 
   return parts.join('\n\n');

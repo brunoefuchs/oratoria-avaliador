@@ -1,265 +1,117 @@
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: qualify-task
+  task_name: qualify-task
+  status: pending
+  responsible_executor: '@pedro-valerio'
+  execution_type: Agent
+  estimated_time: 30m
+  domain: Tactical
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Validate Qualification Request
+  - Delegate to Canonical Workflow
+  - Reconcile Outputs
+  acceptance_criteria:
+  - '`wf-model-tier-qualification.yaml` existe e permanece owner canônico'
+  - single mode e batch mode continuam suportados pelo entrypoint legado
+  - '`test_input_registry` permanece como fonte única da elegibilidade'
+  - nenhuma segunda implementação local de comparação de modelos permanece nesta task
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Strategic
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
 # Task: qualify-task
 
-> **Model Tier Qualification** | Testar empiricamente se task pode rodar em Haiku
+**Task ID:** qualify-task  
+**Version:** 3.1.0  
+**Purpose:** manter o entrypoint `*qualify-task` como contrato curto enquanto `wf-model-tier-qualification.yaml` possui a lógica empírica completa
 
-**Task ID:** qualify-task
-**Version:** 1.0.0
-**Command:** `*qualify-task <task-name> [--batch]`
-**Execution Type:** Workflow Orchestrator
-**Model:** `Haiku` (orchestration only - workflow handles model selection)
-**Haiku Eligible:** YES — orchestration is deterministic
-**Orchestrator:** @pedro-valerio
+## Canonical Workflow
 
-## Purpose
+- `squads/squad-creator-pro/workflows/wf-model-tier-qualification.yaml`
 
-Invocar `wf-model-tier-qualification.yaml` para testar empiricamente se uma task pode rodar em modelo mais barato (Haiku) mantendo qualidade.
+## Inputs
 
-**Diferença do `*optimize`:**
-- `*optimize --hybrid` → Pipeline completo (análise + conversão + qualificação + GAP ZERO)
-- `*qualify-task` → APENAS qualificação empírica (Opus vs Haiku)
+- `task_name` é obrigatório no modo single
+- `target_tier` e `threshold` refinam a execução
+- `force`, `batch` e `wave` controlam reexecução e escopo do lote
 
-## Usage
+## Preconditions
 
-```bash
-# Qualificar uma task específica
-*qualify-task pv-axioma-assessment
+- [ ] `squads/squad-creator-pro/workflows/wf-model-tier-qualification.yaml` existe
+- [ ] `task_name` resolve para `test_input_registry.{task_name}` no workflow, exceto em modo batch
+- [ ] o chamador entende que a decisão final de tier é produzida pelo workflow, não por lógica local desta task
 
-# Qualificar com threshold customizado (default: 90%)
-*qualify-task validate-squad --threshold 0.85
-
-# Qualificar batch (todas tasks não-qualificadas)
-*qualify-task --batch
-
-# Qualificar batch de uma wave específica
-*qualify-task --batch --wave 1
-```
-
-## Veto Conditions
-
-- [ ] VETO se task não existe em `squads/squad-creator-pro/tasks/`
-- [ ] VETO se task não tem `test_input` no registry do workflow
-- [ ] VETO se já está qualificada em `model-routing.yaml` (use `--force` para re-testar)
-
----
-
-## Workflow
-
-### Step 1: Pre-flight Validation
+## Execution Contract
 
 ```yaml
-preflight:
-  - check: "Task file exists?"
-    path: "squads/squad-creator-pro/tasks/{task_name}.md"
-    veto_if: "not exists"
+validate_request:
+  single_mode:
+    task_path: "squads/squad-creator-pro/tasks/{task_name}.md"
+    registry_lookup: "wf-model-tier-qualification.yaml:test_input_registry.{task_name}"
+    routing_guard: "config/model-routing.yaml → tasks.{task_name}.validated"
+  batch_mode:
+    execution_order: "wf-model-tier-qualification.yaml:batch_mode.execution_order"
+    filter: "tasks ainda não validadas, salvo --force"
 
-  - check: "Task in test_input_registry?"
-    lookup: "wf-model-tier-qualification.yaml → test_input_registry.{task_name}"
-    veto_if: "not found"
-    message: "Task needs test_input defined first. Add to workflow registry."
+delegate_to_workflow:
+  workflow: "squads/squad-creator-pro/workflows/wf-model-tier-qualification.yaml"
+  payload:
+    - task_name
+    - target_tier
+    - threshold
+    - force
+    - batch
+    - wave
+  workflow_owns:
+    - pre-flight
+    - opus_vs_candidate_execution
+    - compare_auto_decide
+    - compensation_loop
+    - report_generation
 
-  - check: "Already qualified?"
-    lookup: "config/model-routing.yaml → tasks.{task_name}.validated"
-    action_if_true: "Skip unless --force flag"
+reconcile_outputs:
+  report: "test-cases/{task_name}/qualification-report.yaml"
+  dashboard: "squads/squad-creator-pro/test-cases/QUALIFICATION-DASHBOARD.yaml"
+  routing_update: "config/model-routing.yaml"
+  status: "delegated"
 ```
 
-### Step 2: Load Workflow
+## Output
 
 ```yaml
-load_workflow:
-  file: "squads/squad-creator-pro/workflows/wf-model-tier-qualification.yaml"
-  action: "Read COMPLETE workflow definition"
-
-  extract:
-    - phases (4 phases + auto-improve loop)
-    - test_input_registry
-    - veto_conditions
-    - compensations
+output:
+  delegated_workflow: "squads/squad-creator-pro/workflows/wf-model-tier-qualification.yaml"
+  primary_report: "test-cases/{task_name}/qualification-report.yaml"
+  batch_dashboard: "squads/squad-creator-pro/test-cases/QUALIFICATION-DASHBOARD.yaml"
+  routing_update_target: "config/model-routing.yaml"
+  status: "delegated"
 ```
 
-### Step 3: Execute Qualification
+## Acceptance Criteria
 
-```yaml
-execute:
-  # Invoke workflow with inputs
-  inputs:
-    task_name: "{from command}"
-    target_tier: "haiku"  # default
-    threshold: 0.90       # default, can override with --threshold
-
-  phases:
-    - phase_0: "PRE-FLIGHT"
-    - phase_1: "PARALLEL EXECUTION (Opus + Haiku)"
-    - phase_2: "COMPARE & AUTO-DECIDE"
-    - phase_3: "AUTO-IMPROVE LOOP (if needed)"
-    - phase_4: "GENERATE REPORT"
-
-  # Follow workflow phases exactly as defined
-  action: |
-    Execute wf-model-tier-qualification.yaml with the provided inputs.
-    The workflow handles:
-    - Running Opus baseline
-    - Running Haiku candidate
-    - Comparing results
-    - Applying compensations if needed
-    - Generating qualification report
-```
-
-### Step 4: Update Config
-
-```yaml
-update_config:
-  condition: "decision is QUALIFIED or QUALIFIED_WITH_COMPENSATION"
-
-  action: |
-    Update config/model-routing.yaml:
-
-    tasks:
-      {task_name}.md:
-        tier: haiku  # or sonnet if escalated
-        confidence: high
-        validated: true
-        test_date: "{today}"
-        test_result: "{summary from qualification report}"
-
-  script: |
-    node squads/squad-creator-pro/scripts/model-tier-validator.cjs \
-      update-routing {task_name} {recommended_tier} "{reason}"
-```
-
-### Step 5: Summary
-
-```yaml
-summary:
-  display: |
-    ╔══════════════════════════════════════════════════════════════════╗
-    ║  QUALIFICATION RESULT: {task_name}                               ║
-    ╠══════════════════════════════════════════════════════════════════╣
-    ║                                                                  ║
-    ║  Decision: {QUALIFIED | NEEDS_COMPENSATION | ESCALATE | OPUS}    ║
-    ║  Tier: {haiku | sonnet | opus}                                   ║
-    ║  Quality: {pct}% of Opus baseline                                ║
-    ║  Cost Savings: {savings_pct}%                                    ║
-    ║                                                                  ║
-    ║  Report: test-cases/{task_name}/qualification-report.yaml        ║
-    ╚══════════════════════════════════════════════════════════════════╝
-```
-
----
-
-## Batch Mode
-
-```yaml
-batch_mode:
-  trigger: "--batch flag"
-
-  action: |
-    1. Read wf-model-tier-qualification.yaml → batch_mode.execution_order
-    2. Filter tasks not yet validated in model-routing.yaml
-    3. Execute qualification for each task sequentially
-    4. Generate consolidated QUALIFICATION-DASHBOARD.yaml
-
-  waves:
-    wave_1: "High-confidence Haiku candidates"
-    wave_2: "Admin tasks (script-based)"
-    wave_3: "Sonnet candidates tested with Haiku"
-
-  output:
-    - "test-cases/{task}/qualification-report.yaml" (per task)
-    - "test-cases/QUALIFICATION-DASHBOARD.yaml" (consolidated)
-```
-
----
-
-## Examples
-
-### Example 1: Qualify Single Task
-
-```
-User: *qualify-task an-assess-sources
-
-Agent:
-## Step 1: Pre-flight ✅
-- Task file: squads/squad-creator-pro/tasks/an-assess-sources.md ✅
-- Test input: outputs/minds/pedro_valerio/sources/ ✅
-- Already qualified: NO
-
-## Step 2: Loading workflow...
-Read: wf-model-tier-qualification.yaml
-
-## Step 3: Executing qualification...
-[Phase 0: PRE-FLIGHT] ✅
-[Phase 1: PARALLEL EXECUTION]
-  - Opus baseline running...
-  - Haiku candidate running...
-[Phase 2: COMPARE]
-  - Opus: 8.5/10
-  - Haiku: 8.2/10 (96.5% quality)
-  - Decision: QUALIFIED ✅
-
-## Step 4: Updating config...
-Updated model-routing.yaml: an-assess-sources.md → haiku
-
-## Result
-╔══════════════════════════════════════════════════════════════════╗
-║  QUALIFICATION RESULT: an-assess-sources                         ║
-╠══════════════════════════════════════════════════════════════════╣
-║  Decision: QUALIFIED                                             ║
-║  Tier: haiku                                                     ║
-║  Quality: 96.5%                                                  ║
-║  Savings: 97%                                                    ║
-╚══════════════════════════════════════════════════════════════════╝
-```
-
-### Example 2: Batch Mode
-
-```
-User: *qualify-task --batch --wave 1
-
-Agent:
-## Batch Qualification: Wave 1 (10 tasks)
-
-| # | Task | Status | Tier | Quality | Savings |
-|---|------|--------|------|---------|---------|
-| 1 | pv-axioma-assessment | ✅ QUALIFIED | haiku | 95.5% | 97% |
-| 2 | validate-squad | ✅ QUALIFIED | haiku | 91% | 98% |
-| 3 | an-fidelity-score | ✅ SCRIPT | script | 100% | 100% |
-| 4 | an-diagnose-clone | ❌ OPUS REQUIRED | opus | 30% | 0% |
-...
-
-## Summary
-- Qualified: 8/10 (80%)
-- Script-only: 2/10 (20%)
-- Opus required: 1/10 (10%)
-- Total savings: ~85% token cost reduction
-
-Dashboard: test-cases/QUALIFICATION-DASHBOARD.yaml
-```
-
----
-
-## Completion Criteria
-
-| Critério | Status |
-|----------|--------|
-| Pre-flight validation passed | [ ] |
-| Workflow executed completely | [ ] |
-| Qualification report generated | [ ] |
-| Config updated (if qualified) | [ ] |
-| Summary displayed | [ ] |
-
----
-
-## Related
-
-- `wf-model-tier-qualification.yaml` - The actual workflow being invoked
-- `config/model-routing.yaml` - Where results are stored
-- `*optimize --hybrid` - Full pipeline (includes qualification)
-- `*lookup-model` - Read-only lookup (no qualification)
-- `*smoke-test-model-routing` - Test the routing system itself
-
----
-
-_Task Version: 1.0.0_
-_Last Updated: 2026-02-12_
-
-*"Não assumir. Provar com dados."*
+- [ ] o workflow canônico executa a qualificação empírica completa
+- [ ] single mode e batch mode continuam suportados pelo entrypoint legado
+- [ ] `test_input_registry` permanece como fonte única da elegibilidade
+- [ ] nenhuma segunda implementação local de comparação de modelos permanece nesta task

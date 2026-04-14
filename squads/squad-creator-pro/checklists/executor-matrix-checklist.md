@@ -1,7 +1,7 @@
 # Executor Matrix Validation Checklist
 
 > **Pattern Reference:** HO-EP-xxx (Executor Patterns)
-> **Source:** AIOS Executor Matrix Standard
+> **Source:** AIOX Executor Matrix Standard
 > **Version:** 1.0.0
 > **Updated:** 2026-01-24
 
@@ -251,10 +251,10 @@ fallback:
 
 ## Referencias
 
-- `squads/squad-creator-pro/data/best-practices.md` Section 1.2
+- `squads/squad-creator/data/best-practices.md` Section 1.2
 - Pattern Library: HO-EP-001 a HO-EP-004
 
 ---
 
 *Squad-Creator Checklist v1.0.0*
-*Based on AIOS reference implementation*
+*Based on AIOX reference implementation*

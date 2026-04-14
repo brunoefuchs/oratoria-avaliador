@@ -1,0 +1,30 @@
+validation:
+  squad: "claude-code-mastery"
+  squad_path: "/Users/oalanicolas/Code/aiox-pro/squads/claude-code-mastery"
+  validated_by: "validate-squad.sh v4.0"
+  validated_date: "2026-04-10T04:04:55-07:00"
+  runtime: "claude"
+  model: "opus"
+  duration_seconds: 28
+
+scores:
+  final: 6
+  raw: 6.00
+  verdict: "CONDITIONAL"
+  type: "pipeline"
+
+dimensions:
+  functionality: 9
+  security: 10
+  workflow_contract: 10
+  structural_completeness: 3
+  agent_quality: 7
+  squad_agnosticism: 2
+  production_evidence: 8
+  config_quality: 8
+  documentation: 10
+
+metrics:
+  agents: 8
+  tasks: 31
+  checklists: 7

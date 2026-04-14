@@ -2,7 +2,7 @@
 
 **Status:** Accepted
 **Date:** 2026-02-11
-**Deciders:** Alan Nicolas, Pedro Valério (agent), Aria Architect (agent)
+**Deciders:** Alan Nicolas, Pedro Valério (agent), The Architect Architect (agent)
 **Technical Area:** Squad Creator Token Optimization
 
 ---
@@ -337,7 +337,7 @@ def should_use_haiku(opus_baseline, haiku_result):
 
 | Data | Mudança | Autor |
 |------|---------|-------|
-| 2026-02-11 | Criação inicial | Alan + Aria + PV |
+| 2026-02-11 | Criação inicial | Alan + The Architect + PV |
 
 ---
 

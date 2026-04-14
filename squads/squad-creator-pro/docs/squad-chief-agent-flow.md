@@ -128,15 +128,15 @@ O agente **@squad-chief (Squad Architect)** é o **Master Orchestrator** do squa
 |---------|---------|-----------|
 | `squads/squad-creator-pro/tasks/deep-research-pre-agent.md` | - | Deep research before agent creation |
 | `squads/squad-creator-pro/tasks/qa-after-creation.md` | - | QA após criação |
-| `squads/squad-creator-pro/tasks/install-commands.md` | `*install` | Instalar comandos no IDE |
-| `squads/squad-creator-pro/tasks/sync-ide-command.md` | `*sync` | Sync squad commands to .claude/commands/ |
+| `squads/squad-creator-pro/tasks/install-skills.md` | `*install` | Instalar skills no IDE |
+| `squads/squad-creator-pro/tasks/sync-ide-skills.md` | `*sync` | Sync squad slash skills to .claude/skills/ |
 | `squads/squad-creator-pro/tasks/migrate-workflows-to-yaml.md` | - | Migrate MD workflows to YAML |
 | `squads/squad-creator-pro/tasks/squad-fusion.md` | `*fusion` | Merge squads |
 | `squads/squad-creator-pro/tasks/extract-sop.md` | - | Extract SOP from transcript |
 | `squads/squad-creator-pro/tasks/extract-knowledge.md` | - | Extract knowledge from sources |
 | `squads/squad-creator-pro/tasks/create-documentation.md` | `*create-doc` | Criar documentação padronizada |
 | `squads/squad-creator-pro/tasks/deconstruct.md` | `*deconstruct` | Deconstruct existing system |
-| `squads/squad-creator-pro/tasks/find-0.8.md` | `*find-0.8` | Find 80% coverage points |
+| `squads/squad-creator-pro/tasks/find-0-8.md` | `*find-0-8` | Find 80% coverage points |
 | `squads/squad-creator-pro/tasks/validate-extraction.md` | - | Validate extraction quality |
 | `squads/squad-creator-pro/tasks/extract-implicit.md` | - | Extract implicit knowledge |
 
@@ -145,7 +145,7 @@ O agente **@squad-chief (Squad Architect)** é o **Master Orchestrator** do squa
 | Arquivo | Propósito |
 |---------|-----------|
 | `squads/squad-creator-pro/agents/squad-chief.md` | Definição core do agente (1329 linhas) |
-| `.claude/commands/squad-creator/agents/squad-chief.md` | Comando Claude Code para ativar |
+| `.claude/skills/squad-creator/squad-chief/SKILL.md` | Slash skill Claude Code para ativar |
 
 ### Arquivos de Workflows
 
@@ -460,7 +460,7 @@ flowchart TB
 | Comando | Task/Workflow | Operação |
 |---------|---------------|----------|
 | `*guide` | inline | Interactive onboarding guide |
-| `*sync` | `sync-ide-command.md` | Sync to .claude/commands/ |
+| `*sync` | `sync-ide-skills.md` | Sync to .claude/skills/ |
 | `*optimize` | `optimize.md` | Optimize squad/task |
 | `*upgrade-squad` | `upgrade-squad.md` | Upgrade to current standards |
 | `*help` | inline | Show all commands |
@@ -601,7 +601,7 @@ never_do:
   - "Create agents under 300 lines"
   - "Create tasks under 500 lines for complex operations"
   - "Skip quality gates to save time"
-  - "Use generic terms instead of AIOS vocabulary"
+  - "Use generic terms instead of AIOX vocabulary"
   - "Ask clarifying questions before research when user requests squad"
   - "Propose agent architecture before researching elite minds"
   - "Create workflows without checkpoints"
@@ -906,7 +906,7 @@ Erro: Handoff para @oalanicolas falhou - context insufficient
 | Mind Cloning | `collect-sources.md`, `auto-acquire-sources.md`, `extract-voice-dna.md`, `extract-thinking-dna.md`, `update-mind.md` |
 | Validation | `validate-squad.md`, `qa-after-creation.md` |
 | Analytics | `squad-analytics.md`, `refresh-registry.md` |
-| Utility | `optimize.md`, `upgrade-squad.md`, `sync-ide-command.md`, `install-commands.md` |
+| Utility | `optimize.md`, `upgrade-squad.md`, `sync-ide-skills.md`, `install-skills.md` |
 
 ### Workflows
 
@@ -978,4 +978,4 @@ Erro: Handoff para @oalanicolas falhou - context insufficient
 ---
 
 *Documentação gerada seguindo SC-DP-001 (Agent Flow Documentation)*
-*Padrão baseado em: docs/guides/aios-agent-flows/*
+*Padrão baseado em: docs/guides/aiox-agent-flows/*

@@ -1,8 +1,8 @@
 # PM Best Practices for Squad Creation
 
-> **Source:** Extracted from AIOS PM Agent (Morgan)
+> **Source:** Extracted from AIOX PM Agent (Niobe)
 > **Purpose:** Guide PRD/Epic creation when squad scope >= 10 workflows
-> **Version:** 1.0.0
+> **Version:** 1.1.0
 
 ---
 
@@ -24,7 +24,38 @@ pm_principles:
 
   - principle: "Strategic thinking & outcome-oriented"
     application: "What outcomes does the squad enable?"
+
+  - principle: "Challenge the plan before locking the plan"
+    application: "Compare defensible alternatives, stress-test dependencies, and record why the chosen order wins"
 ```
+
+---
+
+## 1.5 Planning Modes
+
+```yaml
+planning_modes:
+  standard_prd:
+    when: "PRD needed but no special depth benchmark requested"
+    output: "docs/projects/{domain}/prd.md"
+    structure_source: "This file + base squad PRD sections"
+
+  deep_prd:
+    when:
+      - "User asks for total vision before execution"
+      - "Scope is large/high-risk"
+      - "A benchmark document is provided for desired planning depth"
+    command: "*plan-squad {domain}"
+    output: "docs/projects/{domain}/prd.md"
+    structure_source:
+      - "squads/squad-creator-pro/templates/squad-prd-deep-tmpl.md"
+      - "docs/projects/editais/epics/epic-editais-squad/epic.md (depth benchmark when explicitly requested)"
+```
+
+Rule:
+
+- Preserve the **depth and rigor** of the benchmark document.
+- Do **not** copy domain-specific ontology or business assumptions unless they are truly part of the target squad.
 
 ---
 
@@ -152,6 +183,27 @@ epic_sequencing:
     anti_pattern: "Adding validation as last epic"
 ```
 
+### 3.1.1 Sequencing Stress-Test Rules
+
+```yaml
+sequencing_stress_test:
+  rule_1:
+    name: "No premature work on the critical path"
+    description: "If an action depends on capabilities or artifacts that do not exist yet, push it later unless there is a stronger structural reason not to."
+
+  rule_2:
+    name: "Compare opposite fixes"
+    description: "When a dependency issue appears, compare at least 2 fixes: pull the prerequisite earlier OR push the premature work later."
+
+  rule_3:
+    name: "Record rejected order"
+    description: "Every strategic roadmap should preserve the rejected path and explain why it lost."
+
+  rule_4:
+    name: "Feedback reopens sequencing"
+    description: "If human feedback changes assumptions or dependencies, reopen roadmap logic instead of editing the current order literally."
+```
+
 ### 3.2 Epic Template for Squads
 
 ```yaml
@@ -159,6 +211,8 @@ epic_template:
   epic_N:
     title: "{Tier/Function} - {Description}"
     goal: "2-3 sentences on what this epic achieves"
+    ordering_rationale: "Why this epic happens now instead of later"
+    not_before_conditions: ["Condition 1", "Condition 2"]
 
     stories:
       - story_N_1:
@@ -182,6 +236,9 @@ epic_template:
 
     agents_created: ["agent-1", "agent-2"]
     workflows_enabled: ["workflow-1", "workflow-2", "workflow-3"]
+    rejected_order_options:
+      - "Move workflow-2 earlier"
+      - "Pull Tier 2 before Tier 1"
     definition_of_done:
       - "All stories completed"
       - "Agents pass quality gate"
@@ -355,10 +412,11 @@ prd_trigger:
   workflow:
     1: "Map all workflows (SC_SCP_001)"
     2: "If >= 10, trigger PRD creation"
-    3: "Use this file for PRD structure"
-    4: "Create PRD in docs/projects/{domain}/prd.md"
-    5: "Break into epics"
-    6: "Implement epic by epic"
+    3: "If deep planning is needed, run *plan-squad {domain}"
+    4: "Use this file + deep template for PRD structure"
+    5: "Create PRD in docs/projects/{domain}/prd.md"
+    6: "Break into epics"
+    7: "Implement epic by epic"
 ```
 
 ### 8.2 PRD Location
@@ -389,6 +447,12 @@ handoff:
       - "Epic 1 stories"
       - "Agent list for Epic 1"
       - "Quality gates"
+  recommended_generation_path:
+    command: "*plan-squad {domain}"
+    use_when:
+      - "Need total squad vision before execution"
+      - "Want PRD depth inspired by a benchmark document"
+      - "Scope gate blocked direct creation"
 
   after_each_epic:
     action: "Validate epic completion"
@@ -436,5 +500,5 @@ example_prd:
 ---
 
 *PM Best Practices for Squad Creator v1.0*
-*Source: AIOS PM Agent (Morgan)*
+*Source: AIOX PM Agent (Niobe)*
 *Integrated: 2026-02-03*

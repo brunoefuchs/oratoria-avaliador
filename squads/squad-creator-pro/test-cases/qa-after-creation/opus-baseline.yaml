@@ -529,7 +529,7 @@ metadata:
   tokens_used: 0  # Not tracked in manual execution
   duration_ms: 75000  # ~75 seconds total execution
   model: "claude-opus-4-5-alan"
-  task_file: "squads/squad-creator-pro/tasks/qa-after-creation.md"
+  task_file: "squads/squad-creator/tasks/qa-after-creation.md"
   task_version: "1.1.0"
   validation_frameworks:
     - "config/veto-conditions.yaml"

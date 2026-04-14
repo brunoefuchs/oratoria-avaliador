@@ -103,7 +103,7 @@ external_providers:
       output: 2.80
     context_window: 256000
     qualified_date: null  # Not yet tested
-    validation_report: "infrastructure/services/llm-router/docs/model-discovery/scans/2026-02-08/validation-kimi-k2-5.md"
+    validation_report: "services/llm-router/docs/model-discovery/scans/2026-02-08/validation-kimi-k2-5.md"
     verdict: "MONITOR"
     privacy_risk: "high"  # China, trains on prompts
     latency_warning: "HIGH (15-200s per request)"
@@ -241,12 +241,12 @@ tasks:
     confidence: high
     reason: "Format conversion with clear rules"
 
-  install-commands.md:
+  install-skills.md:
     tier: haiku
     confidence: high
     reason: "Script execution, deterministic file operations"
 
-  sync-ide-command.md:
+  sync-ide-skills.md:
     tier: haiku
     confidence: high
     reason: "File sync operation, no reasoning needed"
@@ -304,7 +304,7 @@ tasks:
     confidence: medium
     reason: "Process audit requires some reasoning"
 
-  find-0.8.md:
+  find-0-8.md:
     tier: sonnet
     confidence: medium
     reason: "Pareto analysis needs judgment"
@@ -474,7 +474,7 @@ metrics:
     - quality_score  # If available
     - fallback_triggered
 
-  report_location: "outputs/metrics/model-routing-{date}.yaml"
+  report_location: ".aiox/squad-runtime/metrics/model-routing-{date}.yaml"
 
 # ============================================================================
 # EXTERNAL ALTERNATIVES (Opus Tasks with Qualified External Options)
@@ -540,7 +540,7 @@ external_alternatives:
         - "Batch processing minds"
       avoid_when:
         - "Need attention_triggers detail"
-    evidence: "outputs/llm-tests/extract-thinking-dna/glm5/"
+    evidence: ".aiox/squad-runtime/llm-tests/extract-thinking-dna/glm5/"
     notes: "GLM-5 matched Opus exactly. 19s vs 66s latency. $0.007 vs $0.50 cost."
 
   # Candidates for future testing
@@ -559,7 +559,7 @@ external_alternatives:
         - "Cost-sensitive research pipelines"
       avoid_when:
         - "Need GOLD/SILVER/BRONZE confidence naming"
-    evidence: "outputs/llm-tests/deep-research-pre-agent/glm5/"
+    evidence: ".aiox/squad-runtime/llm-tests/deep-research-pre-agent/glm5/"
     notes: "GLM-5 produced identical 7-component structure. 45.5s latency. $0.0098 cost."
 
   create-agent.md:
@@ -577,7 +577,7 @@ external_alternatives:
         - "Production agents"
       avoid_when:
         - "Runner v1 still in use"
-    evidence: "outputs/llm-tests/create-agent/glm5/"
+    evidence: ".aiox/squad-runtime/llm-tests/create-agent/glm5/"
     notes: |
       GLM-5 QUALIFIED after runner v2.0 (full task content).
       Output: 718 lines, all sections complete.
@@ -679,8 +679,8 @@ changelog:
   - version: "1.0.1"
     date: "2026-02-11"
     changes:
-      - "Added install-commands.md (haiku)"
-      - "Added sync-ide-command.md (haiku)"
+      - "Added install-skills.md (haiku)"
+      - "Added sync-ide-skills.md (haiku)"
       - "Total haiku tasks: 15 (was 13)"
 
   - version: "1.0.0"

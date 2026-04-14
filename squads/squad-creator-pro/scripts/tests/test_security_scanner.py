@@ -115,7 +115,7 @@ class TestAWSKeyDetection:
     def test_detects_aws_access_key(self):
         """Should detect AWS access keys"""
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-            f.write('AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"\n')
+            f.write('AWS_ACCESS_KEY = "AKIAIOXFODNN7EXAMPLE"\n')
             f.flush()
 
             issues = scan_file_content(
@@ -124,7 +124,7 @@ class TestAWSKeyDetection:
                 SECURITY_CHECKS["SEC-003"]
             )
 
-            # AKIAIOSFODNN7EXAMPLE is a known example key, may be excluded
+            # AKIAIOXFODNN7EXAMPLE is a known example key, may be excluded
             os.unlink(f.name)
 
     def test_ignores_documentation(self):

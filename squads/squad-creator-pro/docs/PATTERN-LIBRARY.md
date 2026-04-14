@@ -1,7 +1,7 @@
 # Pattern Library - Squad-Creator
 
-**Version:** 1.0
-**Last Updated:** 2026-02-10
+**Version:** 4.0.0
+**Last Updated:** 2026-03-27
 **Source:** HybridOps Migration
 
 ---
@@ -328,6 +328,14 @@ Patterns migrated from HybridOps to Squad-Creator:
 
 ---
 
-*Pattern Library v1.0*
-*Last Updated: 2026-02-10*
+## SINKRA Compliance Artifacts (2026-03-27)
+
+- `data/token-registry.yaml` — Token layer: 23 tokens do contrato com producer/consumer explícito
+- `data/quality-gate-coverage.yaml` — Mapeamento formal dos 8 gates SCP contra gates operacionais do pack
+- `tasks/batch-closeout.md` — Gate operacional para fechamento de batch de manutenção (QG-SCP-003/005/008)
+
+---
+
+*Pattern Library v4.0.0*
+*Last Updated: 2026-03-27*
 *Executor: Pedro Valério (Process Absolutist)*

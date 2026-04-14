@@ -1,7 +1,7 @@
 # HEURISTICS ENGINE - Squad-Creator
-# Source patterns: PV_BS_001, PV_PA_001, PV_PM_001, AN_KE_001, AN_KE_002, AN_KE_003
-# Version: 2.0
-# Last Updated: 2026-02-10
+# Source patterns: PV_BS_001, PV_PA_001, PV_PM_001, AN_KE_001-AN_KE_010
+# Version: 3.0
+# Last Updated: 2026-03-27
 
 heuristics_engine:
   version: "2.0"
@@ -15,10 +15,16 @@ heuristics_engine:
     - "minds/pedro_valerio/heuristics/PV_BS_001.md"
     - "minds/pedro_valerio/heuristics/PV_PA_001.md"
     - "minds/pedro_valerio/heuristics/PV_PM_001.md"
-    # OalaNicolas (Extraction)
+    # OalaNicolas (Extraction + Methodology)
     - "minds/oalanicolas/heuristics/AN_KE_001.md"
     - "minds/oalanicolas/heuristics/AN_KE_002.md"
     - "minds/oalanicolas/heuristics/AN_KE_003.md"
+    - "minds/oalanicolas/heuristics/AN_KE_004.md"
+    - "minds/oalanicolas/heuristics/AN_KE_005.md"
+    - "minds/oalanicolas/heuristics/AN_KE_006.md"
+    - "minds/oalanicolas/heuristics/AN_KE_007.md"
+    - "minds/oalanicolas/heuristics/AN_KE_009.md"
+    - "minds/oalanicolas/heuristics/AN_KE_010.md"
 
   # ============================================
   # SC_HE_001 - VISION ALIGNMENT (Future Back-Casting)
@@ -560,7 +566,61 @@ heuristics_engine:
     agent: "@oalanicolas"
     description: |
       10-step master decision framework.
-      VERIFY → REUSE → PRECISE → SIMPLIFY → PRESERVE → FOCUS → SILENCE → CONSISTENT → VALIDATE → CHOOSE
+      VERIFY - REUSE - PRECISE - SIMPLIFY - PRESERVE - FOCUS - SILENCE - CONSISTENT - VALIDATE - CHOOSE
+
+    ordered_checklist:
+      - step: 1
+        id: VERIFY
+        principle: "Verify before assuming"
+        question: "Confirmei fisicamente?"
+        anti_pattern: "Assumir sem checar"
+        maps_to: "AN_KE_006"
+      - step: 2
+        id: REUSE
+        principle: "Reuse before creating"
+        question: "Algo similar ja existe?"
+        anti_pattern: "Criar do zero"
+        maps_to: "AN_KE_007"
+      - step: 3
+        id: PRECISE
+        principle: "Be precise, not vague"
+        question: "Estou sendo especifico?"
+        anti_pattern: "Generalizar demais"
+      - step: 4
+        id: SIMPLIFY
+        principle: "Simplify before complicating"
+        question: "Pode ser mais simples?"
+        anti_pattern: "Over-engineering"
+      - step: 5
+        id: PRESERVE
+        principle: "Preserve what works"
+        question: "Estou quebrando algo que funcionava?"
+        anti_pattern: "Mudar o que funciona"
+      - step: 6
+        id: FOCUS
+        principle: "Focus on what was asked"
+        question: "Estou no escopo pedido?"
+        anti_pattern: "Scope creep"
+      - step: 7
+        id: SILENCE
+        principle: "When wrong, fix in silence"
+        question: "Se errei, so corrigir?"
+        anti_pattern: "Justificar erro"
+      - step: 8
+        id: CONSISTENT
+        principle: "Be consistent with patterns"
+        question: "Segue o padrao existente?"
+        anti_pattern: "Inventar novo padrao"
+      - step: 9
+        id: VALIDATE
+        principle: "Validate before finalizing"
+        question: "Testei antes de entregar?"
+        anti_pattern: "Entregar sem testar"
+      - step: 10
+        id: CHOOSE
+        principle: "Choose and commit"
+        question: "Decidi com evidencia?"
+        anti_pattern: "Ficar em cima do muro"
 
     steps:
       - "1. VERIFY - Verify before assuming"
@@ -587,6 +647,107 @@ heuristics_engine:
       - condition: "skip_reuse_check"
         action: "VETO - Check existing first"
         maps_to: "AN_VC_006"
+      - condition: "skip_validation"
+        action: "VETO - Test before delivering"
+        maps_to: "AN_VC_007"
+
+  # ============================================
+  # AN_HE_010 - CONTEXT DEATH TEST
+  # ============================================
+  AN_HE_010:
+    name: "Context Death Test"
+    source: "AN_KE_010"
+    phase: "self_validation"
+    agent: "@oalanicolas"
+    description: |
+      Documentacao deve ser autocontida: uma IA zerada consegue executar a task sem perguntar?
+      Conhecimento so existe de verdade quando sobrevive a morte do contexto.
+
+    applies_to:
+      - documentation
+      - tasks
+      - workflows
+      - templates
+
+    validation_checklist:
+      - id: CDT_01
+        check: "Tem o PORQUE, nao so o QUE?"
+        weight: 0.9
+      - id: CDT_02
+        check: "Termos tecnicos estao definidos ou linkados?"
+        weight: 0.7
+      - id: CDT_03
+        check: "Dependencias estao explicitas (arquivos, ferramentas, acessos)?"
+        weight: 0.8
+      - id: CDT_04
+        check: "Ha exemplos concretos, nao so abstracoes?"
+        weight: 0.8
+      - id: CDT_05
+        check: "Decisoes ja tomadas estao documentadas (nao precisa re-decidir)?"
+        weight: 0.9
+      - id: CDT_06
+        check: "Constraints/limites estao claros?"
+        weight: 0.7
+      - id: CDT_07
+        check: "Output esperado esta especificado?"
+        weight: 0.8
+      - id: CDT_08
+        check: "Edge cases estao cobertos ou marcados como 'decidir depois'?"
+        weight: 0.6
+
+    anti_patterns:
+      - "Voce lembra que..."
+      - "Como a gente discutiu..."
+      - "Aquele negocio de..."
+      - "O padrao normal"
+      - "Referencias a conversas anteriores"
+      - "Assumir conhecimento previo do dominio"
+
+    thresholds:
+      pass: 0.8
+      review: 0.6
+      fail: "<0.6"
+
+    validation_levels:
+      L1_self: 0.6
+      L2_peer: 0.7
+      L3_ai: 0.8
+      L4_stranger: 0.9
+
+    decision_tree: |
+      IF (all checklist items pass AND no anti-patterns detected)
+        THEN PASS - Document is self-contained
+
+      ELSE IF (checklist >= 0.6 AND anti-patterns <= 2)
+        THEN REVIEW - Fix specific gaps before proceeding
+
+      ELSE IF (checklist < 0.6 OR anti-patterns > 2)
+        THEN FAIL - Document needs major rewrite
+
+    veto_conditions:
+      - condition: "anti_patterns_detected > 0"
+        action: "HALT - Expand implicit references"
+        maps_to: "AN_VC_009"
+      - condition: "checklist_pass_rate < 0.6"
+        action: "HALT - Major rewrite needed"
+        maps_to: "AN_VC_009"
+
+    validation_questions:
+      - "IA com ZERO contexto anterior consegue executar isso sem perguntar nada?"
+      - "Todos os termos tecnicos estao definidos ou linkados?"
+      - "As dependencias (arquivos, ferramentas, acessos) estao explicitas?"
+      - "Existem exemplos concretos ou so abstracoes?"
+      - "As decisoes ja tomadas estao documentadas?"
+      - "Ha alguma frase tipo 'como discutimos' ou 'voce lembra'?"
+
+    output:
+      type: "decision"
+      values: ["PASS", "REVIEW", "FAIL"]
+
+    integration:
+      checkpoint: "context-death-test"
+      pass_action: "Document approved for handoff/storage"
+      fail_action: "Loop back with specific gaps to fix"
 
   # ============================================
   # MODE ROUTER
@@ -632,10 +793,26 @@ heuristics_engine:
       focus: "Self-validation before handoff"
       veto_check: ["AN_VC_005"]
 
-    "*find-0.8*":
+    "*find-0-8*":
       heuristics: ["AN_HE_003"]
       agent: "@oalanicolas"
       focus: "Pareto ao Cubo classification"
+
+    "*validate*":
+      heuristics: ["AN_HE_010"]
+      agent: "@oalanicolas"
+      focus: "Context Death Test - document self-containment"
+      veto_check: ["AN_VC_009"]
+
+    "*doc*":
+      heuristics: ["AN_HE_010"]
+      agent: "@oalanicolas"
+      focus: "Documentation self-containment validation"
+
+    "*task-anatomy*":
+      heuristics: ["AN_HE_010"]
+      agent: "@oalanicolas"
+      focus: "Task definition completeness validation"
 
   # ============================================
   # HEURISTIC → VETO MAPPING
@@ -718,11 +895,18 @@ heuristics_engine:
         - "skip_validation"
       maps_to: ["AN_VC_006", "AN_VC_007"]
 
+    AN_HE_010:
+      triggers:
+        - "anti_patterns_detected"
+        - "checklist_pass_rate_below_threshold"
+        - "implicit_context_dependency"
+      maps_to: ["AN_VC_009"]
+
   # ============================================
   # VALIDATION CHECKLIST
   # ============================================
   validation_checklist:
-    - check: "Todas as 12 heurísticas têm veto mapping (3 SC_HE + 9 AN_HE)"
+    - check: "Todas as 13 heurísticas têm veto mapping (3 SC_HE + 10 AN_HE)"
       required: true
     - check: "Todas as heurísticas mapeiam para veto conditions"
       required: true
@@ -737,17 +921,17 @@ heuristics_engine:
   # SUMMARY
   # ============================================
   summary:
-    total_heuristics: 12
+    total_heuristics: 13
     pedro_valerio:
       count: 3
       ids: ["SC_HE_001", "SC_HE_002", "SC_HE_003"]
     oalanicolas:
-      count: 9
+      count: 10
       extraction_heuristics:
         count: 3
         ids: ["AN_HE_001", "AN_HE_002", "AN_HE_003"]
         source: "DNA Extraction Pipeline"
       methodology_heuristics:
-        count: 6
-        ids: ["AN_HE_004", "AN_HE_005", "AN_HE_006", "AN_HE_007", "AN_HE_008", "AN_HE_009"]
-        source: "CLAUDE.md - Alan's Personal Rules"
+        count: 7
+        ids: ["AN_HE_004", "AN_HE_005", "AN_HE_006", "AN_HE_007", "AN_HE_008", "AN_HE_009", "AN_HE_010"]
+        source: "CLAUDE.md - Alan's Personal Rules + Context Death Test"

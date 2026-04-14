@@ -17,6 +17,14 @@ PV_PA_001:
   phase: 3
   pattern_reference: "HO-PP-003"
 
+  sys_tension:
+    - tension_with: "PV_PA_002 (System Adherence Flexibility)"
+      resolution: "Truthfulness (VETO) is non-negotiable; system adherence allows iterative improvement. Coherence veto fires before flexibility triggers."
+    - tension_with: "PV_PA_003 (Technical Skill Development)"
+      resolution: "Technical gaps are trainable; truthfulness gaps are terminal. Skills have weight 0.3; coherence has weight 1.0 with absolute veto."
+    - tension_with: "HO-PP-003 Phase Gate (Speed vs Certainty)"
+      resolution: "Reject incoherence in <5 min (speed); full evaluation in 1-2 days (certainty). Paradox: rapid veto vs comprehensive assessment. Resolution: use veto for clear falsehoods; escalate uncertain cases to tribunal appeal."
+
   weights:
     truthfulness_coherence: 1.0  # VETO power
     system_adherence_potential: 0.8
@@ -36,6 +44,8 @@ PV_PA_001:
   fallback_mechanisms:
     - "In case of doubt about coherence, apply test period with tasks that reveal consistency"
     - "Use objective metrics over subjective impressions"
+
+  tension_with: "AN_KE_073 (Parallel Subagents for Throughput) — Sequential coherence assessment vs parallel executor dispatch"
 
   output:
     type: "decision"
@@ -172,3 +182,16 @@ checkpoint:
 
 **Pattern Compliance:** HO-PP-003 (Quality Gate) ✓ | HO-EP-XXX (Executor Patterns) ✓
 **Source:** PV Mind Artifacts - Heurísticas de Decisão
+
+## Validation
+
+**Paradox Identified:** The heuristic prioritizes absolute truthfulness veto (rejecting in <5 min) while also requiring comprehensive evaluation (1-2 days for certainty). This creates tension between speed (binary veto) and accuracy (probabilistic assessment).
+
+**Paradox Resolution:** Truthfulness violations with clear evidence (lies, intentional misrepresentation) trigger immediate veto. Borderline cases (communication errors, inconsistency from nervousness) escalate to appeal tribunal within the comprehensive evaluation window. Thus: clear violations are fast; uncertain cases are careful.
+
+**Validation Criteria:**
+- ✓ Veto mechanism is absolute and non-negotiable (coherence > 0.7 or removal)
+- ✓ Fallback tribunal process for false negatives is documented
+- ✓ System tensions with PA_002 and PA_003 are explicitly named and resolved
+- ✓ Behavioral evidence (filmmaker removal) validates heuristic application
+- ✓ Executor Type Matrix calibrates truthfulness floor consistently across human/hybrid/agent/worker

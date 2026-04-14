@@ -1,7 +1,9 @@
 # Recomendações de Ferramentas para Squad Creator
 
+> **Nota:** Este documento é um snapshot de 2026-02-05. Para o catálogo atualizado de tools, consulte `data/tool-registry.yaml`.
+
 > **Documento gerado por:** Squad Architect
-> **Data:** 2026-02-05
+> **Data:** 2026-03-27
 > **Baseado em:** Tool Discovery para domínio squad-creator
 
 ---

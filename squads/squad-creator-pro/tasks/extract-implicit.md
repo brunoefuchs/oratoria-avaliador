@@ -1,344 +1,152 @@
-# Task: extract-implicit
-
-> **Extrator de Conhecimento Tácito** | Revelar o que foi decidido sem ser verbalizado
-
-## Objetivo
-
-Analisar **qualquer tipo de conteúdo** (livros, aulas, conversas, código, processos) para extrair conhecimento implícito: premissas não declaradas, heurísticas ocultas, pontos cegos estratégicos e decisões tomadas por omissão.
-
-## Fundamentação Teórica
-
-| Framework | Autor | Contribuição para esta Task |
-|-----------|-------|----------------------------|
-| **SECI Model** | Nonaka & Takeuchi | Processo de Externalization (tácito → explícito) |
-| **Tacit Dimension** | Michael Polanyi | "We can know more than we can tell" |
-| **How to Read a Book** | Mortimer Adler | Leitura Analítica e Sintópica |
-| **Mental Models** | Shane Parrish/Farnam Street | Extração de frameworks de pensamento |
-| **Feynman Technique** | Richard Feynman | Validação: explique simples ou não entendeu |
-
-### SECI Model - Externalization
-
-A conversão de conhecimento tácito em explícito (Externalization) requer:
-- **Metáforas e analogias** - expressar o inexpressável
-- **Conceitos e hipóteses** - articular intuições
-- **Modelos e frameworks** - estruturar padrões
-
-### Níveis de Leitura (Adler)
-
-| Nível | Propósito | Pergunta Central |
-|-------|-----------|------------------|
-| Elementary | Entender palavras | "O que diz?" |
-| Inspectional | Estrutura geral | "Sobre o que é?" |
-| **Analytical** | Compreensão profunda | "O que significa?" |
-| **Syntopical** | Síntese entre fontes | "Como se relaciona com X?" |
-
-Esta task opera nos níveis **Analytical** e **Syntopical**.
-
 ---
+task-id: extract-implicit
+name: "Extrator de Conhecimento Tacito"
+version: 3.0.0
+execution_type: Orchestrator
+model: Sonnet
+model_rationale: "Orchestrator stub -- delegates to atomic sub-tasks. Sonnet for routing decisions."
+haiku_eligible: false
+note: "Decomposed from v2.0.0 monolith (518 lines) into 5 atomic tasks."
+estimated-time: 60-90 min
+complexity: high
 
-## Tipos de Conteúdo Suportados
+specialist: "@oalanicolas"
+specialist_guidance: |
+  Use DNA Mental source curation methodology for source validation.
+  Feynman Technique for extraction quality validation.
+  SECI Model Externalization (Nonaka & Takeuchi) for tacit-to-explicit conversion.
 
-| Tipo | Sinais Específicos de Conhecimento Tácito |
-|------|-------------------------------------------|
-| **Livros** | Premissas do autor, frameworks não nomeados, vieses disciplinares |
-| **Aulas/Workshops** | O que o instrutor assume que você sabe, atalhos de expert |
-| **Conversas de Projeto** | Decisões por omissão, requisitos implícitos, riscos ignorados |
-| **Código/Arquitetura** | Convenções não documentadas, razões de design choices |
-| **Processos/SOPs** | Conhecimento tribal, "todo mundo sabe que...", edge cases |
-| **Entrevistas** | Heurísticas do expert, padrões de decisão, anti-patterns vividos |
+inputs:
+  required:
+    - source_corpus: "Conteudo a analisar (livro, aula, conversa, codigo, processo)"
+    - source_type: "Tipo de conteudo (livro | aula | conversa | codigo | processo | entrevista)"
+    - scope_boundaries: "Limites do escopo de extracao"
+  optional:
+    - prior_extractions: "Extracoes anteriores para triangulacao"
+    - source_metadata: "Metadata da fonte (nome, data, analista)"
 
-### Adaptação por Tipo
+outputs:
+  primary:
+    - implicit_knowledge_report: "Relatorio completo de conhecimento implicito"
+    - clone_guardrails: "Guardrails de confianca gerados a partir das evasoes"
+    - validation_result: "PASS | NEEDS_REVISION"
 
-**Para Livros:**
-- Foque em premissas do campo/disciplina que o autor assume
-- Identifique frameworks que o autor usa mas não nomeia
-- Mapeie o "círculo de competência" implícito
-
-**Para Aulas:**
-- O que o instrutor pulou por "ser óbvio"?
-- Quais perguntas ele nunca fez (mas deveria)?
-- Que atalhos de expert ele usa sem explicar?
-
-**Para Projetos:**
-- Que alternativas nunca foram discutidas?
-- Que dependências estão assumidas?
-- Que riscos ninguém menciona?
-
+elicit: true
 ---
-
-## Os 4 Eixos de Análise
-
-### 1. Premissas Não Declaradas
-> "Quais suposições estamos fazendo implicitamente que nunca foram questionadas ou validadas?"
-
-**O que revela:** Fundações invisíveis do projeto. Se erradas, tudo desmorona.
-
-**Sinais no conteúdo:**
-- Frases com "obviamente", "claro que", "todo mundo sabe"
-- Ausência de justificativa para escolhas fundamentais
-- Saltos lógicos entre tópicos
-- Conceitos usados sem definição
-
-### 2. Heurísticas Ocultas
-> "Quais regras de decisão ou atalhos mentais parecem estar guiando escolhas sem terem sido formalizados?"
-
-**O que revela:** Como decisões estão sendo tomadas na prática (vs. teoria).
-
-**Sinais no conteúdo:**
-- Padrões de "SE X, ENTÃO sempre Y"
-- Rejeições rápidas sem explicação completa
-- Preferências consistentes não justificadas
-- "Instinto" ou "feeling" mencionados
-
-### 3. Pontos Cegos Estratégicos
-> "Quais riscos, dependências ou trade-offs críticos não foram mencionados mas são fundamentais?"
-
-**O que revela:** O que pode matar o projeto se continuar invisível.
-
-**Sinais no conteúdo:**
-- Cenários nunca discutidos (e se X falhar?)
-- Dependências de terceiros não mapeadas
-- Recursos assumidos como disponíveis
-- Competição/alternativas ignoradas
-
-### 4. Decisões Implícitas
-> "Quais caminhos já foram 'escolhidos' por omissão (ao não discutir alternativas)?"
-
-**O que revela:** Portas que foram fechadas sem perceber.
-
-**Sinais no conteúdo:**
-- Alternativas nunca consideradas
-- "Vamos fazer X" sem "por que não Y ou Z?"
-- Escopo definido por subtração (o que ficou de fora)
-- Prioridades emergentes (o que é discutido primeiro/mais)
-
----
-
-## Processo de Extração
-
-### Fase 1: Scan Inicial
-1. Ler/ouvir o conteúdo completo
-2. Marcar pontos de "salto lógico" ou "decisão rápida"
-3. Listar conceitos usados sem definição
-4. Identificar ausências óbvias (o que NÃO foi discutido)
-
-### Fase 2: Análise Profunda
-Para cada ponto identificado:
-1. **Evidência:** Citar trecho específico `[SOURCE: minuto/página]`
-2. **Inferência:** O que isso implica?
-3. **Impacto:** CRÍTICO / ALTO / MÉDIO
-4. **Pergunta:** O que deveríamos perguntar para resolver?
-
-### Fase 3: Priorização
-Ordenar por:
-1. Impacto se continuar invisível (CRÍTICO primeiro)
-2. Facilidade de resolver (quick wins)
-3. Dependências (o que desbloqueia outras coisas)
-
----
-
-## Template de Output
-
+<!-- SINKRA_TASK_METADATA:START -->
 ```yaml
-# Análise de Conhecimento Implícito: {projeto/aula}
+sinkra_task_metadata:
+  task_id: extract-implicit
+  task_name: Extrator de Conhecimento Tacito
+  status: pending
+  responsible_executor: Agent
+  execution_type: Agent
+  estimated_time: 60-90m
+  domain: Operational
+  input:
+  - '{''source_corpus'': ''Conteudo a analisar (livro, aula, conversa, codigo, processo)''}'
+  - '{''source_type'': ''Tipo de conteudo (livro | aula | conversa | codigo | processo
+    | entrevista)''}'
+  - '{''scope_boundaries'': ''Limites do escopo de extracao''}'
+  - '{''prior_extractions'': ''Extracoes anteriores para triangulacao''}'
+  - '{''source_metadata'': ''Metadata da fonte (nome, data, analista)''}'
+  output:
+  - '{''implicit_knowledge_report'': ''Relatorio completo de conhecimento implicito''}'
+  - '{''clone_guardrails'': ''Guardrails de confianca gerados a partir das evasoes''}'
+  - '{''validation_result'': ''PASS | NEEDS_REVISION''}'
+  action_items:
+  - Executar os passos documentados no corpo da task
+  acceptance_criteria:
+  - All veto conditions checked and none triggered
+  - 'Output artifact produced: Relatorio completo de conhecimento implicito'
+  - Task output validated against quality standards
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
 
-## Metadata
-- **Fonte:** {descrição do conteúdo analisado}
-- **Data:** {data da análise}
-- **Analista:** @oalanicolas
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Operational
+  atomic_layer: Atom
+  executor: Clone
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
 
----
 
-## 1. Premissas Não Declaradas
+# Extrator de Conhecimento Tacito
 
-### P1: {nome da premissa}
-- **Evidência:** "{trecho citado}" [SOURCE: {minuto/página}]
-- **O que está sendo assumido:** {descrição}
-- **Impacto se falsa:** [CRÍTICO/ALTO/MÉDIO]
-- **Pergunta para resolver:** "{pergunta específica}"
-
-### P2: {nome da premissa}
-...
-
----
-
-## 2. Heurísticas Ocultas
-
-### H1: {nome da heurística}
-- **Padrão observado:** "SE {trigger} → ENTÃO {ação}"
-- **Evidência:** "{trecho citado}" [SOURCE: {minuto/página}]
-- **Por que importa:** {explicação}
-- **Deveria ser formalizada?** [SIM/NÃO] - {justificativa}
-
-### H2: {nome da heurística}
-...
-
----
-
-## 3. Pontos Cegos Estratégicos
-
-### PC1: {nome do ponto cego}
-- **O que não foi discutido:** {descrição}
-- **Evidência da ausência:** {como você sabe que falta}
-- **Impacto potencial:** [CRÍTICO/ALTO/MÉDIO]
-- **Cenário de risco:** "E se {situação}?"
-- **Pergunta para resolver:** "{pergunta específica}"
-
-### PC2: {nome do ponto cego}
-...
-
----
-
-## 4. Decisões Implícitas
-
-### D1: {nome da decisão}
-- **O que foi "escolhido" por omissão:** {descrição}
-- **Alternativas não consideradas:** {lista}
-- **Evidência:** "{trecho ou ausência}" [SOURCE: {minuto/página}]
-- **Impacto:** [CRÍTICO/ALTO/MÉDIO]
-- **Pergunta para validar:** "{pergunta específica}"
-
-### D2: {nome da decisão}
-...
+> **Revelar o que foi decidido sem ser verbalizado**
+>
+> *"O conhecimento mais perigoso e o que voce nao sabe que nao sabe."*
+> *"We can know more than we can tell." -- Michael Polanyi*
 
 ---
 
-## Síntese Executiva
+## Pipeline (5 Atomic Tasks)
 
-### Top 5 Itens Críticos (ordenados por impacto)
+| Phase | Task ID | Name | Model | Est. Time |
+|-------|---------|------|-------|-----------|
+| 1 | `extract-implicit-scan` | Initial Scan | Opus | 10 min |
+| 2 | `extract-implicit-analyze` | Deep Analysis (5 Axes) | Opus | 20 min |
+| 3 | `extract-implicit-prioritize` | Prioritize Findings | Sonnet | 5 min |
+| 4 | `extract-implicit-synthesize` | Synthesize Report + Guardrails | Opus | 15 min |
+| 5 | `extract-implicit-validate` | Feynman Validation | Opus | 10 min |
 
-| # | Tipo | Item | Impacto | Pergunta-Chave |
-|---|------|------|---------|----------------|
-| 1 | {P/H/PC/D} | {nome} | CRÍTICO | "{pergunta}" |
-| 2 | {P/H/PC/D} | {nome} | CRÍTICO | "{pergunta}" |
-| 3 | {P/H/PC/D} | {nome} | ALTO | "{pergunta}" |
-| 4 | {P/H/PC/D} | {nome} | ALTO | "{pergunta}" |
-| 5 | {P/H/PC/D} | {nome} | ALTO | "{pergunta}" |
+---
 
-### Padrões Meta-Observados
-- {padrão 1 - ex: "Tendência a assumir recursos ilimitados"}
-- {padrão 2 - ex: "Viés para soluções técnicas vs. processuais"}
-- {padrão 3}
+## Execution Flow
 
-### Recomendação de Próximos Passos
-1. {ação imediata para item mais crítico}
-2. {ação para desbloquear outros}
-3. {ação de prevenção futura}
+```
+extract-implicit-scan
+  | scan_markers
+  v
+extract-implicit-analyze
+  | analysis_findings
+  v
+extract-implicit-prioritize
+  | prioritized_findings
+  v
+extract-implicit-synthesize
+  | implicit_knowledge_report + clone_guardrails
+  v
+extract-implicit-validate
+  | validated_report + validation_result
+  v
+[DONE if PASS | LOOP to Phase 2 if NEEDS_REVISION]
 ```
 
 ---
 
-## Perguntas Gatilho
+## The 5 Axes of Analysis
 
-### Versão Simples (para aplicar rápido)
-> "Quais decisões, heurísticas ou fundamentos podemos estar deixando passar, que não foram verbalizados, mas são importantes ou fundamentais para este projeto?"
-
-### Versão Completa (análise profunda)
-> "Analise toda a conversa sobre [PROJETO] e identifique:
-> 1. Premissas não declaradas
-> 2. Heurísticas ocultas
-> 3. Pontos cegos estratégicos
-> 4. Decisões implícitas
->
-> Para cada item: evidência, impacto, pergunta para resolver."
+| Axis | Question | What It Reveals |
+|------|----------|-----------------|
+| **Premissas** | "Que suposicoes nunca foram questionadas?" | Fundacoes invisiveis |
+| **Heuristicas** | "Que regras de decisao nao foram formalizadas?" | Como decisoes sao tomadas na pratica |
+| **Pontos Cegos** | "Que riscos ninguem mencionou?" | O que pode matar o projeto |
+| **Decisoes Implicitas** | "Que caminhos foram escolhidos por omissao?" | Portas fechadas sem perceber |
+| **Evasao Deliberada** | "O que o expert desviou ou minimizou?" | Limites de competencia |
 
 ---
 
-## Heurísticas de Detecção
+## Veto Conditions (Consolidated)
 
-### Sinais de Premissa Oculta
-- "Obviamente..." / "Claro que..."
-- Conceito usado sem definição
-- Salto lógico entre A e C (sem B)
-- Justificativa circular
-
-### Sinais de Heurística Não Formalizada
-- "Eu sempre faço X quando Y"
-- Rejeição instantânea sem análise
-- "Meu instinto diz..."
-- Padrão repetido 3+ vezes
-
-### Sinais de Ponto Cego
-- "E se X?" nunca perguntado
-- Cenário de falha não discutido
-- Dependência externa não mapeada
-- Competidor/alternativa ignorado
-
-### Sinais de Decisão Implícita
-- "Vamos fazer X" (sem "por que não Y?")
-- Escopo por subtração
-- Primeira opção = opção final
-- Discussão desbalanceada (80% em um tópico)
+| ID | Condition | Phase | Result |
+|----|-----------|-------|--------|
+| VETO-EIM-001 | Source corpus must be explicitly defined | Phase 1 | BLOCK |
+| VETO-EIM-002 | Existing artifact must be backed up before overwrite | Phase 1 | BLOCK |
+| VETO-EIM-003 | CRITICO/ALTO findings must have `[SOURCE:]` evidence | Phase 2 | BLOCK |
 
 ---
 
-## Completion Criteria
-
-| Critério | Status |
-|----------|--------|
-| 4 eixos analisados (P, H, PC, D) | [ ] |
-| Cada item com [SOURCE:] ou justificativa de ausência | [ ] |
-| Impacto classificado (CRÍTICO/ALTO/MÉDIO) | [ ] |
-| Pergunta-chave para cada item | [ ] |
-| Top 5 priorizado | [ ] |
-| Síntese executiva completa | [ ] |
-
----
-
-## Validação: Feynman Technique
-
-Após extrair o conhecimento implícito, valide usando Feynman Technique:
-
-1. **Explique cada heurística extraída como se fosse para um iniciante**
-2. **Se não conseguir explicar simples → você não extraiu direito**
-3. **Gaps na explicação = gaps na extração**
-
-### Checklist de Validação Feynman
-
-| Pergunta | Se NÃO conseguir... |
-|----------|---------------------|
-| Consigo explicar esta premissa em 1 frase? | Premissa não está clara |
-| Consigo dar 3 exemplos desta heurística? | Heurística pode ser falsa |
-| Consigo explicar POR QUE este ponto cego importa? | Impacto não foi entendido |
-| Consigo explicar alternativas à decisão implícita? | Decisão não foi mapeada |
-
----
-
-## Meta-Heurísticas (Sempre Perguntar)
-
-Antes de criar qualquer framework de extração, pergunte:
-
-### 1. "Quem já faz isso bem?"
-> Existe alguém que comprovadamente faz esta extração com um framework documentado?
-
-**Por que importa:** Reinventar a roda é desperdício. Frameworks validados > intuição.
-
-**Ação:** Pesquisar antes de criar. Adaptar > inventar.
-
-### 2. "O que Polanyi/Nonaka/Adler diriam?"
-> Estou fazendo Externalization correta? Estou no nível Analytical/Syntopical?
-
-**Por que importa:** Ancoragem em teoria validada evita vieses.
-
-### 3. "Consigo explicar para um iniciante?" (Feynman)
-> Se não consigo explicar simples, não entendi.
-
-**Por que importa:** Validação imediata de qualidade da extração.
-
----
-
-## Quando Usar
-
-- **Pós-aula/workshop:** Extrair o que o instrutor assumiu mas não disse
-- **Review de projeto:** Identificar riscos ocultos antes de executar
-- **Análise de conversa:** Mapear decisões que foram tomadas sem discussão
-- **Auditoria de processo:** Encontrar heurísticas informais que deveriam ser SOPs
-- **Leitura de livros:** Extrair frameworks que o autor usa mas não nomeia
-- **Code review:** Identificar convenções não documentadas
-
----
-
-## Fontes
+## Sources
 
 - Nonaka, I. & Takeuchi, H. (1995). *The Knowledge-Creating Company*
 - Polanyi, M. (1966). *The Tacit Dimension*
@@ -347,6 +155,18 @@ Antes de criar qualquer framework de extração, pergunte:
 
 ---
 
-*"O conhecimento mais perigoso é o que você não sabe que não sabe."*
-*"Perguntas certas revelam premissas ocultas. Ausências revelam pontos cegos."*
-*"We can know more than we can tell." — Michael Polanyi*
+**Squad Architect | Implicit Knowledge Extractor v3.0**
+
+## Task Anatomy
+
+- **Executor:** Agent
+- **Inputs:** source_corpus; source_type; scope_boundaries
+- **Outputs:** Relatorio completo de conhecimento implicito; Guardrails de confianca gerados a partir das evasoes; PASS | NEEDS_REVISION
+- **Completion Criteria:** All outputs produced and validated
+- **Guardrails:** See Veto Conditions above
+
+## Acceptance Criteria
+
+- [ ] All veto conditions checked and none triggered
+- [ ] Output artifact produced: Relatorio completo de conhecimento implicito
+- [ ] Task output validated against quality standards

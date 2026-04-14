@@ -289,7 +289,7 @@ Search for these in order:
 
 **File Locations:**
 ```
-/Users/oalanicolas/Code/mmos/squads/squad-creator-pro/test-cases/an-assess-sources/
+<workspace-root>/squads/squad-creator-pro/test-cases/an-assess-sources/
 ├── haiku-output.yaml           [YAML data structure]
 ├── ASSESSMENT-SUMMARY.md       [Executive summary]
 ├── EXECUTION-REPORT.md         [Methodology & results]

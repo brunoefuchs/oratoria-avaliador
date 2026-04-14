@@ -1,0 +1,34 @@
+# Squad Routing Table — Cross-Squad Dispatch
+# Story: RUNNER-4.1
+# Defines available squads, their entry points, and capabilities.
+
+squads:
+  mmos:
+    entry: "squads/mmos/scripts/mmos.sh"
+    capabilities:
+      - extract-voice-dna
+      - clone-mind
+      - brownfield-update
+    accepts_dispatch: true
+
+  copy:
+    entry: "squads/copy/scripts/copy.sh"
+    capabilities:
+      - create-sales-page
+      - create-email-sequence
+      - create-vsl
+    accepts_dispatch: true
+
+  books:
+    entry: "squads/books/scripts/books.sh"
+    capabilities:
+      - summarize-book
+      - extract-insights
+    accepts_dispatch: true
+
+  squad-creator:
+    entry: "squads/squad-creator/scripts/validate-squad-structure.py"
+    capabilities:
+      - validate-squad
+      - create-squad
+    accepts_dispatch: true

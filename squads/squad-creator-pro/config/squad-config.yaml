@@ -5,7 +5,7 @@
 squad_config:
   name: squad-creator
   version: 1.0.0
-  description: Tools and agents to create custom AIOS squads
+  description: Tools and agents to create custom AIOX squads
 
   # =========================================
   # Data Sources Configuration

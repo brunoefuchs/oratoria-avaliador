@@ -1,161 +1,116 @@
-# AN_KE_005 - Determinism First
+---
+id: "AN_KE_005"
+title: "Determinism First (Code > LLM)"
+mind: "oalanicolas"
+type: "heuristics"
+zone: "excelencia"
+tags:
+  - "Architecture"
+  - "Reliability"
+  - "Performance"
+pipeline_instances:
+  - "process-architecture"
+  - "system-scaling"
+cross_mind_map:
+  convergent:
+    - id: "PV_PA_004"
+      title: "Zero-Cost Determinism (Worker First)"
+      mind: "pedro_valerio"
+      resonance: "Convergência total. AN prioriza determinismo puro (Code > LLM). PV declara a prioridade de Workers (scripts RPA) para cenários totalmente booleanos sem contexto subjetivo para poupar API tokens. Mesmo axioma tático, linguagem direcionalmente distinta."
+    - id: "PV_PA_019"
+      title: "Deterministic Assignment (The Worker Rule)"
+      mind: "pedro_valerio"
+      resonance: "PV formaliza a regra tática Worker para lógicas exatas sem variância. AN advoga por Determinism First. Aplicação exata do mesmo princípio técnico no planejamento."
+  tension:
+    - id: "PV_PA_005"
+      title: "Directed Stochasticity (Variance as a Feature)"
+      mind: "pedro_valerio"
+      divergence: "PV argumenta que a variância estocástica é o core power do LLM e deve ser gerenciada a jusante (post-generation), não limitada em pre-generation. AN prioriza o corte da variância antes dela acontecer substituindo IA por Código sempre que possível. Focam em extremidades operacionais opostas (onde usar versus onde evitar)."
+      invalidates: false
+---
 
-**Type:** Method Selection Heuristic
-**Phase:** Any (Implementation)
-**Agent:** @oalanicolas
-**Pattern:** Code > LLM
-**Source:** CLAUDE.md - "Determinism First"
+# AN_KE_005 - Determinism First (Code > LLM)
+
+**Type:** Architecture Heuristic
+**Phase:** 4 (Molecular Assembly)
+**Agent:** @process-architect
+**Pattern:** HO-PP-AN005
 
 ## Purpose
 
-Priorizar soluções determinísticas sobre soluções baseadas em LLM. LLM só quando criatividade é genuinamente necessária.
-
-## Core Principle
-
-> "Script/código determinístico ← SEMPRE preferir"
-> "LLM como último recurso ← Só quando criatividade é necessária"
-> — CLAUDE.md Methodology
-
-## Prioritization Ladder
-
-```yaml
-priority_order:
-  1:
-    name: "Script/código determinístico"
-    when: "Lógica pode ser codificada"
-    cost: "$0, 100% reproduzível"
-    example: "Regex, loops, conditionals"
-
-  2:
-    name: "Query SQL direta"
-    when: "Dados estruturados"
-    cost: "$0, auditável"
-    example: "SELECT, JOIN, aggregations"
-
-  3:
-    name: "Regex/pattern matching"
-    when: "Texto com padrão previsível"
-    cost: "$0, reproduzível"
-    example: "Extract IDs, validate formats"
-
-  4:
-    name: "LLM"
-    when: "Criatividade genuinamente necessária"
-    cost: "$$, não-determinístico"
-    example: "Generate copy, summarize, creative writing"
-```
+Castrar a preguiça técnica do dev ou do Agente Orquestrador. Obrigar o uso estrito de limites matemáticos e computacionais em vez de delegar operações rígidas de validação e controle a Grandes Modelos de Linguagem (LLMs). Raciocínios são estocásticos. Delegar uma validação determinística de tipagem ou Regex a um LLM por luxo tecnológico é suicídio operacional, lentidão agressiva e queima injustificável de tokens. Code > LLM.
 
 ## Configuration
 
 ```yaml
 AN_KE_005:
   name: "Determinism First"
-  phase: "any"
-  agent: "@oalanicolas"
+  phase: 4
+  zone: "excelencia"
+  trigger: "Estruturando lógicas de roteamento estrito, contadores validadores, scrapers ou parsers de JSON/YAML."
 
-  decision_tree:
-    - question: "Pode ser codificado com lógica simples?"
-      if_yes: "Use código determinístico"
-      if_no: "Continue"
+  weights:
+    immutability_enforcement: 1.0
+    token_conservation: 1.0
 
-    - question: "Dados estão em banco estruturado?"
-      if_yes: "Use SQL query"
-      if_no: "Continue"
-
-    - question: "Texto tem padrão previsível?"
-      if_yes: "Use regex/pattern matching"
-      if_no: "Continue"
-
-    - question: "Requer criatividade ou julgamento subjetivo?"
-      if_yes: "Use LLM (justified)"
-      if_no: "Reavaliar - provavelmente não precisa de LLM"
+  thresholds:
+    llm_math_tolerance: 0.0
 
   veto_conditions:
-    - condition: "llm_when_code_suffices"
-      action: "VETO - Use deterministic solution"
-      maps_to: "AN_VC_007"
+    - condition: "using_llm_for_strict_type_checking_or_regex_parsing == true"
+      action: "VETO - Delírio Tecnológico. Stop using probabilistic stochastic engines to hammer nails. Use Native Code (Worker)."
 
-  cost_comparison:
-    deterministic:
-      token_cost: 0
-      reproducibility: 100%
-      auditability: "Full"
-    llm:
-      token_cost: "500-5000 per call"
-      reproducibility: "~70-90%"
-      auditability: "Limited"
+  output:
+    type: "decision"
+    values: ["APPROVE_NATIVE_WORKER", "SHIFT_TO_LLM_SEMANTICS", "VETO"]
 ```
 
-## Decision Matrix
-
-| Task Type | Deterministic? | Recommended Approach |
-|-----------|----------------|---------------------|
-| Extract ID from text | Yes | Regex |
-| Validate email format | Yes | Regex |
-| Sum/aggregate data | Yes | SQL |
-| Filter by criteria | Yes | SQL/code |
-| Generate creative copy | No | LLM |
-| Summarize long text | No | LLM |
-| Answer open question | No | LLM |
-| Transform data format | Yes | Code |
-
-## ETL First Sub-Pattern
+## Failure Modes (Anti-Patterns)
 
 ```yaml
-etl_first:
-  principle: "NEVER use WebFetch when ETL fetch-page.js can do the job"
+failure_modes:
+  - type: "misapplication"
+    name: "Computational Stupidity / LLM Math (The Zealot)"
+    trigger: "Obrigar o LLM a fazer contagem matemática complexa de tokens, strings ou cruzar objetos relacionais em JSON."
+    manifestation: "O desenvolvedor diz 'Seja muito rigoroso, garanta que não perca nenhuma linha' no system_message do Agent. O pipeline quebra de madrugada porque o LLM esqueceu uma vírgula (erro de complacência estatística)."
+    detection: "Scripts Python que mandam payloads inteiros para a API da Anthropic apenas para reformatá-los como um `.csv`."
+    recovery: "Extirpar o LLM da cadeia matemática/sintática final. Inserir blocos rígidos de Pydantic, Zod TypeScript ou Bash regex nativos."
 
-  comparison:
-    etl_fetch:
-      command: "node infrastructure/services/etl/bin/fetch-page.js <url>"
-      cost: "$0"
-      output: "Clean markdown"
-    web_fetch:
-      cost: "~500-2K tokens/page"
-      when: "ONLY when LLM reasoning needed IN the fetch step"
-
-  flow: "WebSearch (find URLs) → fetch-page.js (get content) → LLM (only if needed)"
+  - type: "omission"
+    name: "Over-Engineering the Soup (The Paranoiac)"
+    trigger: "Escrever rotinas de Regex gigantescas e indecifráveis para tentar adivinhar nuances complexas de interpretação humana."
+    manifestation: "O dev escreve 900 linhas de Regex em Node para tentar fisgar sentimentos de humor abstrato ou ironia em um chat de suporte. A engine falha miseravelmente diante de sarcasmo real."
+    detection: "Expressões Regulares contendo 40 ORs tentado abraçar variações sintáticas fluidas."
+    recovery: "Aceitar a limitação do Código Rígido contra nuvem semântica. Se envolve humor ou dialeto caótico, MATE o Regex e substitua por apenas 1 call barata e veloz via LLM Haiku / Flash."
 ```
 
-## Validation Questions
-
-1. "Pode ser feito com código simples?"
-2. "Pode ser uma query SQL?"
-3. "Pode ser um regex?"
-4. "Criatividade é GENUINAMENTE necessária?"
-5. "Justifiquei o uso de LLM?"
-
-## Anti-Patterns
+## Evaluation Criteria
 
 ```yaml
-anti_patterns:
-  - name: "LLM for Everything"
-    symptom: "Usar LLM pra tarefas que código resolve"
-    cost: "Tokens desperdiçados, resultados inconsistentes"
-    fix: "Perguntar 'Pode ser código?' primeiro"
-
-  - name: "WebFetch for Reading"
-    symptom: "Usar WebFetch só pra ler página"
-    cost: "500-2K tokens por página"
-    fix: "Usar fetch-page.js via Bash"
-
-  - name: "Prompt Engineering over Code"
-    symptom: "Prompt elaborado pra tarefa determinística"
-    cost: "Fragilidade, não-reprodutibilidade"
-    fix: "Código > prompt sempre que possível"
+evaluation_criteria:
+  - metric: "Immutability Distinction"
+    weight: 1.0
+    threshold: "=== TRUE"
+    description: "Essa operação tem apensa UMA forma matemática correta de se resolver? (Se SIM = Extirpar LLM, Usar Script Rígido)."
+  - metric: "Semantic Requirement"
+    weight: 1.0
+    threshold: "=== TRUE"
+    description: "O sucesso desta operação demanda interpretação de ruído não estruturado, nuances, empatia ou criatividade? (Se SIM = Extirpar Script Rígido, Chamar Agente LLM)."
+  - metric: "Zero-Cost Execution"
+    weight: 0.9
+    threshold: "=== TRUE"
+    description: "Essa validação poderia ser executada em 5ms usando Zod ou Regex nativos de graça?"
 ```
 
-## Performance Metrics
+## Decision Tree
 
-```yaml
-performance:
-  token_savings: "60-80% when following ladder"
-  reproducibility_improvement: "70% → 100% for deterministic"
-  debugging_time_reduction: "~50% (deterministic is traceable)"
+```javascript
+IF (O input exige contagem de caracteres estrita, formatação tipográfica, ou validação de YAML/JSON schema) {
+  VETO("LLM Prompt Dependency");
+  ASSIGN("EXECUTOR_TIER = NATIVE_WORKER (Bash / TypeScript / Python)");
+} ELSE IF (O loop engloba interpretação semântica da massa de dados, nuances emocionais ou síntese abstrata) {
+  ASSIGN("EXECUTOR_TIER = SEMANTIC_AGENT (Claude Haiku / Gemini Flash)");
+}
+
+NEVER("Pedir por favor a um robô bilionário de Linguagem Neural que ordene um array de números em ordem alfabética.");
 ```
-
----
-
-**Pattern Compliance:** Code > LLM
-**Veto Mapping:** AN_VC_007 (LLM When Code Suffices)
-**Integration:** All implementation phases

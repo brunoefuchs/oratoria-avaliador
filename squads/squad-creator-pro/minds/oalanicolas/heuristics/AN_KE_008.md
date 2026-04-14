@@ -44,6 +44,10 @@ AN_KE_008:
   phase: "continuous"
   agent: "@oalanicolas"
 
+  sys_tension:
+    tension_with: "AN_KE_073 (Parallel Subagents for Throughput) vs Pattern Recognition Sequential Wait"
+    resolution: "Document rules only after 2x confirmation to avoid over-constraints, but act immediately once pattern is confirmed"
+
   detection:
     trigger: "same_correction_twice"
     confidence: "100% - if corrected 2x, it's a pattern"
@@ -183,6 +187,15 @@ integration:
     if_then: "| Phrase | Meaning | Action |"
     priority: "1. X → 2. Y → 3. Z"
 ```
+
+---
+
+## Validation
+
+- **Paradox Identified:** Tension between documenting rules only when confirmed (2x) vs. avoiding over-constraints that reduce flexibility.
+- **Resolution Applied:** The 2x Rule itself acts as a validation gate—rules emerge only from repeated user corrections, ensuring they reflect genuine patterns rather than one-off preferences.
+- **Compliance Check:** Rule is automatically applied across all phases because it's reactive to user feedback, not proactive assumption.
+- **Integration Verified:** Synergy with AN_KE_006 achieved through the confirmation gate: flexibility is maintained until a pattern surfaces twice, at which point it becomes a binding rule.
 
 ---
 

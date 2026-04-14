@@ -4,7 +4,7 @@
  *
  * Usage:
  *   node scaffold-squad.cjs <slug> [--name "Display Name"]
- *   node scaffold-squad.cjs  # Uses .active-squad
+ *   node scaffold-squad.cjs  # Uses .aiox/squad-runtime/active-squad.json
  *
  * Creates:
  *   squads/{slug}/
@@ -21,13 +21,17 @@
 
 const fs = require('fs');
 const path = require('path');
+const {
+  DEFAULT_WORKFLOW,
+  readActiveSquad: readActiveSquadFromRuntime,
+  readStateWithLegacyFallback,
+} = require(path.join(__dirname, 'lib', 'squad-runtime-paths.cjs'));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════
 
 const SQUADS_BASE = path.resolve(__dirname, '..', '..'); // squads/
-const ACTIVE_SQUAD_PATH = path.join(SQUADS_BASE, '.active-squad');
 
 const DIRECTORIES = [
   'agents',
@@ -39,15 +43,22 @@ const DIRECTORIES = [
   'scripts'
 ];
 
+const WORKSPACE_LEVELS = new Set(['none', 'read_only', 'controlled_runtime_consumer', 'workspace_first']);
+
+function hasWorkspaceGovernanceSquad() {
+  return fs.existsSync(path.join(SQUADS_BASE, 'c-level'));
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // TEMPLATES
 // ═══════════════════════════════════════════════════════════════════════════
 
-function getReadmeTemplate(slug, displayName, date) {
+function getReadmeTemplate(slug, displayName, date, workspaceLevel) {
   return `# ${displayName} Squad
 
 **Status:** 🚧 In Development
 **Created:** ${date}
+**Workspace Integration Level:** \`${workspaceLevel}\`
 
 ---
 
@@ -68,11 +79,11 @@ function getReadmeTemplate(slug, displayName, date) {
 ## Quick Start
 
 \`\`\`bash
-# Check squad state
-node squads/squad-creator/scripts/squad-state-manager.cjs get ${slug}
+# Validate squad structure
+python3 squads/squad-creator/scripts/validate-squad-structure.py squads/${slug}
 
-# Load context for an agent
-node squads/squad-creator/scripts/squad-context-loader.cjs oalanicolas ${slug}
+# View squad analytics
+python3 squads/squad-creator/scripts/squad-analytics.py --squad ${slug}
 \`\`\`
 
 ---
@@ -88,6 +99,14 @@ node squads/squad-creator/scripts/squad-context-loader.cjs oalanicolas ${slug}
 | \`checklists/\` | Validation checklists |
 | \`docs/\` | Squad documentation |
 | \`scripts/\` | Utility scripts |
+
+## Workspace Integration Contract
+
+- \`workspace_integration.level\`: \`${workspaceLevel}\`
+- \`workspace_integration.rationale\`: PENDING (must be defined before production)
+- \`workspace_integration.read_paths\`: PENDING
+- \`workspace_integration.write_paths\`: PENDING
+- \`workspace_integration.template_namespace\`: PENDING
 
 ---
 
@@ -105,7 +124,7 @@ node squads/squad-creator/scripts/squad-state-manager.cjs get ${slug}
 `;
 }
 
-function getConfigTemplate(slug, displayName, date) {
+function getConfigTemplate(slug, displayName, date, workspaceLevel) {
   return `# ${displayName} Squad Configuration
 # Generated: ${date}
 
@@ -119,6 +138,13 @@ metadata:
   source_mind: null
   target_domain: null
   description: null
+
+workspace_integration:
+  level: ${workspaceLevel}
+  rationale: "PENDING - define why this level is required"
+  read_paths: []
+  write_paths: []
+  template_namespace: null
 
 # Agent definitions (populated during scaffolding phase)
 agents: []
@@ -152,26 +178,17 @@ function outputError(code, message, details = {}) {
 
 function resolveSlug(cliSlug) {
   if (cliSlug && !cliSlug.startsWith('-')) return cliSlug;
-  if (fs.existsSync(ACTIVE_SQUAD_PATH)) {
-    return fs.readFileSync(ACTIVE_SQUAD_PATH, 'utf8').trim();
-  }
-  return null;
-}
-
-function getStatePath(slug) {
-  return path.join(SQUADS_BASE, slug, 'metadata', 'state.json');
+  const positional = process.argv.slice(2).find(a => !a.startsWith('-'));
+  if (positional) return positional;
+  return readActiveSquadFromRuntime();
 }
 
 function readState(slug) {
-  const statePath = getStatePath(slug);
-  if (fs.existsSync(statePath)) {
-    try {
-      return JSON.parse(fs.readFileSync(statePath, 'utf8'));
-    } catch {
-      return null;
-    }
-  }
-  return null;
+  const result = readStateWithLegacyFallback(slug, {
+    workflow: DEFAULT_WORKFLOW,
+  });
+  if (!result.state || result.state.__corrupted) return null;
+  return result.state;
 }
 
 function parseArg(args, flag) {
@@ -192,10 +209,12 @@ function main() {
 
 Usage:
   node scaffold-squad.cjs <slug> [--name "Display Name"]
-  node scaffold-squad.cjs  # Uses .active-squad
+  node scaffold-squad.cjs  # Uses .aiox/squad-runtime/active-squad.json
 
 Options:
   --name "Name"    Display name for the squad (default: slug title-cased)
+  --workspace-level <none|read_only|controlled_runtime_consumer|workspace_first>
+                    Required integration level with workspace (default: read_only)
 
 Creates directories: ${DIRECTORIES.join(', ')}
 Creates files: README.md, config.yaml`);
@@ -207,7 +226,7 @@ Creates files: README.md, config.yaml`);
   const slug = resolveSlug(cliSlug);
 
   if (!slug) {
-    outputError('NO_SLUG', 'No slug provided and no .active-squad file found', {
+    outputError('NO_SLUG', 'No slug provided and no active squad pointer found', {
       hint: 'Run: node squad-state-manager.cjs init <slug> first'
     });
     process.exit(1);
@@ -225,6 +244,22 @@ Creates files: README.md, config.yaml`);
   // Get display name from args or state or derive from slug
   const state = readState(slug);
   const argName = parseArg(args, '--name');
+  const workspaceLevel = parseArg(args, '--workspace-level') || 'read_only';
+
+  if (!WORKSPACE_LEVELS.has(workspaceLevel)) {
+    outputError('INVALID_WORKSPACE_LEVEL', 'workspace level must be one of: none, read_only, controlled_runtime_consumer, workspace_first', {
+      received: workspaceLevel
+    });
+    process.exit(1);
+  }
+  if ((workspaceLevel === 'controlled_runtime_consumer' || workspaceLevel === 'workspace_first') && !hasWorkspaceGovernanceSquad()) {
+    outputError(
+      'MISSING_C_LEVEL',
+      'controlled_runtime_consumer and workspace_first require squads/c-level to exist',
+      { received: workspaceLevel }
+    );
+    process.exit(1);
+  }
   const displayName = argName ||
     (state && state.display_name) ||
     slug.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -250,7 +285,7 @@ Creates files: README.md, config.yaml`);
   // Create README.md
   const readmePath = path.join(squadDir, 'README.md');
   if (!fs.existsSync(readmePath)) {
-    fs.writeFileSync(readmePath, getReadmeTemplate(slug, displayName, date));
+    fs.writeFileSync(readmePath, getReadmeTemplate(slug, displayName, date, workspaceLevel));
     created.push('README.md');
   } else {
     skipped.push('README.md');
@@ -259,7 +294,7 @@ Creates files: README.md, config.yaml`);
   // Create config.yaml
   const configPath = path.join(squadDir, 'config.yaml');
   if (!fs.existsSync(configPath)) {
-    fs.writeFileSync(configPath, getConfigTemplate(slug, displayName, date));
+    fs.writeFileSync(configPath, getConfigTemplate(slug, displayName, date, workspaceLevel));
     created.push('config.yaml');
   } else {
     skipped.push('config.yaml');
@@ -269,6 +304,7 @@ Creates files: README.md, config.yaml`);
     success: true,
     slug,
     display_name: displayName,
+    workspace_level: workspaceLevel,
     path: squadDir,
     created,
     skipped,

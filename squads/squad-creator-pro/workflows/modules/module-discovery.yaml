@@ -7,10 +7,10 @@ module:
     - id: discovery-context
       task: detect-squad-context
       outputs:
-        - outputs/squad_creation/{squad_name}/context-detection.yaml
+        - .aiox/squad-runtime/create-squad/{squad_name}/context-detection.yaml
 
     - id: discovery-parallel
       task: parallel-discovery
       outputs:
-        - outputs/discovery/{domain}/discovery-merged.yaml
-        - outputs/discovery/{domain}/discovery-summary.md
+        - .aiox/squad-runtime/discovery/{domain}/discovery-merged.yaml
+        - .aiox/squad-runtime/discovery/{domain}/discovery-summary.md

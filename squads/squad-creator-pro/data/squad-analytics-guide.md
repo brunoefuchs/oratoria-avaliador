@@ -8,7 +8,7 @@
 
 ## Overview
 
-O comando `*squad-analytics` fornece uma visão detalhada de todo o ecossistema AIOS, incluindo contagens precisas de todos os componentes por squad.
+O comando `*squad-analytics` fornece uma visão detalhada de todo o ecossistema AIOX, incluindo contagens precisas de todos os componentes por squad.
 
 ---
 
@@ -97,7 +97,7 @@ Máximo: 10 pontos
 
 ```
 ====================================================================================================
-📊 AIOS SQUAD ANALYTICS
+📊 AIOX SQUAD ANALYTICS
 Generated: 2026-02-01
 ====================================================================================================
 

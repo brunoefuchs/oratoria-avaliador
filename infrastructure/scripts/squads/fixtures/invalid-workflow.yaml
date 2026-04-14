@@ -1,0 +1,4 @@
+id: infra-invalid-workflow
+name: Infra Invalid Workflow
+sequence:
+  - action: missing-workflow-wrapper

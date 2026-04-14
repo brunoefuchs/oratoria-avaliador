@@ -12,18 +12,24 @@
  * Errors: JSON with { "success": false, "error": { "code": "...", "message": "...", "details": {} } }
  *
  * Agent keys: oalanicolas, pedro-valerio, squad-chief
- * Slug detection: CLI arg > .active-squad > error
+ * Slug detection: CLI arg > active-squad.json > error
  */
 
 const fs = require('fs');
 const path = require('path');
+const {
+  DEFAULT_WORKFLOW,
+  getCanonicalStatePath,
+  readActiveSquad: readActiveSquadFromRuntime,
+  readStateWithLegacyFallback,
+  toWorkspaceRelative,
+} = require(path.resolve(__dirname, '..', '..', 'squad-creator', 'scripts', 'lib', 'squad-runtime-paths.cjs'));
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════
 
 const SQUADS_BASE = path.resolve(__dirname, '..', '..'); // squads/
-const ACTIVE_SQUAD_PATH = path.join(SQUADS_BASE, '.active-squad');
 
 /**
  * Maps agent_key to { persona_name, role, phases, handoff_to }
@@ -48,9 +54,9 @@ const AGENT_MAP = {
   'squad-chief': {
     persona_name: 'Squad Chief',
     role: 'Integration Orchestrator',
-    phases: ['integration', 'smoke_test'],
+    phases: ['integration', 'smoke_test', 'epic_init', 'story_ready', 'story_in_progress', 'epic_validation'],
     handoff_to: null,
-    source: 'squads/squad-creator-pro/agents/squad-chief.md'
+    source: 'squads/squad-creator/agents/squad-chief.md'
   }
 };
 
@@ -70,15 +76,12 @@ function outputError(code, message, details = {}) {
 }
 
 function getStatePath(slug) {
-  return path.join(SQUADS_BASE, slug, 'metadata', 'state.json');
+  return getCanonicalStatePath(slug, DEFAULT_WORKFLOW);
 }
 
 function resolveSlug(cliSlug) {
   if (cliSlug && !cliSlug.startsWith('-')) return cliSlug;
-  if (fs.existsSync(ACTIVE_SQUAD_PATH)) {
-    return fs.readFileSync(ACTIVE_SQUAD_PATH, 'utf8').trim();
-  }
-  return null;
+  return readActiveSquadFromRuntime();
 }
 
 function scanCompletedOutputs(slug) {
@@ -113,6 +116,12 @@ function getHandoffTo(agentKey) {
   return agent ? agent.handoff_to : null;
 }
 
+function inferExecutionModel(state) {
+  const explicit = state?.execution_model || state?.metadata?.execution_model;
+  if (explicit) return explicit;
+  return /^epic_/.test(state?.current_phase || '') ? 'epic' : 'legacy';
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // MAIN
 // ═══════════════════════════════════════════════════════════════════════════
@@ -127,7 +136,7 @@ Usage: node squad-context-loader.cjs <agent_key> [slug]
 
 Agent keys: ${Object.keys(AGENT_MAP).join(', ')}
 
-Slug detection: CLI arg > .active-squad > error
+Slug detection: CLI arg > active-squad.json > error
 Output: JSON context to stdout
 `);
     process.exit(0);
@@ -148,27 +157,28 @@ Output: JSON context to stdout
   // Resolve slug
   const slug = resolveSlug(cliSlug);
   if (!slug) {
-    outputError('NO_ACTIVE_SQUAD', 'No slug provided and no .active-squad file found', {
+    outputError('NO_ACTIVE_SQUAD', 'No slug provided and no active squad pointer found', {
       hint: 'Run: node squad-state-manager.cjs init <slug>'
     });
     process.exit(1);
   }
 
   // Read state.json
-  const statePath = getStatePath(slug);
-  if (!fs.existsSync(statePath)) {
-    outputError('STATE_NOT_FOUND', `State file not found: ${statePath}`, {
+  const stateLookup = readStateWithLegacyFallback(slug, {
+    workflow: DEFAULT_WORKFLOW,
+  });
+  const statePath = stateLookup.path || getStatePath(slug);
+  if (!stateLookup.state) {
+    outputError('STATE_NOT_FOUND', `State file not found: ${toWorkspaceRelative(statePath)}`, {
       hint: `Run: node squad-state-manager.cjs init ${slug}`
     });
     process.exit(1);
   }
 
-  let state;
-  try {
-    state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-  } catch {
+  const state = stateLookup.state;
+  if (state.__corrupted) {
     outputError('CORRUPTED_STATE', `Corrupted state.json for ${slug}`, {
-      path: statePath,
+      path: toWorkspaceRelative(statePath),
       hint: 'Delete and re-init.'
     });
     process.exit(1);
@@ -177,19 +187,36 @@ Output: JSON context to stdout
   // Build context
   const agent = AGENT_MAP[agentKey];
   const completedOutputs = state.completed_outputs || scanCompletedOutputs(slug);
+  const metadata = state.metadata || {};
+  const epicMetadata = metadata.epic || null;
+  const storyMetadata = metadata.story || null;
 
   const context = {
     slug: state.slug || slug,
     display_name: state.display_name || slug,
+    execution_model: inferExecutionModel(state),
     current_phase: state.current_phase || 'unknown',
     checkpoint_status: state.checkpoint_status || 'unknown',
     output_dir: `squads/${slug}/`,
-    state_file: `squads/${slug}/metadata/state.json`,
+    state_file: toWorkspaceRelative(getStatePath(slug)),
+    state_source: stateLookup.source || 'canonical',
     completed_outputs: completedOutputs,
     agent_history: state.agent_history || [],
     handoff_from: getHandoffFrom(agentKey),
     handoff_to: getHandoffTo(agentKey),
-    metadata: state.metadata || {},
+    metadata,
+    epic: epicMetadata ? {
+      current: epicMetadata.number || null,
+      total: epicMetadata.total || null,
+      title: epicMetadata.title || null,
+      prd_path: metadata.prd_path || null
+    } : null,
+    story: storyMetadata ? {
+      id: storyMetadata.id || null,
+      title: storyMetadata.title || null,
+      path: storyMetadata.path || null
+    } : null,
+    squad_type: metadata.squad_type || null,
     agent: {
       key: agentKey,
       persona: agent.persona_name,

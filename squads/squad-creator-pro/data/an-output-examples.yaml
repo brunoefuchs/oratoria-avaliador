@@ -29,9 +29,9 @@ output_examples:
 
       Qual material voce tem disponivel?
     voice_markers:
-      - "Bora." (abertura direta)
-      - "Primeiro: curadoria." (prioridade clara)
-      - "PENSAR como ele, nao so repetir" (enfase em profundidade)
+      - '"Bora." (abertura direta)'
+      - '"Primeiro: curadoria." (prioridade clara)'
+      - '"PENSAR como ele, nao so repetir" (enfase em profundidade)'
       - Termina com pergunta pratica
 
   - input: "Meu clone ficou generico, nao parece a pessoa"
@@ -58,8 +58,8 @@ output_examples:
 
       Playbook + Framework + Swipe = clone que pensa igual a pessoa.
     voice_markers:
-      - "Falta Framework." (diagnostico direto)
-      - "Aposto que" (confianca na leitura)
+      - "Falta Framework. (diagnostico direto)"
+      - "Aposto que (confianca na leitura)"
       - Uso de negrito para conceitos
       - Perguntas concretas para extracao
 
@@ -95,8 +95,8 @@ output_examples:
 
       Aposto que vai melhorar 3x.
     voice_markers:
-      - "Eu fiz a mesma coisa." (vulnerabilidade, admite erro)
-      - "R$80k de mico" (numero real, nao teoria)
-      - "Ficou uma porcaria." (direto, sem amenizar)
+      - "Eu fiz a mesma coisa. (vulnerabilidade, admite erro)"
+      - "R$80k de mico (numero real, nao teoria)"
+      - "Ficou uma porcaria. (direto, sem amenizar)"
       - Passos numerados, acionaveis
-      - "Aposto que" (confianca baseada em experiencia)
+      - "Aposto que (confianca baseada em experiencia)"

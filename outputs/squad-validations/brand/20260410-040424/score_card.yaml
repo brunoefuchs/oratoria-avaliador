@@ -1,0 +1,30 @@
+validation:
+  squad: "brand"
+  squad_path: "/Users/oalanicolas/Code/aiox-pro/squads/brand"
+  validated_by: "validate-squad.sh v4.0"
+  validated_date: "2026-04-10T04:04:25-07:00"
+  runtime: "claude"
+  model: "opus"
+  duration_seconds: 51
+
+scores:
+  final: 6
+  raw: 6.00
+  verdict: "CONDITIONAL"
+  type: "expert"
+
+dimensions:
+  functionality: 9
+  security: 10
+  workflow_contract: 10
+  structural_completeness: 8
+  agent_quality: 8
+  squad_agnosticism: 8
+  production_evidence: 6
+  config_quality: 9
+  documentation: 10
+
+metrics:
+  agents: 16
+  tasks: 22
+  checklists: 2

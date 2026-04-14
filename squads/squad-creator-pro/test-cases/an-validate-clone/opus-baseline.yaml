@@ -5,8 +5,8 @@
 
 validation_report:
   clone: "Victoria - Viability Specialist"
-  clone_file: "/Users/oalanicolas/Code/mmos/.claude/agents/mmos-victoria.md"
-  persona_file: "/Users/oalanicolas/Code/mmos/.claude/agents/MMOS/agents/victoria-viability-specialist.md"
+  clone_file: "<workspace-root>/.claude/agents/mmos-victoria.md"
+  persona_file: "<workspace-root>/.claude/agents/MMOS/agents/victoria-viability-specialist.md"
   date: "2026-02-11"
 
   fidelity_score:

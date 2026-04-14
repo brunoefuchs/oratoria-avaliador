@@ -51,7 +51,7 @@ workflow:
 # TASK ANATOMY STANDARD (HO-TP-001)
 # ============================================================================
 # Every task MUST have these 8 mandatory fields. No exceptions.
-# Reference: AIOS Task Anatomy Standard
+# Reference: AIOX Task Anatomy Standard
 # ============================================================================
 
 task_anatomy:

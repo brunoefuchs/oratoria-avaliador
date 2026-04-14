@@ -82,7 +82,7 @@ Se você tem o Squad Creator na pasta `squads/squad-creator`, já está instalad
 ### Preciso de alguma conta especial?
 
 Você precisa de:
-- Projeto AIOS configurado
+- Projeto AIOX configurado
 - Claude Code funcionando
 
 ### Funciona no Windows/Mac/Linux?
@@ -95,7 +95,7 @@ Você precisa de:
 
 ### Posso usar em qualquer projeto?
 
-O Squad Creator foi feito para o ecossistema AIOS. Funciona em qualquer projeto que tenha a estrutura AIOS configurada.
+O Squad Creator foi feito para o ecossistema AIOX. Funciona em qualquer projeto que tenha a estrutura AIOX configurada.
 
 ### O que preciso ter pronto antes de começar?
 
@@ -668,7 +668,7 @@ Os workflows são configuráveis em:
 squads/squad-creator-pro/workflows/
 ```
 
-Mas requer conhecimento do sistema AIOS.
+Mas requer conhecimento do sistema AIOX.
 
 ### Qual o limite de experts por squad?
 
@@ -722,7 +722,7 @@ Mas requer conhecimento do sistema AIOS.
 
 1. **Tutorial completo:** [TUTORIAL-COMPLETO.md](./TUTORIAL-COMPLETO.md)
 2. **Conceitos detalhados:** [CONCEPTS.md](./CONCEPTS.md)
-3. **Problemas técnicos:** [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+3. **Problemas técnicos:** [TROUBLESHOOTING.md](../../squad-creator/docs/TROUBLESHOOTING.md)
 4. **Comandos:** [COMMANDS.md](./COMMANDS.md)
 
 ---

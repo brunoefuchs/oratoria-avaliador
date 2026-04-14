@@ -202,3 +202,6 @@ tags:
   - visual-regression
   - brownfield-migration
   - component-stories
+
+workspace_integration:
+  level: none

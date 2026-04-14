@@ -1,11 +1,30 @@
 # Task: Reexecute Squad Phase
 
 **Task ID:** reexecute-squad-phase
-**Version:** 1.0.0
 **Execution Type:** Interactive Hybrid
+**Domain:** `Strategic`
 **Purpose:** Re-run one workflow phase with backup and deterministic rollback path
 **Orchestrator:** @squad-chief
 **Mode:** Human-confirmed for destructive phase cleanup
+**Model:** `Sonnet` (impact-aware rerun planning with rollback safeguards)
+**Haiku Eligible:** NO -- destructive-operation safeguards require contextual reasoning
+
+**Accountability:** `human: squad-operator | scope: full`
+
+## Veto Conditions
+
+```yaml
+veto_conditions:
+  - id: "VETO-REEXEC-001"
+    condition: "Backup commit missing or not verifiable before cleanup"
+    trigger: "Before deleting phase-scoped artifacts or rerunning phase steps"
+    block_behavior: "BLOCK reexecution; require validated backup_ref (git commit SHA) first"
+
+  - id: "VETO-REEXEC-002"
+    condition: "Downstream impact summary not generated"
+    trigger: "Before explicit user confirmation"
+    block_behavior: "BLOCK reexecution; require impact report and explicit confirmation"
+```
 
 ## Why
 
@@ -15,6 +34,18 @@ Reexecution must preserve recoverability.
 ```
 
 ---
+
+
+<!-- SINKRA_CONTRACT -->
+Domain: `Strategic`
+atomic_layer: Atom
+agent: squad-chief
+Input: request::reexecute_squad_phase
+Output: artifact::reexecute_squad_phase
+pre_condition: contexto mínimo carregado e rota validada
+post_condition: decisão registrada com artefato persistido ou handoff emitido
+performance: registrar evidências, falhas e próximo passo sem erro silencioso
+Completion Criteria: contrato mínimo SINKRA explícito e saída rastreável produzida
 
 ## Inputs
 
@@ -53,6 +84,8 @@ reexecution_report:
   downstream_impacts:
     - "..."
   rollback_instructions: "git checkout {sha} -- <paths>"
+  schema_ref: squads/squad-creator/config/workflow-yaml-schema.yaml
+
 ```
 
 ---

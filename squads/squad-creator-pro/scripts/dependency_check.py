@@ -25,14 +25,14 @@ from typing import Dict, List, Any, Tuple
 
 
 # Known squad names to detect external references
-# Dynamically loaded from squad-registry.yaml if available, otherwise empty set
+# Dynamically loaded from ecosystem-registry.yaml if available, otherwise empty set
 def load_known_squads():
     """Load known squad names from registry or discover from squads/ directory."""
     known = set()
 
-    # Try loading from squad-registry.yaml
+    # Try loading from ecosystem-registry.yaml (consolidated registry)
     script_dir = Path(__file__).parent
-    registry_path = script_dir / ".." / "data" / "squad-registry.yaml"
+    registry_path = script_dir / ".." / ".." / "sinkra-squad" / "data" / "ecosystem-registry.yaml"
 
     if registry_path.exists():
         try:
@@ -40,7 +40,11 @@ def load_known_squads():
             with open(registry_path, 'r') as f:
                 registry = yaml.safe_load(f)
                 if registry and 'squads' in registry:
-                    known.update(registry['squads'].keys())
+                    squads = registry['squads']
+                    if isinstance(squads, dict):
+                        known.update(squads.keys())
+                    elif isinstance(squads, list):
+                        known.update(s['name'] for s in squads if 'name' in s)
         except Exception:
             pass  # Fall through to directory discovery
 

@@ -1,258 +1,202 @@
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: create-documentation
+  task_name: Create Documentation (Extension Wrapper)
+  status: pending
+  responsible_executor: '@pedro-valerio'
+  execution_type: Worker
+  estimated_time: 15m
+  domain: Operational
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Normalize Target
+  - Build Delegation Payload
+  - Delegate to Base
+  - Reconcile Outputs
+  acceptance_criteria:
+  - squads/squad-creator/tasks/create-documentation.md` existe
+  - O chamador entende que este wrapper não possui pipeline documental próprio
+  - Se o alvo for um squad, `squad_name` ou `pack_name` está resolvido
+  - pack_name` e `squad_name` são reconciliados corretamente
+  - A geração documental real é delegada ao base
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+  coherence_threshold: 0.95
+  error_behavior: raise
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Strategic
+  atomic_layer: Atom
+  executor: Worker
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
+# Task: Create Documentation (Extension Wrapper)
+
+**Task ID:** create-documentation
+**Version:** 3.0.0
+**Purpose:** Preservar compatibilidade do `squad-creator-pro` enquanto delega a criação documental ao owner canônico no `squad-creator`
+**Orchestrator:** @pedro-valerio
+**Mode:** Delegation-first
+**Quality Standard:** Herdado da task base
+
 ---
-task: Create Documentation
-task_id: PV_DOC_001
-responsavel: "@pedro-valerio"
-responsavel_type: agent
-atomic_layer: task
-phase: operationalization
-
-trigger:
-  automatic:
-    - after: create-agent
-    - after: create-workflow
-    - after: create-squad
-  manual: "*create-doc {artefato}"
-
-templates:
-  - agent-flow-doc-tmpl      # SC-DP-001
-  - workflow-doc-tmpl        # SC-DP-002
-  - squad-readme-tmpl        # SC-DP-003
-
-patterns:
-  - SC-DP-001: Agent Flow Documentation
-  - SC-DP-002: Workflow Documentation
-  - SC-DP-003: Squad README
-
-rationale: |
-  Documentação é OPERACIONALIZAÇÃO, não extração.
-  Transforma conhecimento do artefato em processo documentado.
-  "Se não está documentado, não existe." — @pedro-valerio
----
-
-# Create Documentation
-
-**Squad:** squad-creator
-**Phase:** Operationalization (Fase 3 do pipeline)
-**Agent:** @pedro-valerio
-**Pattern:** SC-DP-* (Documentation Patterns)
 
 ## Purpose
 
-Criar documentação completa e padronizada para cada artefato do squad-creator.
+Este wrapper existe para manter compatibilidade com workflows do `squad-creator-pro` que ainda chamam `create-documentation` após criar agents, workflows ou squads.
 
-**REGRA ABSOLUTA:** Nenhum agent, workflow ou squad é considerado completo sem documentação no padrão especificado.
+**Regra não negociável:** documentação estrutural compartilhada deve viver no base quando o comportamento é o mesmo. O pro só acrescenta contexto; não mantém um segundo processo completo de documentação.
+
+Owner canônico:
+
+- `squads/squad-creator/tasks/create-documentation.md`
+
+O papel desta task é apenas:
+
+1. normalizar inputs legados do pro;
+2. reconciliar `pack_name` com `squad_name` quando aplicável;
+3. transferir contexto adicional do pro para a geração documental;
+4. delegar a execução para a task base;
+5. devolver o resultado no formato esperado pelos chamadores do pro.
+
+---
+
+## Inputs
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `artifact_name` | string | Yes | Nome do artefato criado |
+| `artifact_type` | enum | No | `agent`, `workflow` ou `squad` |
+| `squad_name` | string | No | Nome canônico do squad alvo |
+| `pack_name` | string | No | Alias legado usado no pro; deve virar `squad_name` |
+| `source_artifacts` | list | No | Artefatos de research ou discovery relevantes |
+| `integration_notes` | object | No | Restrições ou observações contextuais do pro |
+
+---
+
+## Preconditions
+
+- [ ] `squads/squad-creator/tasks/create-documentation.md` existe
+- [ ] O chamador entende que este wrapper não possui pipeline documental próprio
+- [ ] Se o alvo for um squad, `squad_name` ou `pack_name` está resolvido
+
+---
+
+## Workflow
+
+### Step 1: Normalize Target
+
+```yaml
+normalize_target:
+  rules:
+    - if: "squad_name is empty AND pack_name exists"
+      then: "set squad_name = pack_name"
+    - if: "both squad_name and pack_name exist AND differ"
+      then: "block and reconcile target"
+```
+
+### Step 2: Build Delegation Payload
+
+```yaml
+build_base_payload:
+  required_fields:
+    - artifact_name
+  optional_fields:
+    - artifact_type
+    - squad_name
+    - source_artifacts
+    - integration_notes
+  rule: >
+    O pro pode enriquecer o contexto documental, mas não redefine templates,
+    padrões de seções ou fluxo de geração documental do base.
+```
+
+### Step 3: Delegate to Base
+
+```yaml
+delegate_to_base:
+  task: "squads/squad-creator/tasks/create-documentation.md"
+  payload:
+    - artifact_name
+    - artifact_type
+    - squad_name
+    - source_artifacts
+    - integration_notes
+  prohibition:
+    - "Do NOT maintain a parallel create-documentation methodology in squad-creator-pro"
+```
+
+### Step 4: Reconcile Outputs
+
+```yaml
+reconcile_outputs:
+  return_shape:
+    delegated_task: "squads/squad-creator/tasks/create-documentation.md"
+    normalized_squad_name: "{squad_name}"
+    execution_mode: "base-delegated"
+```
+
+---
+
+## Output
+
+```yaml
+output:
+  name: delegated_documentation_creation
+  format: yaml
+  structure:
+    delegated_task: "squads/squad-creator/tasks/create-documentation.md"
+    normalized_squad_name: "{squad_name}"
+    status: "delegated"
+```
+
+---
+
+## Acceptance Criteria
+
+- [ ] `pack_name` e `squad_name` são reconciliados corretamente
+- [ ] A geração documental real é delegada ao base
+- [ ] Nenhuma metodologia paralela de documentação permanece no pro
+- [ ] Workflows do pro que dependem de `create-documentation` continuam compatíveis
 
 ---
 
 ## Veto Conditions
 
-| Trigger | Ação |
-|---------|------|
-| Agent criado sem agent-flow doc | **VETO** - criar documentação antes de marcar done |
-| Workflow criado sem workflow doc | **VETO** - criar documentação antes de marcar done |
-| Squad criado sem README completo | **VETO** - criar README antes de marcar done |
-| Doc sem diagrama Mermaid | **VETO** - adicionar diagrama |
-| Doc sem troubleshooting | **VETO** - adicionar seção |
+- `squad_name` e `pack_name` apontarem para squads diferentes
+- A task base `create-documentation.md` não existir
+- O pro tentar redefinir templates e seções que já pertencem ao base
 
 ---
 
-## Invocação
+## Related Documents
 
-### Automática
-
-Triggered automaticamente após:
-- `*create-agent` → Cria agent-flow doc
-- `*create-workflow` → Cria workflow doc
-- `*create-squad` → Cria/atualiza README
-
-### Manual
-
-```
-@pedro-valerio
-*create-doc {nome-do-artefato}
-```
-
-**Exemplos:**
-- `*create-doc hormozi-offers` → Cria agent-flow doc
-- `*create-doc wf-create-squad` → Cria workflow doc
-- `*create-doc hormozi` → Atualiza README do squad
+- `squads/squad-creator/tasks/create-documentation.md` -- owner canônico
 
 ---
 
-## Roteamento por Tipo de Artefato
+_Task Version: 3.0.0_
+_Role: compatibility wrapper for upgrade-pack delegation_
 
-| Artefato Criado | Tipo de Doc | Template | Destino |
-|-----------------|-------------|----------|---------|
-| Agent | Agent Flow Doc | `agent-flow-doc-tmpl.md` | `docs/guides/aios-agent-flows/{agent}-system.md` |
-| Workflow | Workflow Doc | `workflow-doc-tmpl.md` | `docs/guides/aios-workflows/{workflow}-workflow.md` |
-| Squad | README | `squad-readme-tmpl.md` | `squads/{squad}/README.md` |
+## Task Anatomy
 
----
-
-## Conteúdo Obrigatório por Tipo
-
-### SC-DP-001: Agent Flow Doc
-
-| Seção | Obrigatório |
-|-------|-------------|
-| Visão geral com propósito | ✅ |
-| Lista completa de arquivos | ✅ |
-| Flowchart Mermaid do sistema | ✅ |
-| Mapeamento comando → task | ✅ |
-| Diagrama de colaboração | ✅ |
-| Best practices | ✅ |
-| Troubleshooting (3+ problemas) | ✅ |
-| Referências | ✅ |
-| Changelog | ✅ |
-
-### SC-DP-002: Workflow Doc
-
-| Seção | Obrigatório |
-|-------|-------------|
-| Visão geral com objetivo | ✅ |
-| **3 diagramas Mermaid** (flowchart, state, sequence) | ✅ |
-| Steps detalhados com inputs/outputs | ✅ |
-| Veto conditions por step | ✅ |
-| Agentes participantes com comandos | ✅ |
-| Mapa de tasks por fase | ✅ |
-| Pré-requisitos | ✅ |
-| Entradas e saídas do workflow | ✅ |
-| Pontos de decisão com diagrama | ✅ |
-| Condições de bloqueio (HALT) | ✅ |
-| Troubleshooting (3+ problemas) | ✅ |
-| Changelog | ✅ |
-
-### SC-DP-003: Squad README
-
-| Seção | Obrigatório |
-|-------|-------------|
-| Descrição clara do propósito | ✅ |
-| Tabela de agents com papéis | ✅ |
-| Estrutura de diretórios | ✅ |
-| Quick start funcional | ✅ |
-| Lista de workflows | ✅ |
-| Comandos por agent | ✅ |
-| Veto conditions | ✅ |
-| Links para docs completas | ✅ |
-
----
-
-## Execution Flow
-
-```mermaid
-flowchart TD
-    TRIGGER["Trigger:<br/>Agent/Workflow/Squad criado"] --> DETECT{"Tipo de<br/>artefato?"}
-
-    DETECT -->|Agent| LOAD_A["Carregar template<br/>agent-flow-doc-tmpl.md"]
-    DETECT -->|Workflow| LOAD_W["Carregar template<br/>workflow-doc-tmpl.md"]
-    DETECT -->|Squad| LOAD_S["Carregar template<br/>squad-readme-tmpl.md"]
-
-    LOAD_A --> FILL_A["Preencher com dados<br/>do agent"]
-    LOAD_W --> FILL_W["Preencher com dados<br/>do workflow"]
-    LOAD_S --> FILL_S["Preencher com dados<br/>do squad"]
-
-    FILL_A --> VALIDATE{"Checklist<br/>completo?"}
-    FILL_W --> VALIDATE
-    FILL_S --> VALIDATE
-
-    VALIDATE -->|Não| FIX["Completar seções<br/>faltantes"]
-    FIX --> VALIDATE
-
-    VALIDATE -->|Sim| WRITE["Escrever doc<br/>no destino"]
-    WRITE --> UPDATE["Atualizar README<br/>do diretório"]
-    UPDATE --> DONE["✅ Documentação completa"]
-```
-
----
-
-## Integração no Pipeline
-
-```
-AN extrai conhecimento → PV operacionaliza → PV documenta → Chief monta
-                                              ↑
-                                    Esta task (create-documentation)
-```
-
-### Posição no Fluxo
-
-| Fase | Responsável | Ação | Task |
-|------|-------------|------|------|
-| 1 | @oalanicolas | Extrai conhecimento | `extract-*.md` |
-| 2 | @pedro-valerio | Operacionaliza (SOPs, checklists) | `extract-sop.md`, etc |
-| **3** | **@pedro-valerio** | **Documenta** | **`create-documentation.md`** |
-| 4 | @squad-chief | Monta squad final | `create-squad.md` |
-
----
-
-## Integração com Outros Tasks
-
-### Chamado Automaticamente Por
-
-| Task | Quando |
-|------|--------|
-| `create-agent.md` | Após agent criado com sucesso |
-| `create-workflow.md` | Após workflow criado com sucesso |
-| `create-squad.md` | Após squad criado com sucesso |
-| `upgrade-squad.md` | Se doc não existe ou está desatualizada |
-
-### Pode Chamar
-
-| Task | Quando |
-|------|--------|
-| `validate-squad.md` | Após criar README do squad |
-
----
-
-## Output Schema
-
-```yaml
-documentation_output:
-  artefato:
-    name: string
-    type: agent|workflow|squad
-    version: string
-  documento:
-    pattern: SC-DP-001|SC-DP-002|SC-DP-003
-    template_used: string
-    path: string
-    sections_completed: number
-    total_sections: number
-  diagramas:
-    - type: flowchart|state|sequence
-      presente: boolean
-  validacao:
-    checklist_score: percentage
-    troubleshooting_count: number
-    mermaid_present: boolean
-  metadata:
-    generated_date: string
-    generator: "@pedro-valerio"
-    task: create-documentation
-```
-
----
-
-## Completion Criteria
-
-| Critério | Obrigatório |
-|----------|-------------|
-| Doc criada no path correto | ✅ |
-| Template seguido 100% | ✅ |
-| Diagramas Mermaid presentes | ✅ |
-| Troubleshooting com 3+ itens | ✅ |
-| README do diretório atualizado | ✅ |
-| Checklist de qualidade 100% | ✅ |
-
----
-
-## Templates
-
-| Pattern ID | Nome | Arquivo |
-|------------|------|---------|
-| SC-DP-001 | Agent Flow Documentation | `templates/agent-flow-doc-tmpl.md` |
-| SC-DP-002 | Workflow Documentation | `templates/workflow-doc-tmpl.md` |
-| SC-DP-003 | Squad README | `templates/squad-readme-tmpl.md` |
-
----
-
-*Task criada por @pedro-valerio — "Se não está documentado, não existe"*
+- **Executor:** Worker
+- **Inputs:** Pipeline context from prior tasks
+- **Outputs:** Completed create-documentation output artifact
+- **Completion Criteria:** All outputs produced and validated
+- **Guardrails:** See Veto Conditions above

@@ -19,8 +19,8 @@ input:
     squad_name: "squad-creator"
     task_purpose: "Validate test data quality"
   context_files:
-    - "squads/squad-creator-pro/checklists/task-anatomy-checklist.md"
-    - "squads/squad-creator-pro/templates/task-tmpl.md"
+    - "squads/squad-creator/checklists/task-anatomy-checklist.md"
+    - "squads/squad-creator/templates/task-tmpl.md"
 
 expected_output:
   sections:

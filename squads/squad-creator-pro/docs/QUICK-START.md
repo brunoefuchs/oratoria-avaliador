@@ -9,7 +9,7 @@
 ## Pré-requisitos
 
 - Claude Code ativo
-- Projeto AIOS configurado
+- Projeto AIOX configurado
 
 ---
 
@@ -176,7 +176,7 @@ Aguardar criação automática
 
 1. **Entender os conceitos:** Leia [CONCEPTS.md](./CONCEPTS.md)
 2. **Ver diagramas:** Leia [ARCHITECTURE-DIAGRAMS.md](./ARCHITECTURE-DIAGRAMS.md)
-3. **Problemas?** Leia [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+3. **Problemas?** Leia [TROUBLESHOOTING.md](../../squad-creator/docs/TROUBLESHOOTING.md)
 
 ---
 

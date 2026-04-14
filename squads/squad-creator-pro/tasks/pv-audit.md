@@ -1,244 +1,171 @@
-# Task: Process Audit (*audit)
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: pv-audit
+  task_name: Process Audit (Stub)
+  status: pending
+  responsible_executor: Agent
+  execution_type: Agent
+  estimated_time: 30m
+  domain: Operational
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Executar os passos documentados no corpo da task
+  acceptance_criteria:
+  - Phase 1 complete with structural overview
+  - Phase 2 complete with sample analysis
+  - Token budget respected (< 10k total)
+  - User directed deep-dives (if necessary)
+  - Veto conditions proposed for problems found
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
 
-> Pedro Valério | Loaded on-demand when `*audit {squad}` is invoked
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Tactical
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
+# Task: Process Audit (Stub)
+
+> Pedro Valerio | Loaded on-demand when `*audit {squad}` is invoked
+
+**Execution Type:** Agent
+**Model:** Opus
+**Haiku Eligible:** NO
 
 ## Purpose
 
 Auditar squad/workflow por falhas de processo usando framework "Impossibilitar Caminhos"
 
-## CRITICAL: Token Budget
+---
 
-**VETO CONDITION:** Audit que estoura contexto é audit quebrado.
+## Veto Conditions
 
-```
-Budget máximo por fase:
-- Phase 1: ~2k tokens (overview)
-- Phase 2: ~5k tokens (sample)
-- Phase 3: ~3k tokens (deep-dive sob demanda)
-TOTAL MÁXIMO: ~10k tokens
-```
+| ID | Condition | Check | Result |
+|----|-----------|-------|--------|
+| VETO-PVA-001 | Audit must not exceed 10k token budget | Track cumulative: Phase 1 ~2k + Phase 2 ~5k + Phase 3 ~3k = 10k max | VETO - BLOCK |
+| VETO-PVA-002 | Must not read all agent files at once | No more than 3 files per phase | VETO - BLOCK |
+| VETO-PVA-003 | Deep-dive must not execute without user direction | User must explicitly request specific analysis | VETO - BLOCK |
 
-**NUNCA:**
-- Ler TODOS os agents de uma vez
-- Ler DNA files sem pedido explícito
-- Ler mais de 3 arquivos por fase
+---
 
 ## Input
 
-- Squad name ou workflow file path
-- `--all` flag para audit 100% (com batching)
+- Squad name or workflow file path
+- `--all` flag for 100% audit (with batching)
 
-## Parâmetros
+## Parameters
 
-| Flag | Comportamento |
-|------|---------------|
-| (default) | 3-Phase Staged - sample representativo |
-| `--all` | Audit 100% em batches de 3 agents |
-
----
-
-## Mode: Full Audit (`*audit {squad} --all`)
-
-**ATENÇÃO:** Audit completo consome mais tokens. Usa batching pra não estourar.
-
-### Step 1: Estimate & Confirm
-
-```bash
-# Calcular custo estimado
-wc -l squads/{squad}/agents/*.md | tail -1  # total lines
-```
-
-**Mostrar estimativa:**
-```
-⚠️ FULL AUDIT MODE
-
-Squad: {name}
-Agents: {N}
-Total lines: {X}
-Estimated tokens: ~{X * 2}
-
-Batches necessários: {ceil(N/3)}
-Tokens por batch: ~{batch_estimate}
-
-Confirma? (y/n)
-```
-
-**HALT:** Aguardar confirmação.
-
-### Step 2: Batch Execution
-
-Processar em batches de 3 agents:
-
-```
-Batch 1/N: agent-1, agent-2, agent-3
-→ Ler 3 agents
-→ Aplicar diagnostic framework
-→ Output parcial
-→ [CONTINUE para próximo batch]
-
-Batch 2/N: agent-4, agent-5, agent-6
-→ ...
-```
-
-**Entre batches:** Mostrar progresso e perguntar se continua.
-
-### Step 3: Consolidate
-
-Após todos os batches:
-- Consolidar findings
-- Gerar report final com 100% coverage
+| Flag | Behavior |
+|------|----------|
+| (default) | 3-Phase Staged -- sample representativo |
+| `--all` | Audit 100% in batches of 3 agents |
 
 ---
 
-## Mode: Staged Audit (default)
+## Sub-Tasks (Atomic Execution)
 
-### Phase 1: Structural Overview (~2k tokens)
-
-**Objetivo:** Mapear estrutura SEM ler conteúdo completo.
-
-```bash
-# Comandos a executar:
-ls -la squads/{squad}/agents/     # Lista agents (não lê)
-ls -la squads/{squad}/workflows/  # Lista workflows (não lê)
-wc -l squads/{squad}/agents/*.md  # Conta linhas por agent
-```
-
-**Ler APENAS:**
-- `config.yaml` (estrutura do squad)
-
-**Output Phase 1:**
-```yaml
-squad_overview:
-  name: "{squad}"
-  agent_count: N
-  workflow_count: N
-  total_lines: N
-  largest_agents: [top 3 por linhas]
-  has_dna_files: true/false
-  has_checklists: true/false
-```
-
-**HALT:** Mostrar overview e perguntar direção.
+| # | Sub-Task | File | Responsibility |
+|---|----------|------|----------------|
+| 1 | Overview | `pv-audit-overview.md` | Structural overview without reading content (~2k tokens) |
+| 2 | Sample Analysis | `pv-audit-sample.md` | Pattern identification with representative sample (~5k tokens) |
+| 3 | Deep-Dive | `pv-audit-deep-dive.md` | On-demand analysis of specific agent/workflow/dna (~3k tokens) |
 
 ---
 
-### Phase 2: Pattern Sample (~5k tokens)
+## Execution Flow
 
-**Objetivo:** Identificar padrões com AMOSTRA representativa.
-
-**Ler APENAS (máximo 3 arquivos):**
-- 1 agent PEQUENO (< 200 linhas)
-- 1 agent MÉDIO (200-400 linhas)
-- 1 workflow principal (se existir)
-
-**Aplicar Diagnostic Framework na amostra:**
-- "Se o executor não ler as instruções, o que acontece?"
-- "Se o executor tentar pular um passo, consegue?"
-- "Se o executor errar, o sistema detecta automaticamente?"
-
-**Check Red Flags:**
-- [ ] Processo depende de boa vontade do executor
-- [ ] Instruções fora do sistema
-- [ ] Caminhos errados possíveis mas "não recomendados"
-- [ ] Sem veto conditions
-
-**Check Green Flags:**
-- [ ] Veto conditions bloqueiam caminhos errados
-- [ ] Checklist inline na própria task
-- [ ] Handoff rules definidos
-- [ ] Smoke tests especificados
-
-**Output Phase 2:**
-```yaml
-sample_analysis:
-  agents_sampled: ["{small}", "{medium}"]
-  workflow_sampled: "{name}"
-
-  patterns_found:
-    consistent:
-      - "{pattern que se repete}"
-    inconsistent:
-      - "{pattern que varia}"
-
-  red_flags: [list]
-  green_flags: [list]
-
-  extrapolation: |
-    "Baseado na amostra de 2/{total} agents..."
 ```
+Step 1: pv-audit-overview (Phase 1)
+  Input: squad name
+  Output: squad_overview YAML (structure, counts, sizes)
+  HALT: Show overview, ask user for direction
 
-**HALT:** Mostrar análise e perguntar se quer deep-dive.
+Step 2: pv-audit-sample (Phase 2)
+  Input: squad_overview
+  Output: sample_analysis YAML (patterns, red/green flags)
+  HALT: Show analysis, ask if user wants deep-dive
 
----
-
-### Phase 3: Deep-Dive (sob demanda, ~3k tokens)
-
-**Trigger:** Usuário pede análise específica.
-
-**Comandos:**
-- `*audit {squad} agent:{name}` - Auditar 1 agent específico
-- `*audit {squad} workflow:{name}` - Auditar 1 workflow específico
-- `*audit {squad} dna` - Verificar DNA files
-
-**Ler APENAS o arquivo pedido.**
-
-**Output Phase 3:**
-```yaml
-deep_dive:
-  target: "{agent/workflow name}"
-
-  wrong_paths_found:
-    - point: "{decision point}"
-      wrong_path: "{what can go wrong}"
-      current_protection: "none | alert | block"
-      recommendation: "{veto condition}"
-
-  veto_conditions_proposed:
-    - id: "V{n}"
-      condition: "{description}"
-      check: "{how to verify}"
-      action: "VETO - {what to do}"
-
-  verdict: "PASS | NEEDS WORK | REDESIGN"
+Step 3: pv-audit-deep-dive (Phase 3, on-demand)
+  Input: specific agent/workflow name from user
+  Output: deep_dive YAML (wrong paths, veto proposals, verdict)
 ```
 
 ---
 
-## Final Report (após todas as fases)
+## Mode: Full Audit (`--all`)
+
+When `--all` flag is used, pv-audit-sample runs in batches of 3 agents with user confirmation between batches. See `pv-audit-sample.md` for batch execution details.
+
+---
+
+## Final Report (after all phases)
 
 ```yaml
 audit_report:
   squad: "{name}"
   date: "{date}"
   auditor: "@pedro-valerio"
-
   scope:
     agents_total: N
     agents_sampled: N
     coverage: "X%"
-
   token_usage:
     phase_1: "~Xk"
     phase_2: "~Xk"
-    phase_3: "~Xk (se aplicável)"
+    phase_3: "~Xk (if applicable)"
     total: "~Xk / 10k budget"
-
   findings:
-    critical: [bloqueiam uso]
-    major: [precisam correção]
-    minor: [melhorias]
-
+    critical: []
+    major: []
+    minor: []
   verdict: "PASS | NEEDS WORK | REDESIGN"
-
-  next_actions:
-    - "{ação 1}"
-    - "{ação 2}"
+  next_actions: []
 ```
+
+---
 
 ## Completion Criteria
 
-- [ ] Phase 1 completa com overview estrutural
-- [ ] Phase 2 completa com sample analysis
-- [ ] Token budget respeitado (< 10k total)
-- [ ] Usuário direcionou deep-dives (se necessário)
-- [ ] Veto conditions propostas para problemas encontrados
+- [ ] Phase 1 complete with structural overview
+- [ ] Phase 2 complete with sample analysis
+- [ ] Token budget respected (< 10k total)
+- [ ] User directed deep-dives (if necessary)
+- [ ] Veto conditions proposed for problems found
+
+---
+
+_Task Version: 2.0.0_
+_Atomized: 2026-03-26_
+_Sub-tasks: pv-audit-overview, pv-audit-sample, pv-audit-deep-dive_
+
+## Task Anatomy
+
+- **Executor:** Agent
+- **Inputs:** Task-specific context and prior pipeline outputs
+- **Outputs:** Completed pv-audit output artifact
+- **Completion Criteria:** All items in Quality Check/Completion Criteria above are satisfied
+- **Guardrails:** See Veto Conditions above
+
+## Acceptance Criteria
+
+- [ ] Phase 1 complete with structural overview
+- [ ] Phase 2 complete with sample analysis
+- [ ] Token budget respected (< 10k total)
+- [ ] User directed deep-dives (if necessary)
+- [ ] Veto conditions proposed for problems found

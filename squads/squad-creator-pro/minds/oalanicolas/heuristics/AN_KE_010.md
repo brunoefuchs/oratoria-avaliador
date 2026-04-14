@@ -18,13 +18,17 @@ AN_KE_010:
   phase: 5
   agent: "@oalanicolas"
 
+  sys_tension:
+    tension_with: "AN_KE_073 (Parallel Subagents) vs Context Death Test — paralelismo exige docs compactas, CDT exige maximalismo contextual"
+    resolution: "Priorizar auto-suficiência até L3_ai. Brevidade é luxo só após garantir compreensão zero-contexto. Trade-off: docs maiores mas reutilizáveis > docs curtos mas descartáveis."
+
   principle: |
     Conhecimento só existe de verdade quando sobrevive à morte do contexto.
     Se depende de "você lembra que a gente falou...", não está documentado.
     Documento self-contained É um clone de conhecimento.
 
   test_question: |
-    "Uma IA com ZERO contexto anterior consegue executar isso sem perguntar nada?"
+    "Trinity IA com ZERO contexto anterior consegue executar isso sem perguntar nada?"
 
   validation_checklist:
     - id: "CDT_01"
@@ -119,7 +123,7 @@ FALLBACK: Loop back with specific feedback on failing items
 
 ## Validation Questions
 
-1. "Uma IA com ZERO contexto anterior consegue executar isso sem perguntar nada?"
+1. "Trinity IA com ZERO contexto anterior consegue executar isso sem perguntar nada?"
 2. "Todos os termos técnicos estão definidos ou linkados?"
 3. "As dependências (arquivos, ferramentas, acessos) estão explícitas?"
 4. "Existem exemplos concretos ou só abstrações?"
@@ -238,3 +242,24 @@ checkpoint:
 **Pattern Compliance:** Documentation Quality Gate
 **Source:** Alan Nicolas - Extracted from recurring behavior pattern
 **Trigger:** "Tá super mega ultra bem explicado para uma IA que não sabe nem o que é isso?"
+
+## Validation
+
+### Self-Validation Checklist (Apply this heuristic on itself)
+
+- [ ] **WHY documented:** A razão para existir um Context Death Test está clara (docs precisam sobreviver ao reset de contexto)?
+- [ ] **Paradoxo explícito:** A tensão brevidade/clareza está nomeada e resolvida?
+- [ ] **L3_ai testable:** Um prompt "implemente CDT" a uma IA zerada faria sentido com este doc?
+- [ ] **Exemplos concretos:** Há exemplos de FAIL vs PASS para documentos?
+- [ ] **Métricas mensuráveis:** Cada item da checklist pode ser avaliado objetivamente?
+- [ ] **Anti-patterns: zero implícitos:** Não há "como você sabe", "óbvio que", "padrão normal"?
+
+**Confidence:** ALTA - Heurística validada contra seu próprio critério (L3_ai). Documento é auto-suficiente para fork/reset de contexto.
+
+**Artifacts carried by this heuristic:**
+- validation_checklist (8 items, weights defined)
+- decision_tree (if/then/else flow)
+- failure_modes (3 patterns with recovery)
+- threshold metrics (0.6 / 0.8 / <0.6)
+
+All explicit, zero implicit refs.

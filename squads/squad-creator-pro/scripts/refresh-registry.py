@@ -82,6 +82,139 @@ def list_agents(squad_path: Path) -> List[str]:
     return agents
 
 
+def _collect_agents(config: Dict) -> List[Dict]:
+    """Collect agent dicts from various config.yaml formats.
+
+    Supports:
+    - agents: [{id: x, ...}]           — list of agent dicts (most common)
+    - agents: {specialists: [{id: x}]} — nested dict with specialist lists
+    - component.agents: [...]          — component-style references
+    - tier_system.tier_N.agents: [...]  — tier-based nested agents
+    - Deep recursive search for executor_profile in nested structures
+    """
+    collected = []
+
+    agents_val = config.get("agents", None)
+
+    if isinstance(agents_val, list):
+        collected.extend(a for a in agents_val if isinstance(a, dict))
+
+    elif isinstance(agents_val, dict):
+        for key, val in agents_val.items():
+            if isinstance(val, list):
+                collected.extend(a for a in val if isinstance(a, dict))
+            elif isinstance(val, dict) and "executor_profile" in val:
+                if "id" not in val:
+                    val["id"] = key
+                collected.append(val)
+
+    # Try component.agents pattern
+    component = config.get("component", config.get("components", {}))
+    if isinstance(component, dict):
+        comp_agents = component.get("agents", [])
+        if isinstance(comp_agents, list):
+            collected.extend(a for a in comp_agents if isinstance(a, dict))
+
+    # Recursively search tier_system and other nested structures for agents with executor_profile
+    _deep_collect_agents(config, collected, depth=0)
+
+    # Deduplicate by agent id
+    seen_ids = set()
+    unique = []
+    for a in collected:
+        aid = a.get("id", id(a))
+        if aid not in seen_ids:
+            seen_ids.add(aid)
+            unique.append(a)
+
+    return unique
+
+
+def _deep_collect_agents(obj: Any, collected: List[Dict], depth: int = 0) -> None:
+    """Recursively search nested structures for agent dicts with executor_profile."""
+    if depth > 5:  # Prevent infinite recursion
+        return
+
+    if isinstance(obj, dict):
+        # If this dict has executor_profile and an id (or agent field), it's an agent
+        if "executor_profile" in obj and ("id" in obj or "agent" in obj):
+            agent = dict(obj)
+            if "id" not in agent and "agent" in agent:
+                agent["id"] = agent["agent"]
+            collected.append(agent)
+            return
+
+        # Recurse into all dict values
+        for key, val in obj.items():
+            if key in ("executor_profile",):  # Don't recurse into profile itself
+                continue
+            _deep_collect_agents(val, collected, depth + 1)
+
+    elif isinstance(obj, list):
+        for item in obj:
+            _deep_collect_agents(item, collected, depth + 1)
+
+
+def extract_executor_profiles(config: Optional[Dict]) -> Dict[str, Any]:
+    """Extract executor_profile data from config.yaml agents section.
+
+    Returns:
+        Dict with executor_capable_agents, executor_reviewers, and
+        aggregated_work_contexts extracted from agent executor_profiles.
+    """
+    result = {
+        "executor_capable_agents": [],
+        "executor_reviewers": [],
+        "aggregated_work_contexts": [],
+    }
+
+    if not config:
+        return result
+
+    # Collect agent dicts from various config formats
+    agent_list = _collect_agents(config)
+
+    all_work_contexts = set()
+
+    for agent in agent_list:
+        if not isinstance(agent, dict):
+            continue
+
+        profile = agent.get("executor_profile")
+        if not profile or not isinstance(profile, dict):
+            continue
+
+        agent_id = agent.get("id", "unknown")
+        story_role = profile.get("story_role", "")
+        can_execute = profile.get("can_execute", False)
+        fw_type = profile.get("fw_type", "Agent")
+        work_contexts = profile.get("work_contexts", [])
+        core_replaces = profile.get("core_replaces")
+        can_review = profile.get("can_review", [])
+
+        if can_execute and story_role == "executor":
+            result["executor_capable_agents"].append({
+                "id": agent_id,
+                "story_role": story_role,
+                "fw_type": fw_type,
+                "work_contexts": work_contexts if isinstance(work_contexts, list) else [],
+                "core_replaces": core_replaces,
+                "can_review": can_review if isinstance(can_review, list) else [],
+            })
+            if isinstance(work_contexts, list):
+                all_work_contexts.update(work_contexts)
+
+        if can_review and isinstance(can_review, list) and len(can_review) > 0:
+            if story_role in ("reviewer", "consultant") or (story_role == "executor" and not can_execute):
+                result["executor_reviewers"].append({
+                    "id": agent_id,
+                    "can_review": can_review,
+                })
+
+    result["aggregated_work_contexts"] = sorted(all_work_contexts)
+    return result
+
+
 def scan_squad(squad_path: Path) -> Dict[str, Any]:
     """Scan a single squad and extract deterministic data"""
     squad_name = squad_path.name
@@ -106,6 +239,13 @@ def scan_squad(squad_path: Path) -> Dict[str, Any]:
     has_readme = (squad_path / "README.md").exists()
     has_changelog = (squad_path / "CHANGELOG.md").exists()
 
+    # Extract executor profiles from config.yaml (Story 45.1)
+    executor_data = extract_executor_profiles(config)
+
+    # Warn if no executor_profile found
+    if config and not executor_data["executor_capable_agents"]:
+        print(f"Warning: {squad_name} has no executor_profile in config.yaml", file=sys.stderr)
+
     # Build result
     result = {
         "name": squad_name,
@@ -123,6 +263,7 @@ def scan_squad(squad_path: Path) -> Dict[str, Any]:
         "has_readme": has_readme,
         "has_changelog": has_changelog,
         "total_components": sum(counts.values()),
+        "executor_data": executor_data,
     }
 
     return result
@@ -198,7 +339,7 @@ def format_for_registry(scan_results: Dict) -> Dict:
     }
 
     for name, data in scan_results["squads"].items():
-        registry["squads"][name] = {
+        squad_entry = {
             "path": data["path"],
             "version": data["config"]["version"],
             "description": data["config"]["description"],
@@ -213,6 +354,17 @@ def format_for_registry(scan_results: Dict) -> Dict:
             "highlights": [],
             "example_use": "",
         }
+
+        # Include executor_profile data if available (Story 45.1)
+        executor_data = data.get("executor_data", {})
+        if executor_data.get("executor_capable_agents"):
+            squad_entry["executor_capable_agents"] = executor_data["executor_capable_agents"]
+        if executor_data.get("executor_reviewers"):
+            squad_entry["executor_reviewers"] = executor_data["executor_reviewers"]
+        if executor_data.get("aggregated_work_contexts"):
+            squad_entry["aggregated_work_contexts"] = executor_data["aggregated_work_contexts"]
+
+        registry["squads"][name] = squad_entry
 
     return registry
 
@@ -244,7 +396,10 @@ def main():
     if args.registry_format:
         results = format_for_registry(results)
 
-    # Output
+    # Output (force UTF-8 on Windows)
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+
     if args.output == "json":
         print(json.dumps(results, indent=2, ensure_ascii=False))
     elif args.output == "yaml":

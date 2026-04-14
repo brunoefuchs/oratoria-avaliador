@@ -2,8 +2,8 @@
 
 All notable changes to the squad-creator pack will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format follows Keep a Changelog conventions,
+and this project adheres to Semantic Versioning.
 
 ## [2.9.0] - 2026-02-05
 
@@ -14,9 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Based on Executor Decision Tree analysis (`*optimize squad-creator`), converted deterministic tasks from Agent (LLM) to Worker (Python scripts):
 
 **New Worker Scripts**
-- `sync-ide-command.py` (430 lines) - Synchronizes squad components to IDE directories
+- `sync-ide-skills.py` (430 lines) - Synchronizes squad components to IDE directories
   - 100% deterministic file operations (read, parse YAML, copy, symlink)
-  - Supports Claude (.claude/commands/) and Cursor (.cursor/rules/ with MDC format)
+  - Supports Claude slash skills (`.claude/skills/`) and Cursor (`.cursor/rules/` with MDC format)
   - Flags: `--dry-run`, `--force`, `--ide`, `--verbose`
 
 - `validate-squad-structure.py` (535 lines) - Phases 0-2 of squad validation
@@ -29,8 +29,8 @@ Based on Executor Decision Tree analysis (`*optimize squad-creator`), converted 
 - Added `execution_type` field to 6 tasks:
   - `refresh-registry.md` → Hybrid (Worker script + Agent enrichment)
   - `squad-analytics.md` → Hybrid (Worker script + Agent recommendations)
-  - `sync-ide-command.md` → Worker (100% deterministic)
-  - `install-commands.md` → Worker (100% deterministic)
+  - `sync-ide-skills.md` → Worker (100% deterministic)
+  - `install-skills.md` → Worker (100% deterministic)
   - `validate-squad.md` → Hybrid (Worker Phases 0-2 + Agent Phases 3-6)
   - `optimize.md` → Agent (requires semantic analysis)
 
@@ -141,7 +141,7 @@ AFTER:  Deterministic ops by Worker scripts → 70% cheaper
 ### Added
 
 **Agents**
-- Squad Architect agent - Expert squad creator with full AIOS compliance
+- Squad Architect agent - Expert squad creator with full AIOX compliance
 - SOP Extractor agent - Process documentation and automation specialist
 
 **Tasks**
@@ -152,8 +152,8 @@ AFTER:  Deterministic ops by Worker scripts → 70% cheaper
 - `create-workflow.md` - Multi-phase workflow creation
 - `extract-sop.md` - SOP extraction from meeting transcripts
 - `deep-research-pre-agent.md` - Deep research before agent creation
-- `sync-ide-command.md` - IDE command synchronization
-- `install-commands.md` - Command installation
+- `sync-ide-skills.md` - IDE skills synchronization
+- `install-skills.md` - Skills installation
 
 **Workflows**
 - `mind-research-loop.md` - Iterative research with devil's advocate (3-5 iterations)
@@ -163,7 +163,7 @@ AFTER:  Deterministic ops by Worker scripts → 70% cheaper
 **Templates**
 - `config-tmpl.yaml` - Squad configuration template
 - `readme-tmpl.md` - Squad README template
-- `agent-tmpl.md` - Agent definition template (AIOS 6-level structure)
+- `agent-tmpl.md` - Agent definition template (AIOX 6-level structure)
 - `task-tmpl.md` - Task workflow template
 - `template-tmpl.yaml` - Output template template
 - `workflow-tmpl.yaml` - Multi-phase workflow template
@@ -213,7 +213,7 @@ AFTER:  Deterministic ops by Worker scripts → 70% cheaper
 
 **Granular Validation System (Principles-Based)**
 - `*validate-squad {name}` - Validate entire squad against principles and templates
-- `*validate-agent {file}` - Validate agent against AIOS principles
+- `*validate-agent {file}` - Validate agent against AIOX principles
 - `*validate-task {file}` - Validate task against Task Anatomy principles
 - `*validate-workflow {file}` - Validate workflow quality
 - `*validate-template {file}` - Validate template structure
@@ -224,7 +224,7 @@ AFTER:  Deterministic ops by Worker scripts → 70% cheaper
 
 **Validation Dimensions (Qualitative)**
 - Template Conformance (25%) - "Does component follow template structure?"
-- Principle Adherence (25%) - "Are AIOS principles applied?"
+- Principle Adherence (25%) - "Are AIOX principles applied?"
 - Internal Consistency (20%) - "Are voice, persona, examples aligned?"
 - Integration Quality (15%) - "Do components work together?"
 - Practical Utility (15%) - "Does squad solve declared problem?"

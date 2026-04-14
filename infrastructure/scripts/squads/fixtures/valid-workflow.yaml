@@ -1,0 +1,11 @@
+workflow:
+  id: infra-valid-workflow
+  name: Infra Valid Workflow
+  description: Minimal workflow fixture for contract validation.
+  type: orchestration
+  sequence:
+    - id: step-1
+      agent: "@dev"
+      action: implement
+      outputs:
+        - outputs/example.txt

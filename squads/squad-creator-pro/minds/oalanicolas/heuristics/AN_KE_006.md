@@ -73,6 +73,13 @@ AN_KE_006:
     - step: "If physical state correct"
       action: "Then investigate logic"
 
+  sys_tension:
+    tension: "Rigor de verificação vs. velocidade de debugging"
+    pole_a: "Verificação física sequencial completa — garante que nenhuma suposição errada persista, mas introduz overhead em cenários onde a causa raiz é óbvia para um praticante experiente"
+    pole_b: "Saltar direto para a teoria/hipótese — mais rápido quando o padrão é reconhecido, mas catastrófico quando a suposição está errada (horas perdidas)"
+    resolution: "A heurística resolve priorizando pole_a SEMPRE. O custo de verificar fisicamente (~30s por check) é ordens de magnitude menor que o custo de debugar uma suposição errada (~horas). A experiência do praticante é usada APÓS a verificação física, nunca como substituto dela."
+    failure_mode: "Abandono do checklist sob pressão de tempo — o desenvolvedor 'sabe' a causa e pula verificações, reintroduzindo exatamente o padrão que a heurística existe para eliminar"
+
   veto_conditions:
     - condition: "debug_without_verification"
       action: "VETO - Verify physically first"
@@ -164,3 +171,13 @@ performance:
 **Pattern Compliance:** Physical > Theory
 **Veto Mapping:** AN_VC_007 (Debug Without Verification)
 **Integration:** All debugging/validation scenarios
+
+## Validation
+
+| Critério | Resultado |
+|----------|-----------|
+| Tensão sistêmica identificada | Rigor de verificação vs. velocidade de debugging |
+| Polo A (priorizados pela heurística) | Verificação física sequencial — overhead baixo (~30s/check), acurácia alta |
+| Polo B (rejeitado como default) | Salto direto para teoria — rápido quando certo, catastrófico quando errado |
+| Modo de falha documentado | Abandono do checklist sob pressão temporal |
+| Coerência com veto mapping | AN_VC_007 bloqueia exatamente o failure mode identificado |

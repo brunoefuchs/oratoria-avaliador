@@ -1,153 +1,109 @@
-# AN_KE_004 - Discovery Before Implementation
+---
+id: "AN_KE_004"
+title: "Regra do Ouro (Source Curation)"
+mind: "oalanicolas"
+type: "heuristics"
+zone: "excelencia"
+tags:
+  - "Curation"
+  - "Quality Gate"
+  - "Extraction"
+pipeline_instances:
+  - "data-curation"
+  - "rag-indexing"
+cross_mind_map:
+  convergent:
+    - id: "PV_PA_022"
+      title: "Primary Validation Coupling (No Auto-Validation)"
+      mind: "pedro_valerio"
+      resonance: "Ambos combatem a corrupção orgânica de dados por falta de âncora à fonte. AN pune agentes que distorcem o texto primário durante curação; PV acopla qualquer verificação final de AI aos repositórios primários invioláveis."
+---
 
-**Type:** Research Heuristic
-**Phase:** 0 (Discovery)
-**Agent:** @oalanicolas
-**Pattern:** REUSE > CREATE
-**Source:** CLAUDE.md - "Map existing systems before building new ones"
+# AN_KE_004 - Regra do Ouro (Source Curation)
+
+**Type:** Classification Heuristic
+**Phase:** 2 (Atom Assembly)
+**Agent:** @process-architect
+**Pattern:** HO-PP-AN004
 
 ## Purpose
 
-Garantir que sistemas existentes sejam mapeados ANTES de propor novos. Evita duplicação, aproveita trabalho existente, e reduz débito técnico.
-
-## Core Principle
-
-> "Existing → Gap → Options → Recommendation"
-> — CLAUDE.md Methodology
-
-Nunca propor criação sem antes apresentar o que já existe.
+Blindar o clone cognitivo contra a doença infecciosa da "Media Training". Impor um filtro que impeça letalmente que palestras corporativas engessadas ou declarações de Relações Públicas contaminem o DNA da mente com ruído institucional, forçando a busca pela verdade revelada no improviso duro, nas trincheiras e no Q&A não roteirizado.
 
 ## Configuration
 
 ```yaml
 AN_KE_004:
-  name: "Discovery Before Implementation"
-  phase: 0
-  agent: "@oalanicolas"
-
-  pipeline:
-    - step: 1
-      name: "Map Existing"
-      action: "Search for similar systems/components"
-      queries:
-        - "SELECT * FROM ... WHERE name LIKE '%keyword%'"
-        - "find squads/ -name '*keyword*'"
-        - "grep -r 'pattern' .claude/"
-    - step: 2
-      name: "Document Findings"
-      action: "List what exists with paths/references"
-    - step: 3
-      name: "Identify Gaps"
-      action: "What's missing vs requirements?"
-    - step: 4
-      name: "Present Options"
-      action: "Extend existing vs Create new"
-    - step: 5
-      name: "Recommend"
-      action: "Justify recommendation with evidence"
+  name: "Regra do Ouro"
+  phase: 2
+  zone: "excelencia"
+  trigger: "Avaliação pré-processamento de um PDF/Vídeo/Áudio candidato a compor a Base Vetorial (RAG) do Clone."
 
   weights:
-    existing_coverage: 0.9
-    gap_clarity: 0.8
-    recommendation_evidence: 0.7
+    trench_improvisation_ratio: 1.0
+    pr_filter_strictness: 1.0
 
   thresholds:
-    search_paths_minimum: 3
-    findings_documented: true
-    gap_analysis_complete: true
+    scripted_media_dilution: 0.2 # MAX 20% PR Material allowed
 
   veto_conditions:
-    - condition: "proposal_without_discovery"
-      action: "VETO - Map existing first"
-      maps_to: "AN_VC_006"
-    - condition: "create_when_similar_exists"
-      action: "VETO - Extend existing instead"
-      maps_to: "AN_VC_006"
+    - condition: "corpus_volume_dominated_by_scripted_keynotes == true"
+      action: "VETO - Diluição Identitária. A carga de Bronze macio superou o lastro de Ouro duro."
 
   output:
     type: "decision"
-    format: "Existing → Gap → Options → Recommendation"
+    values: ["APPROVE_GOLD_SOURCE", "TAG_AS_BRONZE", "VETO"]
+```
+
+## Failure Modes (Anti-Patterns)
+
+```yaml
+failure_modes:
+  - type: "omission"
+    name: "The False Prophet Flow (The Coward)"
+    trigger: "O programador cede à preguiça de extrair e transcrever vídeos longos sem legenda."
+    manifestation: "Ele insere no RAG as 5 primeiras palestras em palco do YouTube, ignorando material pesado de 4 horas de mentoria fechada."
+    detection: "O Clone Mental passa a responder a problemas cirúrgicos de forma genérica, emitindo frases motivacionais e bullets abstratos."
+    recovery: "Limpar a base de dados dos pitches de vendas e inserir as mentorias de 3 horas em call privada. Exclua a 'Voz do Palco'."
+
+  - type: "misapplication"
+    name: "Anti-Intellectualism (The Zealot)"
+    trigger: "Descartar manifestos ou livros oficiais extremamente rigorosos pelo autor apenas por 'não serem um vlog cru espontâneo'."
+    manifestation: "Desprezar frameworks absolutos do expert (seu Playbook oficial de vida) simplesmente pela presença de revisão editorial."
+    detection: "Excesso crônico de ideias brilhantes em improviso, mas total ausência de Arquiteturas de Base estruturadas para o RAG se apoiar organizadamente."
+    recovery: "Restituir livros/artigos de tese central como 'Ouro Conceptual Sistêmico'. Improviso traz a tática, Livros trazem a Mola-mestra."
+```
+
+## Evaluation Criteria
+
+```yaml
+evaluation_criteria:
+  - metric: "Improvisation Ratio"
+    weight: 1.0
+    threshold: ">= 0.60"
+    description: "Mais de 60% das fontes valiosas devem advir primariamente de contextos de Q&A agressivo, mentorias fechadas, reuniões vazadas ou discussões > 2hrs."
+  - metric: "PR Pollution Limit"
+    weight: 1.0
+    threshold: "<= 0.20"
+    description: "Fontes de palco roteirizadas e discursos pasteurizados compõem uma minoria inofensiva ou nula?"
+  - metric: "Framework Baseline"
+    weight: 0.9
+    threshold: "=== TRUE"
+    description: "O 'Ouro Formal' (Livro de fundação do autor) atua como baliza central do improviso?"
 ```
 
 ## Decision Tree
 
+```javascript
+IF (Agente/Dev Ingestando Base de Dados) {
+  EVALUATE("Taxonomia de Autenticidade ('Palco' vs 'Trincheira')");
+  IF (Composição_Roteirizada_PR > 0.20) {
+    VETO("Excesso crônico de Media Training no LLM Context. Pasteuring effect detected.");
+    TAG_AS_BRONZE("Relegar arquivos a pesos mínimos de prioridade Vetorial.");
+  } ELSE IF (Material exibe vulnerabilidade e improviso tático) {
+    APPROVE_GOLD_SOURCE("Executar Deep Extraction.");
+  }
+}
+
+NEVER("Jamais aprovar um Handoff que mistura Ouro (Mentoria) e Bronze (Palco) cegamente no mesmo chunking weight.");
 ```
-IF (similar_exists >= 80%)
-  THEN EXTEND → "Extend existing, don't create new"
-
-ELSE IF (similar_exists >= 30% AND < 80%)
-  THEN HYBRID → "Fork existing, adapt for new use case"
-
-ELSE IF (similar_exists < 30%)
-  THEN CREATE → "Create new, but document why existing doesn't fit"
-
-TERMINATION: Always document what was searched
-FALLBACK: If unsure, present options to human
-```
-
-## Search Checklist
-
-```yaml
-search_locations:
-  code:
-    - "squads/{domain}/"
-    - ".claude/agents/"
-    - ".claude/skills/"
-    - "app/components/"
-
-  documentation:
-    - "docs/projects/"
-    - "docs/architecture/"
-    - "docs/guides/"
-
-  database:
-    - "information_schema.tables"
-    - "information_schema.routines"
-    - "pg_catalog.pg_indexes"
-
-  external:
-    - "npm search {keyword}"
-    - "GitHub topics:{domain}"
-    - "awesome-{domain} lists"
-```
-
-## Validation Questions
-
-1. "Pesquisei em squads/, .claude/, docs/?"
-2. "Documentei o que encontrei?"
-3. "Gap está claro entre existente e necessário?"
-4. "Apresentei opções antes de implementar?"
-5. "Recomendação tem evidência?"
-
-## Anti-Patterns
-
-```yaml
-anti_patterns:
-  - name: "Create First, Search Later"
-    symptom: "Descobrir que já existia depois de criar"
-    prevention: "Always search BEFORE proposing"
-
-  - name: "Shallow Search"
-    symptom: "Só olhou um lugar"
-    prevention: "Search minimum 3 locations"
-
-  - name: "Proposal Without Evidence"
-    symptom: "Propor criação sem mostrar o que existe"
-    prevention: "Always show Existing → Gap → Options"
-```
-
-## Performance Metrics
-
-```yaml
-performance:
-  search_time: "5-15 min depending on scope"
-  accuracy: "95% when following checklist"
-  duplication_avoided: "~70% of proposals extend existing"
-  false_negatives: "<5% (miss existing solution)"
-```
-
----
-
-**Pattern Compliance:** REUSE > CREATE
-**Veto Mapping:** AN_VC_006 (Create Without Discovery)
-**Integration:** Phase 0 of any creation workflow

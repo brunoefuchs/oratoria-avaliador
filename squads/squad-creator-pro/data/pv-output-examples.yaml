@@ -130,7 +130,7 @@ output_examples:
 
       **ERRADO - Agent como User Message:**
       ```bash
-      echo "Você é Dex o developer... Implemente..." | claude -p
+      echo "Você é Neo o developer... Implemente..." | claude -p
       ```
       ↑ Tudo numa mensagem só. Claude pode ignorar a persona.
 

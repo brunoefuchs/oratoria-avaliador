@@ -1,79 +1,106 @@
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: an-design-clone
+  task_name: Design Clone Architecture
+  status: pending
+  responsible_executor: Agent
+  execution_type: Hybrid
+  estimated_time: 30m
+  domain: Operational
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Define Contexts
+  - Decide Stages
+  - Map Trinity per Stage
+  - Define Memory & Context
+  - Generate Blueprint
+  acceptance_criteria:
+  - Contextos de uso mapeados
+  - Decisao single vs multi-stage tomada
+  - Trindade mapeada por estagio
+  - Memoria/contexto definido
+  - Blueprint YAML gerado
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: full
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Tactical
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
 # Task: Design Clone Architecture
 
-**Command:** `*design-clone`
-**Load:** — (uses core knowledge)
+**Task ID:** an-design-clone  
+**Version:** 3.1.0  
+**Purpose:** compor o design de clone em fases atômicas de contexto, estágios, trindade, memória e blueprint
 
-## Purpose
+## Canonical Workflow
 
-Arquitetar um clone completo: contextos de uso, estagios, memoria, trindade por estagio.
+- `squads/squad-creator-pro/workflows/wf-design-clone.yaml`
 
-## Workflow
+## Atomic Sub-Tasks
 
-### Step 1: Define Contexts
+- `an-design-clone-contexts.md`
+- `an-design-clone-stages.md`
+- `an-design-clone-trinity.md`
+- `an-design-clone-memory.md`
+- `an-design-clone-blueprint.md`
 
-Perguntar ao usuario:
-- "Em que situacoes esse clone vai ser usado?"
-- "Ele precisa se comportar diferente dependendo do contexto?"
+## Inputs
 
-Mapear contextos:
-- Vendas, suporte, educacao, consultoria, etc.
-- Tipos de interlocutor (iniciante, avancado, hater, fa)
+- `mind` e objetivo do clone são obrigatórios
+- contextos de uso e perfis de usuário alimentam a arquitetura
+- a geração do blueprint depende de stages, trinity e memory model completos
 
-### Step 2: Decide Stages
+## Preconditions
 
-**Regra AN004**: SE comportamento muda por contexto → criar estagios.
+- [ ] `squads/squad-creator-pro/workflows/wf-design-clone.yaml` existe
+- [ ] as 5 subtasks atômicas existem
+- [ ] o design multi-stage só fecha se cada estágio tiver playbook, framework e swipe file
 
-Avaliar necessidade:
-- Single-mode: Comportamento uniforme → prompt unico
-- Multi-stage: Comportamento varia → estagios separados
+## Execution Sequence
 
-Exemplos de estagios:
-- Funil: boas-vindas → qualificacao → oferta
-- Atendimento: triagem → suporte → escalacao
-- Educacional: avaliacao → ensino → pratica
-- Anti-hater: normal → modo pistola (ex: Hormozi)
-
-### Step 3: Map Trinity per Stage
-
-Para cada estagio, definir:
-
-| Estagio | Playbook | Framework | Swipe File |
-|---------|----------|-----------|------------|
-| {nome} | Passo a passo | Regras SE/ENTAO | Exemplos reais |
-
-### Step 4: Define Memory & Context
-
-- Que informacoes o clone precisa lembrar entre interacoes?
-- Que contexto precisa receber a cada conversa?
-- Limites de memoria (curta vs longa)
-
-### Step 5: Generate Blueprint
-
-```yaml
-clone_blueprint:
-  mind: "{nome}"
-  mode: "single|multi-stage"
-  stages:
-    - name: "{estagio}"
-      trigger: "Quando ativa este estagio"
-      playbook: "{resumo}"
-      framework: "{regras SE/ENTAO}"
-      swipe_file: "{exemplos}"
-      tone: "{tom especifico}"
-  memory:
-    short_term: "{o que lembra na conversa}"
-    long_term: "{o que persiste entre conversas}"
-    context_required: "{info necessaria}"
-  integration:
-    platform: "{WhatsApp, web, etc}"
-    handoff: "{quando escala para humano}"
-  estimated_fidelity: "{%}"
+```text
+[1] an-design-clone-contexts
+[2] an-design-clone-stages
+[3] an-design-clone-trinity
+[4] an-design-clone-memory
+[5] an-design-clone-blueprint
+OUTPUT: clone_blueprint + estimated_fidelity
 ```
 
-## Completion Criteria
+## Output
 
-- [ ] Contextos de uso mapeados
-- [ ] Decisao single vs multi-stage tomada
-- [ ] Trindade mapeada por estagio
-- [ ] Memoria/contexto definido
-- [ ] Blueprint YAML gerado
+```yaml
+output:
+  delegated_workflow: "squads/squad-creator-pro/workflows/wf-design-clone.yaml"
+  context_map: {}
+  stage_plan: {}
+  clone_trinity: []
+  memory_model: {}
+  clone_blueprint: {}
+```
+
+## Acceptance Criteria
+
+- [ ] contextos de uso são explicitados
+- [ ] decisão single vs multi-stage fica justificada
+- [ ] trindade por estágio é documentada
+- [ ] memory model é definido com limites claros
+- [ ] o wrapper não reimplementa localmente as 5 fases

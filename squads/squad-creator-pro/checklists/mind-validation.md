@@ -1,7 +1,7 @@
 # Mind Validation Checklist
 
 **Purpose:** Validate if a mind has sufficient documentation to be cloned into an agent
-**Used by:** `workflows/mind-research-loop.md` (Iteration 3)
+**Used by:** `workflows/wf-mind-research-loop.yaml` (Iteration 3)
 **Quality Gate:** BLOCKING - minds that fail CANNOT enter the squad
 
 ---
@@ -368,7 +368,6 @@ questions:
 
 ---
 
-**Checklist Version:** 1.0.0
 **Created:** 2026-01-25
 **Part of:** squads/squad-creator
-**Used by:** workflows/mind-research-loop.md
+**Used by:** workflows/wf-mind-research-loop.yaml

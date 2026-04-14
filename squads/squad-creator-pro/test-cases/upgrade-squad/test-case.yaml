@@ -19,9 +19,9 @@ input:
     mode: "audit"  # audit only, no changes
     focus: "agents"
   context_files:
-    - "squads/squad-creator-pro/checklists/agent-quality-gate.md"
-    - "squads/squad-creator-pro/checklists/task-anatomy-checklist.md"
-    - "squads/squad-creator-pro/checklists/squad-checklist.md"
+    - "squads/squad-creator/checklists/agent-quality-gate.md"
+    - "squads/squad-creator/checklists/task-anatomy-checklist.md"
+    - "squads/squad-creator/checklists/squad-checklist.md"
 
 expected_output:
   sections:

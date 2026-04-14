@@ -45,7 +45,7 @@ framework:
 framework:
   name: "Proteção de Limite MEI"
   philosophy: |
-    O limite de R$ 81k não é apenas um número - é o ponto onde
+    O limite anual aplicável não é apenas um número - é o ponto onde
     o MEI perde TODOS os benefícios da simplicidade. Um MEI que
     ultrapassa sem perceber pode ter tributação RETROATIVA de todo
     o ano. Por isso, alertar CEDO é mais importante que alertar CORRETAMENTE.
@@ -53,7 +53,7 @@ framework:
     - step: "Monitorar proporcionalmente"
       action: "Calcular limite proporcional ao mês"
       theory: "Limite anual / 12 * meses = referência. Excesso sobre isso é sinal amarelo."
-      example: "Em julho: R$ 81k / 12 * 7 = R$ 47.250 é o limite proporcional"
+      example: "Em julho: <limite_anual_placeholder> / 12 * 7 = <limite_proporcional_placeholder>"
 ```
 
 **Score:** ___/4
@@ -86,8 +86,8 @@ heuristics:
       - Planejar desenquadramento
       O custo de alertar cedo demais (incomodar) < custo de alertar tarde (multa)
     example: |
-      Maria faturou R$ 48k até junho. Isso é 59% do limite.
-      Projeção: R$ 96k no ano (18% acima).
+      Cliente faturou <faturamento_acumulado_placeholder> até junho. Isso é 59% do limite.
+      Projeção: <projecao_anual_placeholder> no ano (18% acima).
       Alerta amarelo: "Você está no ritmo de ultrapassar. Vamos monitorar."
     exceptions:
       - "Negócios sazonais (dezembro forte)"

@@ -26,6 +26,11 @@ Ensure squads are created with reliable, auditable behavior while avoiding unnec
 - Always map `Existing -> Gap -> Decision` before creation or migration.
 - If confidence is low, mark as `assumption`.
 
+5. No Name-Only Inference (Critical)
+- Never infer squad/domain scope from name alone (e.g., slug, shorthand, alias).
+- Before recommendations, resolve scope from canonical artifacts (`squad.yaml`, `config.yaml`, agent/task/workflow files, registry entries).
+- If canonical scope is missing or conflicting, halt recommendation flow and ask clarification first.
+
 ## CI Caution Policy (Minimal by Design)
 
 Use CI as blocking only for deterministic checks:
@@ -56,4 +61,3 @@ governance_check:
   contradictions_found: []
   unresolved_items: []
 ```
-

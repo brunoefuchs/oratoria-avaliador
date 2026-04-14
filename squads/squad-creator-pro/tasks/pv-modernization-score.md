@@ -1,10 +1,74 @@
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: pv-modernization-score
+  task_name: Modernization Score (*modernization-score)
+  status: pending
+  responsible_executor: Worker
+  execution_type: Worker
+  estimated_time: 15m
+  domain: Operational
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Executar os passos documentados no corpo da task
+  acceptance_criteria:
+  - 'Output artifact produced: Completed pv-modernization-score output artifact'
+  - Task output validated against quality standards
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+  coherence_threshold: 0.95
+  error_behavior: raise
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Tactical
+  atomic_layer: Atom
+  executor: Worker
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
 # Task: Modernization Score (*modernization-score)
 
 > Pedro Valério | Loaded on-demand when `*modernization-score {workflow}` is invoked
 
+**Execution Type:** Worker (Script-Only)
+**Worker Script:** `scripts/modernization-score.sh`
+**Model:** `Haiku` (QUALIFIED — 100% deterministic via script)
+**Haiku Eligible:** YES — script handles all 12 checks, LLM only formats summary
+
 ## Purpose
 
-Aplicar 12-point checklist para avaliar se workflow segue padrões modernos AIOS
+Aplicar 12-point checklist para avaliar se workflow segue padrões modernos AIOX
+
+---
+
+## MANDATORY PREFLIGHT: Run Worker Script FIRST
+
+```
+EXECUTE FIRST — before ANY manual checking:
+
+  bash squads/squad-creator-pro/scripts/modernization-score.sh <workflow-path>
+
+IF the command fails → FIX the script error. Do NOT proceed manually.
+IF the command succeeds → Use ONLY these results.
+
+VETO: Do NOT grep patterns yourself. The script checks all 12 patterns in <1s.
+      Your job is SUMMARY ONLY — add context about which patterns matter most.
+```
+
+---
 
 ## Pre-requisite
 
@@ -16,15 +80,17 @@ Load `squads/squad-creator-pro/data/pv-workflow-validation.yaml` for the complet
 
 ## Steps
 
-### 1. Load Framework
+### 1. Execute Script
 
-Read `squads/squad-creator-pro/data/pv-workflow-validation.yaml`
+```bash
+bash squads/squad-creator-pro/scripts/modernization-score.sh <workflow-path> > /tmp/preflight-modernization-score.yaml
+```
 
-### 2. Read Workflow
+### 2. Read Script Output
 
-Read the complete workflow file to be evaluated
+Read `/tmp/preflight-modernization-score.yaml` and use as the authoritative score.
 
-### 3. Check Each Pattern
+### 3. Check Each Pattern (REFERENCE ONLY)
 
 | # | Pattern | Check For | Legacy If |
 |---|---------|-----------|-----------|
@@ -33,13 +99,13 @@ Read the complete workflow file to be evaluated
 | 3 | Blocking Execution | Task sem background | Sleep loops |
 | 4 | Parallel Execution | Task COM background | Sem paralelismo |
 | 5 | Context Preamble | git status, gotchas | Sem context |
-| 6 | File-Based Comm | outputs/{slug}/ | Inline outputs |
+| 6 | File-Based Comm | .aiox/squad-runtime/{slug}/ | Inline outputs |
 | 7 | Agent File Refs | Read agent file | Hardcoded personas |
 | 8 | Task Dependencies | blockedBy | depends_on |
 | 9 | bypassPermissions | mode explícito | Default |
 | 10 | Proper Finalization | shutdown + TeamDelete | Sem cleanup |
 | 11 | Anti-Pattern Docs | NEVER DO THIS | Sem docs |
-| 12 | Artifact Directory | outputs/ estruturado | Arbitrário |
+| 12 | Artifact Directory | .aiox/squad-runtime/ estruturado | Arbitrário |
 
 ### 4. Generate Score Report
 
@@ -81,3 +147,16 @@ modernization_score:
 - Score calculated with interpretation
 - Recommendations prioritized by impact
 - Preservation notes (what to keep during refactor)
+
+## Task Anatomy
+
+- **Executor:** Worker
+- **Inputs:** Task-specific context and prior pipeline outputs
+- **Outputs:** Completed pv-modernization-score output artifact
+- **Completion Criteria:** All outputs produced and validated
+- **Guardrails:** See Veto Conditions above
+
+## Acceptance Criteria
+
+- [ ] Output artifact produced: Completed pv-modernization-score output artifact
+- [ ] Task output validated against quality standards

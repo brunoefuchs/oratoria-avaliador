@@ -1,167 +1,105 @@
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: smoke-test-model-routing
+  task_name: smoke-test-model-routing
+  status: pending
+  responsible_executor: Worker
+  execution_type: Hybrid
+  estimated_time: 30m
+  domain: Operational
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Pre-flight Check (via script)
+  - Validate Task Lookup (3 samples)
+  - Execution Test (Haiku Task)
+  - Comparison Test (Without model param)
+  - Generate Report
+  acceptance_criteria:
+  - 'Phase 1: All pre-flight checks pass'
+  - 'Phase 2: All 3 task lookups return correct tier'
+  - 'Phase 3: Haiku task completes successfully'
+  - 'Phase 4: Comparison shows difference (or confirms behavior)'
+  - 'Phase 5: Report generated with at least 1 logged entry'
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: full
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Operational
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
 # Task: smoke-test-model-routing
 
-**Command:** `*smoke-test-model-routing`
-**Version:** 2.0.0
-**Execution Type:** Hybrid (Worker scripts + Agent validation)
-**Worker Scripts:** `scripts/model-tier-validator.cjs`, `scripts/model-usage-logger.cjs`
-**Model:** `Haiku` (QUALIFIED — validation task, scripts do heavy lifting)
-**Haiku Eligible:** YES — scripts handle validation, LLM only reports
+**Task ID:** smoke-test-model-routing  
+**Version:** 3.1.0  
+**Purpose:** compor o smoke test de model routing em fases atômicas de preflight, lookup, execução explícita, comparação e report
 
-## Purpose
+## Canonical Workflow
 
-Validate that the model routing system is functional by:
-1. Running 3 haiku-tier tasks with explicit model parameter
-2. Comparing behavior with/without model parameter
-3. Logging results to metrics
+- `squads/squad-creator-pro/workflows/wf-smoke-test-model-routing.yaml`
 
-## Veto Conditions
+## Atomic Sub-Tasks
 
-- [ ] VETO if model-routing.yaml doesn't exist
-- [ ] VETO if outputs/metrics/ directory not writable
-- [ ] VETO if Task tool doesn't support model parameter
-- [ ] **VETO if preflight script not executed first (GAP ZERO)**
+- `smoke-test-model-routing-preflight.md`
+- `smoke-test-model-routing-lookup.md`
+- `smoke-test-model-routing-execution.md`
+- `smoke-test-model-routing-comparison.md`
+- `smoke-test-model-routing-report.md`
 
----
+## Inputs
 
-## ⛔ MANDATORY PREFLIGHT: Run Validator Script FIRST
+- `config/model-routing.yaml` e os scripts de validator/logger são obrigatórios
+- `metrics/` precisa estar disponível para logging
+- a fase de comparação depende do teste explícito concluído
 
-```
-EXECUTE FIRST — before ANY manual validation:
+## Preconditions
 
-  node squads/squad-creator-pro/scripts/model-tier-validator.cjs report > /tmp/preflight-model-routing.txt
+- [ ] `squads/squad-creator-pro/workflows/wf-smoke-test-model-routing.yaml` existe
+- [ ] as 5 subtasks atômicas existem
+- [ ] o preflight gera `/tmp/preflight-model-routing.txt` antes de qualquer validação manual
 
-IF the command fails → FIX the script error. Do NOT proceed manually.
-IF the command succeeds → READ /tmp/preflight-model-routing.txt. Use ONLY these results.
+## Execution Sequence
 
-VETO: If /tmp/preflight-model-routing.txt does not exist → BLOCK.
-      Do NOT manually check model routing. Do NOT grep config files yourself.
-      The script validates tier assignments faster and 100% consistently.
-```
-
----
-
-## Workflow
-
-### Phase 1: Pre-flight Check (via script)
-
-```bash
-# Run comprehensive preflight via validator script
-node squads/squad-creator-pro/scripts/model-tier-validator.cjs list
-
-# Verify metrics dir exists
-ls -la outputs/metrics/
-
-# Verify logger script exists
-ls -la squads/squad-creator-pro/scripts/model-usage-logger.cjs
+```text
+[1] smoke-test-model-routing-preflight
+[2] smoke-test-model-routing-lookup
+[3] smoke-test-model-routing-execution
+[4] smoke-test-model-routing-comparison
+[5] smoke-test-model-routing-report
+OUTPUT: smoke_test_report + recommendation
 ```
 
-**Gate:** All files exist → Continue. Any missing → STOP and create.
+## Output
 
-### Phase 2: Validate Task Lookup (3 samples)
-
-For each test task, verify expected tier:
-
-```bash
-node squads/squad-creator-pro/scripts/model-usage-logger.cjs validate qa-after-creation.md
-node squads/squad-creator-pro/scripts/model-usage-logger.cjs validate validate-squad.md
-node squads/squad-creator-pro/scripts/model-usage-logger.cjs validate extract-voice-dna.md
+```yaml
+output:
+  delegated_workflow: "squads/squad-creator-pro/workflows/wf-smoke-test-model-routing.yaml"
+  preflight_file: "/tmp/preflight-model-routing.txt"
+  lookup_results: []
+  comparison_result: {}
+  smoke_test_report: {}
 ```
 
-**Expected results:**
-| Task | Expected Tier |
-|------|---------------|
-| qa-after-creation.md | haiku |
-| validate-squad.md | haiku |
-| extract-voice-dna.md | opus |
+## Acceptance Criteria
 
-**Gate:** All lookups return correct tier → Continue.
-
-### Phase 3: Execution Test (Haiku Task)
-
-Spawn a simple haiku-tier task with explicit model parameter:
-
-```
-Task(
-  subagent_type: "general-purpose",
-  model: "haiku",
-  description: "Test haiku routing",
-  prompt: "Read squads/squad-creator-pro/config/model-routing.yaml and count how many tasks are marked as haiku tier. Return ONLY the number."
-)
-```
-
-**Expected:** Task completes successfully using Haiku model.
-
-**Log result:**
-```bash
-node squads/squad-creator-pro/scripts/model-usage-logger.cjs log smoke-test-haiku.md haiku 500 100 2000
-```
-
-### Phase 4: Comparison Test (Without model param)
-
-Spawn same task WITHOUT model parameter:
-
-```
-Task(
-  subagent_type: "general-purpose",
-  description: "Test default routing",
-  prompt: "Read squads/squad-creator-pro/config/model-routing.yaml and count how many tasks are marked as sonnet tier. Return ONLY the number."
-)
-```
-
-**Observe:** What model does it use? (Should default to parent/opus)
-
-### Phase 5: Generate Report
-
-```bash
-node squads/squad-creator-pro/scripts/model-usage-logger.cjs report
-```
-
-## Completion Criteria
-
-- [ ] Phase 1: All pre-flight checks pass
-- [ ] Phase 2: All 3 task lookups return correct tier
-- [ ] Phase 3: Haiku task completes successfully
-- [ ] Phase 4: Comparison shows difference (or confirms behavior)
-- [ ] Phase 5: Report generated with at least 1 logged entry
-
-## Output Example
-
-```
-============================================================
-SMOKE TEST RESULTS - Model Routing
-============================================================
-
-Pre-flight: ✅ PASS (all files exist)
-
-Task Lookup Validation:
-  qa-after-creation.md → haiku ✅
-  validate-squad.md → haiku ✅
-  extract-voice-dna.md → opus ✅
-
-Execution Test:
-  Haiku task (with model param): ✅ Completed in 2.3s
-  Default task (no model param): ⚠️ Used opus (expected behavior)
-
-Conclusion:
-  - Model parameter IS respected by Task tool
-  - Without explicit model param, defaults to opus
-  - ENFORCEMENT GAP: Nothing prevents forgetting model param
-
-Recommendation:
-  Model routing WORKS when used correctly.
-  Need hook to ENFORCE usage (prevent forgetting).
-
-============================================================
-```
-
-## Next Steps After Smoke Test
-
-If smoke test PASSES:
-1. Model routing capability is validated
-2. Priority: Create enforcement hook
-3. Start logging real task executions
-
-If smoke test FAILS:
-1. Identify failure point
-2. Fix before proceeding
-3. Re-run smoke test
+- [ ] o preflight é executado via validator script antes das demais fases
+- [ ] os 3 lookups de tier são validados com evidência
+- [ ] o teste explícito com `model` e a comparação default são registrados
+- [ ] o report final inclui recommendation acionável
+- [ ] o wrapper não reimplementa localmente as 5 fases

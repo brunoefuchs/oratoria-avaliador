@@ -10,10 +10,12 @@ Usage:
     python scripts/squad-analytics.py --squad hormozi --detailed
     python scripts/squad-analytics.py --squad hormozi --line-counts
     python scripts/squad-analytics.py --squad hormozi --quality-audit
+    python scripts/squad-analytics.py --registry-path .aiox/squad-runtime/ecosystem-registry.yaml
 """
 
 import fnmatch
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -47,6 +49,8 @@ UNKNOWN_VERSION_VALUES = {
 
 SKIP_DIRS = {".DS_Store", "__pycache__", "node_modules", ".git", "artifacts"}
 EXCLUDED_MARKDOWN = {"readme.md", "template.md", "_template.md"}
+REGISTRY_PATH_ENV = "AIOX_ECOSYSTEM_REGISTRY_PATH"
+DEFAULT_REGISTRY_REL_PATH = Path(".aiox") / "squad-runtime" / "ecosystem-registry.yaml"
 
 CONTENT_EXTENSIONS = {
     "agents": [".md"],
@@ -72,6 +76,21 @@ def get_squads_path() -> Path:
         return cwd
 
     raise FileNotFoundError("Could not find squads/ directory")
+
+
+def resolve_registry_path(squads_path: Path, registry_path: Optional[Path] = None) -> Path:
+    """Resolve ecosystem registry path from CLI arg, env var, or default output location."""
+    if registry_path is not None:
+        expanded = registry_path.expanduser()
+        return expanded if expanded.is_absolute() else (Path.cwd() / expanded)
+
+    env_path = os.getenv(REGISTRY_PATH_ENV, "").strip()
+    if env_path:
+        env_registry_path = Path(env_path).expanduser()
+        return env_registry_path if env_registry_path.is_absolute() else (Path.cwd() / env_registry_path)
+
+    project_root = squads_path.parent if squads_path.name == "squads" else squads_path
+    return project_root / DEFAULT_REGISTRY_REL_PATH
 
 
 def count_lines(file_path: Path) -> int:
@@ -239,8 +258,10 @@ def _extract_manifest_version(config: Optional[Dict[str, Any]]) -> str:
 
 
 def read_config(squad_path: Path) -> Optional[Dict[str, Any]]:
-    """Read canonical squad manifest (squad.yaml)."""
-    manifest_file = squad_path / "squad.yaml"
+    """Read canonical squad manifest (config.yaml, fallback squad.yaml)."""
+    manifest_file = squad_path / "config.yaml"
+    if not manifest_file.exists():
+        manifest_file = squad_path / "squad.yaml"  # legacy fallback
     if not manifest_file.exists():
         return None
 
@@ -423,7 +444,7 @@ def calculate_quality_score(counts: Dict[str, int], has_readme: bool, has_config
 
 
 def quality_audit(squad_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Run quality audit against AIOS standards."""
+    """Run quality audit against AIOX standards."""
     audit = {
         "agents": {"min": 300, "results": [], "pass": 0, "fail": 0},
         "workflows": {"min": 500, "results": [], "pass": 0, "fail": 0},
@@ -453,12 +474,11 @@ def quality_audit(squad_data: Dict[str, Any]) -> Dict[str, Any]:
     return audit
 
 
-def load_registry(squads_path: Path) -> Dict[str, Any]:
-    """Load squad-registry.yaml for validated status."""
+def load_registry(registry_path: Path) -> Dict[str, Any]:
+    """Load optional ecosystem registry for validated status."""
     if not YAML_AVAILABLE:
         return {}
 
-    registry_path = squads_path / "squad-creator" / "data" / "squad-registry.yaml"
     if not registry_path.exists():
         return {}
 
@@ -482,9 +502,10 @@ def _resolve_existing_validation(entry: Dict[str, Any]) -> Dict[str, bool]:
     }
 
 
-def analyze_all_squads(squads_path: Path) -> Dict[str, Any]:
+def analyze_all_squads(squads_path: Path, registry_path: Optional[Path] = None) -> Dict[str, Any]:
     """Analyze all squads."""
-    registry = load_registry(squads_path)
+    resolved_registry_path = resolve_registry_path(squads_path, registry_path)
+    registry = load_registry(resolved_registry_path)
     registry_squads = registry.get("squads", {}) if isinstance(registry, dict) else {}
 
     results: Dict[str, Any] = {
@@ -516,7 +537,7 @@ def analyze_all_squads(squads_path: Path) -> Dict[str, Any]:
             continue
         if item.name in SKIP_DIRS or item.name.startswith("."):
             continue
-        if not (item / "squad.yaml").exists():
+        if not (item / "config.yaml").exists() and not (item / "squad.yaml").exists():
             continue
 
         existing_entry = registry_squads.get(item.name, {})
@@ -548,7 +569,7 @@ def format_table(results: Dict[str, Any], detailed: bool = False) -> str:
     lines: List[str] = []
 
     lines.append("=" * 100)
-    lines.append("📊 AIOS SQUAD ANALYTICS")
+    lines.append("📊 AIOX SQUAD ANALYTICS")
     lines.append(f"Generated: {results['metadata']['scan_date'][:10]}")
     lines.append("=" * 100)
     lines.append("")
@@ -699,7 +720,7 @@ def format_single_squad(
         audit = quality_audit(squad_data)
         lines.append("")
         lines.append("-" * 80)
-        lines.append("🔍 QUALITY AUDIT (AIOS Standards)")
+        lines.append("🔍 QUALITY AUDIT (AIOX Standards)")
         lines.append("-" * 80)
 
         for component_type in ["agents", "workflows", "tasks"]:
@@ -731,9 +752,15 @@ def main() -> None:
     parser.add_argument("--detailed", "-d", action="store_true", help="Show detailed component lists")
     parser.add_argument("--sort-by", choices=["name", "agents", "tasks", "total"], default="total", help="Sort squads by field")
     parser.add_argument("--squads-path", type=Path, default=None, help="Path to squads/ directory")
+    parser.add_argument(
+        "--registry-path",
+        type=Path,
+        default=None,
+        help=f"Path to ecosystem registry (env fallback: {REGISTRY_PATH_ENV})",
+    )
     parser.add_argument("--squad", "-s", type=str, default=None, help="Analyze a specific squad only")
     parser.add_argument("--line-counts", "-l", action="store_true", help="Show line counts per file (requires --squad)")
-    parser.add_argument("--quality-audit", "-q", action="store_true", help="Run quality audit against AIOS standards (requires --squad)")
+    parser.add_argument("--quality-audit", "-q", action="store_true", help="Run quality audit against AIOX standards (requires --squad)")
 
     args = parser.parse_args()
 
@@ -764,7 +791,7 @@ def main() -> None:
             )
         return
 
-    results = analyze_all_squads(squads_path)
+    results = analyze_all_squads(squads_path, args.registry_path)
 
     if args.sort_by == "name":
         results["squads"].sort(key=lambda squad: squad["name"])

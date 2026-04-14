@@ -1,0 +1,28 @@
+# Rubric: Output Structure
+# Generic rubric — validates that the LLM output has all expected fields and correct format.
+# Squads can override with squad-specific rubrics in their own rubrics/ directory.
+
+rubric:
+  name: "Output Structure"
+  description: "Validates output has all expected fields and correct format"
+  model: "haiku"
+  max_tokens: 200
+  threshold: 0.7
+  weight: 3
+
+prompt: |
+  You are evaluating the output of an AI agent phase.
+
+  Expected structure:
+  {{expected_fields}}
+
+  Actual output (first 2000 chars):
+  {{output_preview}}
+
+  Score 0-100:
+  - 100: All fields present, correct format, complete content
+  - 70: Most fields present, minor format issues
+  - 40: Missing critical fields or wrong format
+  - 0: Completely wrong structure
+
+  Respond with ONLY a JSON object: {"score": N, "reason": "one line"}

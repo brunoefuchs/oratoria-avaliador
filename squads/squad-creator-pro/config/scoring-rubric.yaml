@@ -128,7 +128,7 @@ compensations:
     note: "Create task-specific validator if needed"
 
 # Model cost reference (per 1M tokens) - Updated 2026-02-11
-# Source: https://www.anthropic.com/pricing
+# Source: vendor pricing reference captured during rubric calibration
 costs:
   haiku:
     input: 0.25      # $0.25 per 1M input tokens

@@ -1,10 +1,53 @@
-# Task: deconstruct
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: deconstruct
+  task_name: deconstruct (Stub)
+  status: pending
+  responsible_executor: Agent
+  execution_type: Agent
+  estimated_time: 30m
+  domain: Tactical
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Executar os passos documentados no corpo da task
+  acceptance_criteria:
+  - 'Output artifact produced: Completed deconstruct output artifact'
+  - Task output validated against quality standards
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
 
-> **Perguntas de Desconstrução** | Revelar frameworks ocultos de experts
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Strategic
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
+# Task: deconstruct (Stub)
+
+> **Perguntas de Desconstrucao** | Revelar frameworks ocultos de experts
+
+**Execution Type:** Agent
+**Model:** Opus
+**Haiku Eligible:** NO
 
 ## Objetivo
 
-Aplicar perguntas de desconstrução para extrair frameworks, heurísticas e padrões de decisão que o expert usa mas não articula explicitamente.
+Aplicar perguntas de desconstrucao para extrair frameworks, heuristicas e padroes de decisao que o expert usa mas nao articula explicitamente.
 
 ## Origem
 
@@ -12,156 +55,69 @@ Metodologia absorvida de Tim Ferriss (4-Hour series, Tools of Titans, Tribe of M
 
 ---
 
-## As 7 Perguntas Core
-
-### 1. Rotina Matinal
-> "What do you do in the first 60 minutes of your day?"
-
-**O que revela:** Prioridades reais, não declaradas. O que fazem primeiro = o que importa mais.
-
-### 2. Piores Recomendações
-> "What are the worst recommendations in your field?"
-
-**O que revela:** Anti-patterns, o que NÃO fazer. Mostra expertise real (sabe o que evitar).
-
-### 3. Billboard
-> "What would you put on a billboard?"
-
-**O que revela:** Mensagem central condensada. Se só pudesse dizer UMA coisa.
-
-### 4. Crença Contrária
-> "What is something you believe that others think is insane?"
-
-**O que revela:** Diferencial competitivo, insight único, posicionamento.
-
-### 5. Recomeço
-> "If you were starting over, what would you do differently?"
-
-**O que revela:** Erros reais, lições aprendidas, atalhos legítimos.
-
-### 6. Pareto
-> "What's the 20% that produces 80% of results?"
-
-**O que revela:** Alavancas principais, foco essencial, priorização.
-
-### 7. Veto
-> "What do you say NO to that most people say YES?"
-
-**O que revela:** Limites, princípios não-negociáveis, filtros de decisão.
-
----
-
-## Perguntas Complementares
-
-### Para Aprofundar Respostas
-- "Can you give me a specific example?"
-- "When did you learn that?"
-- "What was the cost of NOT doing that?"
-- "How would you teach this to a beginner?"
-
-### Para Revelar Frameworks
-- "Is there a name for this approach?"
-- "Do you have a checklist or process?"
-- "What are the steps in order?"
-- "What's the first thing you check?"
-
-### Para Revelar Heurísticas
-- "How do you know when to apply this?"
-- "What's the trigger that tells you X?"
-- "What's your rule of thumb for Y?"
-- "When do you break this rule?"
-
----
-
-## Template de Output
+## CHECKPOINT INTEGRAL
 
 ```yaml
-# Deconstruction: {expert_name}
-
-## Respostas Extraídas
-
-### 1. Rotina Matinal
-- **Resposta:** "{resposta}"
-- **[SOURCE: {fonte/minuto}]**
-- **Framework revelado:** {se houver}
-
-### 2. Piores Recomendações
-- **Resposta:** "{resposta}"
-- **[SOURCE: {fonte/minuto}]**
-- **Anti-pattern:** {o que evitar}
-
-### 3. Billboard
-- **Resposta:** "{resposta}"
-- **[SOURCE: {fonte/minuto}]**
-- **Mensagem central:** {condensado}
-
-### 4. Crença Contrária
-- **Resposta:** "{resposta}"
-- **[SOURCE: {fonte/minuto}]**
-- **Diferencial:** {insight único}
-
-### 5. Recomeço
-- **Resposta:** "{resposta}"
-- **[SOURCE: {fonte/minuto}]**
-- **Atalho legítimo:** {o que faria diferente}
-
-### 6. Pareto (20/80)
-- **Resposta:** "{resposta}"
-- **[SOURCE: {fonte/minuto}]**
-- **Alavanca principal:** {foco essencial}
-
-### 7. Veto
-- **Resposta:** "{resposta}"
-- **[SOURCE: {fonte/minuto}]**
-- **Filtro de decisão:** {quando diz não}
-
-## Síntese
-
-### Frameworks Identificados
-1. {framework_1}
-2. {framework_2}
-
-### Heurísticas Extraídas
-1. "SE {trigger} → ENTÃO {ação}"
-2. "SE {trigger} → ENTÃO {ação}"
-
-### Anti-Patterns Documentados
-1. {o que evitar}
-2. {o que evitar}
-
-### Citações Diretas (verificáveis)
-1. "{citação}" [SOURCE: {fonte}]
-2. "{citação}" [SOURCE: {fonte}]
+checkpoint_profundidade_perguntas:
+  consult: "OBSESSIONS.clareza_compreensao_profunda"
+  question: "Perguntas revelam COMO o expert DECIDE ou so O QUE faz?"
+  if_decisao: "Documentar frameworks de decisao"
+  if_acao: "Reformular perguntas para focar em decisao (nao acao)"
+  rationale: "O QUE faz = superficie. COMO decide = framework real."
 ```
 
 ---
 
-## Como Aplicar
+## Sub-Tasks (Atomic Execution)
 
-### Se tem acesso direto ao expert (entrevista)
-1. Fazer as 7 perguntas em ordem
-2. Gravar respostas
-3. Aprofundar com perguntas complementares
-4. Documentar com [SOURCE: minuto]
+| # | Sub-Task | File | Responsibility |
+|---|----------|------|----------------|
+| 1 | Extract | `deconstruct-extract.md` | Apply 7 core questions + complementary questions to extract raw answers |
+| 2 | Synthesize | `deconstruct-synthesize.md` | Synthesize frameworks, heuristics, anti-patterns, and citations from answers |
 
-### Se usando conteúdo existente (podcast, livro, vídeo)
-1. Buscar respostas para cada pergunta no conteúdo
-2. Usar Grep/search para patterns como "I always", "I never", "biggest mistake"
-3. Documentar com [SOURCE: página/minuto]
-4. Marcar [INFERRED] se não encontrou resposta direta
+---
+
+## Execution Flow
+
+```
+Step 1: deconstruct-extract
+  Input: expert source material (interview, book, podcast, or direct access)
+  Output: raw answers to 7 core questions + complementary answers
+
+Step 2: deconstruct-synthesize
+  Input: raw answers from extraction
+  Output: frameworks, heuristics, anti-patterns, citations report
+```
 
 ---
 
 ## Completion Criteria
 
-| Critério | Status |
+| Criterio | Status |
 |----------|--------|
-| 7 perguntas respondidas (ou marcadas como não encontradas) | [ ] |
+| 7 perguntas respondidas (ou marcadas como nao encontradas) | [ ] |
 | Cada resposta com [SOURCE:] | [ ] |
 | Pelo menos 3 frameworks identificados | [ ] |
-| Pelo menos 5 heurísticas extraídas | [ ] |
+| Pelo menos 5 heuristicas extraidas | [ ] |
 | Anti-patterns documentados | [ ] |
 
 ---
 
-*"As perguntas certas revelam o que o expert sabe mas não articula."*
+_Task Version: 2.0.0_
+_Atomized: 2026-03-26_
+_Sub-tasks: deconstruct-extract, deconstruct-synthesize_
+
+*"As perguntas certas revelam o que o expert sabe mas nao articula."*
+
+## Task Anatomy
+
+- **Executor:** Agent
+- **Inputs:** Task-specific context and prior pipeline outputs
+- **Outputs:** Completed deconstruct output artifact
+- **Completion Criteria:** All items in Quality Check/Completion Criteria above are satisfied
+- **Guardrails:** None identified
+
+## Acceptance Criteria
+
+- [ ] Output artifact produced: Completed deconstruct output artifact
+- [ ] Task output validated against quality standards

@@ -1,108 +1,132 @@
-# Task: Fidelity Score
+---
+task-id: an-fidelity-score
+name: "Fidelity Score"
+version: 4.0.0
+execution_type: Orchestrator
+model: Haiku
+model_rationale: "Orchestrator stub -- delegates to 1 task. 95% deterministic via worker script."
+haiku_eligible: true
+note: "De-atomized from v3.0.0 (3 subtasks) into 1 merged task. identify + layers were pure mechanical work."
+estimated-time: 10-15 min
+complexity: medium
 
-**Command:** `*fidelity-score`
-**Load:** `data/an-clone-validation.yaml`
+inputs:
+  required:
+    - clone_path: "Path to the clone agent file"
 
-## Purpose
+outputs:
+  primary:
+    - fidelity_report: "Complete fidelity report with scores, classification, and gaps"
 
-Calcular o score de fidelidade de um clone baseado nas 8 camadas do DNA Mental, com interpretacao e recomendacoes.
-
-## Workflow
-
-### Step 1: Load Validation Framework
-
-Ler `data/an-clone-validation.yaml` para carregar:
-- 8 dimensoes com pesos
-- Score guides (1-5 por dimensao)
-- Thresholds de classificacao
-
-### Step 2: Evaluate Each Layer
-
-Para cada camada, avaliar com evidencias:
-
-**Layers Observable (peso 0.8):**
-
-| # | Layer | Score | Evidencia |
-|---|-------|-------|-----------|
-| 1 | Behavioral Patterns | /5 | {como age, reage} |
-| 2 | Communication Style | /5 | {vocabulario, ritmo} |
-| 3 | Routines & Habits | /5 | {padroes, rituais} |
-| 4 | Recognition Patterns | /5 | {red flags, oportunidades} |
-
-**Layers Deep (peso 1.0):**
-
-| # | Layer | Score | Evidencia |
-|---|-------|-------|-----------|
-| 5 | Mental Models | /5 | {frameworks, heuristicas} |
-| 6 | Values Hierarchy | /5 | {prioridades, rejeicoes} |
-| 7 | Core Obsessions | /5 | {temas fixos, batalhas} |
-| 8 | Productive Paradoxes | /5 | {contradicoes preservadas} |
-
-### Step 3: Calculate Weighted Score
-
-Formula:
+worker_script: "scripts/fidelity-score.sh"
+load: "data/an-clone-validation.yaml"
+elicit: false
+---
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: an-fidelity-score
+  task_name: Fidelity Score
+  status: pending
+  responsible_executor: Agent
+  execution_type: Agent
+  estimated_time: 15-20m
+  domain: Operational
+  input:
+  - '{''clone_path'': ''Path to the clone agent file''}'
+  output:
+  - '{''fidelity_report'': ''Complete fidelity report with scores, classification,
+    and gaps''}'
+  action_items:
+  - Resolve Canonical Workflow
+  - Delegate to Calculate Task
+  - Reconcile Final Fidelity Report
+  acceptance_criteria:
+  - '`wf-fidelity-score.yaml` existe e permanece owner canônico [threshold: >= 1]'
+  - '`an-fidelity-score-calculate.md` executa o preflight e o score completo [threshold: >= 1]'
+  - o wrapper não duplica a metodologia das 8 camadas [threshold: >= 1]
+  - fidelity_report final é reconciliado a partir do workflow [threshold: >= 1]
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
 ```
-Observable Score = (L1 + L2 + L3 + L4) * 0.8 / 4
-Deep Score = (L5 + L6 + L7 + L8) * 1.0 / 4
-Overall = (Observable Score + Deep Score) / 2
-Percentage = Overall / 5 * 100
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Tactical
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
 ```
+<!-- SINKRA_CONTRACT:END -->
 
-### Step 4: Interpret Score
 
-| Range | Classification | Meaning |
-|-------|---------------|---------|
-| 60-75% | Basic (V1.0) | MVP funcional, precisa refinar |
-| 75-85% | Intermediate (V2.0) | Funcional, passa teste basico |
-| 85-95% | Premium (V3.0+) | Alta fidelidade, maioria nao percebe |
-| 93-97% | Elite | Crown jewel, validado pela propria pessoa |
+# Fidelity Score
 
-### Step 5: Identify Gaps
+**Task ID:** an-fidelity-score  
+**Version:** 4.1.0  
+**Purpose:** manter o entrypoint de fidelity scoring como contrato curto enquanto `wf-fidelity-score.yaml` e `an-fidelity-score-calculate.md` executam o pipeline real
 
-Para cada layer com score < 4:
-- Identificar o que falta
-- Sugerir fonte para melhorar (ouro)
-- Estimar esforco de melhoria
+## Canonical Owner
 
-### Step 6: Generate Report
+- `squads/squad-creator-pro/workflows/wf-fidelity-score.yaml`
+- `squads/squad-creator-pro/tasks/an-fidelity-score-calculate.md`
+
+## Inputs
+
+- `clone_path` é obrigatório
+
+## Preconditions
+
+- [ ] `squads/squad-creator-pro/workflows/wf-fidelity-score.yaml` existe
+- [ ] `squads/squad-creator-pro/tasks/an-fidelity-score-calculate.md` existe
+- [ ] o chamador entende que o preflight via `scripts/fidelity-score.sh` é executado pela task calculadora, não manualmente neste wrapper
+
+## Execution Contract
 
 ```yaml
-fidelity_report:
-  clone: "{nome}"
-  date: "{data}"
-  scores:
-    observable:
-      behavioral_patterns: {score}
-      communication_style: {score}
-      routines_habits: {score}
-      recognition_patterns: {score}
-      subtotal: {weighted}
-    deep:
-      mental_models: {score}
-      values_hierarchy: {score}
-      core_obsessions: {score}
-      productive_paradoxes: {score}
-      subtotal: {weighted}
-    overall:
-      raw: {score}
-      percentage: "{%}"
-      classification: "basic|intermediate|premium|elite"
-  gaps:
-    - layer: "{nome}"
-      current: {score}
-      target: {score}
-      action: "{o que fazer}"
-      source_needed: "{tipo de fonte}"
-  trajectory:
-    current_version: "{1.0|2.0|3.0}"
-    next_milestone: "{versao + % alvo}"
-    estimated_effort: "{descricao}"
+resolve_workflow:
+  workflow: "squads/squad-creator-pro/workflows/wf-fidelity-score.yaml"
+  phases:
+    - orchestrate
+    - calculate-and-report
+
+delegate_to_calculate_task:
+  task: "squads/squad-creator-pro/tasks/an-fidelity-score-calculate.md"
+  payload:
+    - clone_path
+  task_owns:
+    - identify_clone_files
+    - run_preflight_script
+    - validate_8_layers_x_5_checkpoints
+    - calculate_weighted_score
+    - classify_and_generate_report
+
+reconcile_outputs:
+  delegated_workflow: "squads/squad-creator-pro/workflows/wf-fidelity-score.yaml"
+  calculate_task: "squads/squad-creator-pro/tasks/an-fidelity-score-calculate.md"
+  final_report: "fidelity_report"
+  status: "delegated"
 ```
 
-## Completion Criteria
+## Output
 
-- [ ] 8 camadas avaliadas com evidencias
-- [ ] Score ponderado calculado
-- [ ] Classificacao atribuida
-- [ ] Gaps identificados com acoes
-- [ ] Report YAML gerado
+```yaml
+output:
+  delegated_workflow: "squads/squad-creator-pro/workflows/wf-fidelity-score.yaml"
+  calculate_task: "squads/squad-creator-pro/tasks/an-fidelity-score-calculate.md"
+  final_report: "fidelity_report"
+  status: "delegated"
+```
+
+## Acceptance Criteria
+
+- [ ] `wf-fidelity-score.yaml` permanece como owner canônico [threshold: >= 1]
+- [ ] `an-fidelity-score-calculate.md` executa o preflight e o score completo [threshold: >= 1]
+- [ ] o wrapper não duplica a metodologia das 8 camadas [threshold: >= 1]
+- [ ] o `fidelity_report` final é reconciliado a partir do workflow [threshold: >= 1]

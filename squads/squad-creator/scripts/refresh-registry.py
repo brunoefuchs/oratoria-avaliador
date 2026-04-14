@@ -2,18 +2,20 @@
 """
 Squad Registry Refresh Script
 
-Deterministic operations for updating squad-registry.yaml:
+Deterministic operations for updating the ecosystem registry:
 - Scan squads/ directory
 - Count components recursively (agents, tasks, workflows, etc.)
-- Read canonical squad.yaml metadata
+- Read canonical config.yaml metadata (fallback: squad.yaml)
 - Update registry with factual data
 
 Usage:
     python scripts/refresh-registry.py [--output json|yaml|summary] [--squads-path PATH]
+    python scripts/refresh-registry.py --write [--registry-path PATH]
 """
 
 import fnmatch
 import json
+import os
 import re
 import sys
 from datetime import datetime
@@ -44,6 +46,8 @@ UNKNOWN_VERSION_VALUES = {
 
 SKIP_DIRS = {".DS_Store", "__pycache__", "node_modules", ".git", "artifacts"}
 EXCLUDED_MARKDOWN = {"readme.md", "template.md", "_template.md"}
+REGISTRY_PATH_ENV = "AIOX_ECOSYSTEM_REGISTRY_PATH"
+DEFAULT_REGISTRY_REL_PATH = Path("squads") / "squad-registry.yaml"
 
 SECTION_PATTERNS = {
     "agents": ["*.md"],
@@ -174,7 +178,9 @@ def extract_version_from_raw_yaml(squad_path: Path) -> Any:
         re.compile(r'^\s+version:\s*["\']?([0-9A-Za-z._-]+)["\']?\s*$', re.MULTILINE),
     ]
 
-    manifest_file = squad_path / "squad.yaml"
+    manifest_file = squad_path / "config.yaml"
+    if not manifest_file.exists():
+        manifest_file = squad_path / "squad.yaml"  # legacy fallback
     if not manifest_file.exists():
         return None
 
@@ -217,8 +223,10 @@ def compute_squad_score(counts: Dict[str, int], has_readme: bool, has_version: b
 
 
 def read_config_yaml(squad_path: Path) -> Optional[Dict[str, Any]]:
-    """Read and parse canonical squad manifest (squad.yaml)."""
-    manifest_file = squad_path / "squad.yaml"
+    """Read and parse canonical squad manifest (config.yaml, fallback squad.yaml)."""
+    manifest_file = squad_path / "config.yaml"
+    if not manifest_file.exists():
+        manifest_file = squad_path / "squad.yaml"  # legacy fallback
     if not manifest_file.exists():
         return None
 
@@ -399,14 +407,21 @@ def scan_all_squads(squads_path: Path, existing_registry: Optional[Dict[str, Any
 
     existing_squads = {}
     if isinstance(existing_registry, dict):
-        existing_squads = existing_registry.get("squads", {}) or {}
+        raw_existing = existing_registry.get("squads", {}) or {}
+        if isinstance(raw_existing, list):
+            # Convert list of squads to name-keyed dictionary
+            for s in raw_existing:
+                if isinstance(s, dict) and "name" in s:
+                    existing_squads[s["name"]] = s
+        elif isinstance(raw_existing, dict):
+            existing_squads = raw_existing
 
     for item in sorted(squads_path.iterdir()):
         if not item.is_dir():
             continue
         if item.name in SKIP_DIRS or item.name.startswith("."):
             continue
-        if not (item / "squad.yaml").exists():
+        if not (item / "config.yaml").exists() and not (item / "squad.yaml").exists():
             continue
 
         existing_entry = existing_squads.get(item.name, {})
@@ -461,7 +476,7 @@ def _normalize_validation_consistency(entry: Dict[str, Any]) -> None:
 
 
 def format_for_registry(scan_results: Dict[str, Any]) -> Dict[str, Any]:
-    """Format scan results for squad-registry.yaml structure."""
+    """Format scan results for ecosystem-registry.yaml structure."""
     stopwords = {
         "squad", "de", "da", "do", "dos", "das", "para", "com", "and", "the",
         "use", "using", "specialized", "especializado", "especializada", "team",
@@ -591,9 +606,20 @@ def format_for_registry(scan_results: Dict[str, Any]) -> Dict[str, Any]:
     return registry
 
 
-def get_registry_path(squads_path: Path) -> Path:
-    """Get the path to squad-registry.yaml."""
-    return squads_path / "squad-creator" / "data" / "squad-registry.yaml"
+def get_registry_path(squads_path: Path, registry_path: Optional[Path] = None) -> Path:
+    """Resolve ecosystem registry path from CLI arg, env var, or default output path."""
+    project_root = squads_path.parent if squads_path.name == "squads" else get_project_root()
+
+    if registry_path is not None:
+        expanded = registry_path.expanduser()
+        return expanded if expanded.is_absolute() else (project_root / expanded)
+
+    env_registry_path = os.getenv(REGISTRY_PATH_ENV, "").strip()
+    if env_registry_path:
+        env_path = Path(env_registry_path).expanduser()
+        return env_path if env_path.is_absolute() else (project_root / env_path)
+
+    return project_root / DEFAULT_REGISTRY_REL_PATH
 
 
 def load_existing_registry(registry_path: Path) -> Optional[Dict[str, Any]]:
@@ -609,14 +635,20 @@ def load_existing_registry(registry_path: Path) -> Optional[Dict[str, Any]]:
         return None
 
 
-PRESERVE_FIELDS = [
-    "description",
-    "domain",
-    "keywords",
-    "highlights",
-    "example_use",
-    "quality_score",
-]
+# Merge policy contract (field-by-field):
+# - always_preserve: keep existing manual enrichment whenever present.
+# - preserve_if_fresh_empty: only keep existing value when fresh scan has no value.
+#
+# For semantic drift control, description/highlights are fresh-preferred. This avoids
+# reintroducing stale text after deterministic refresh updates counts/version metadata.
+MERGE_POLICY = {
+    "description": "preserve_if_fresh_empty",
+    "domain": "always_preserve",
+    "keywords": "always_preserve",
+    "highlights": "preserve_if_fresh_empty",
+    "example_use": "always_preserve",
+    "quality_score": "always_preserve",
+}
 
 
 def _should_preserve_manual_value(value: Any) -> bool:
@@ -627,6 +659,38 @@ def _should_preserve_manual_value(value: Any) -> bool:
     if isinstance(value, (list, dict, set, tuple)):
         return len(value) > 0
     return True
+
+
+def _is_empty_value(value: Any) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, str):
+        return not value.strip()
+    if isinstance(value, (list, dict, set, tuple)):
+        return len(value) == 0
+    return False
+
+
+def _should_preserve_field(
+    squad_name: str,
+    field: str,
+    policy: str,
+    fresh_value: Any,
+    old_value: Any,
+) -> bool:
+    if not _should_preserve_manual_value(old_value):
+        return False
+
+    # SC-HARD-04 guardrail: squad-creator semantic text is always rebuilt from fresh scan.
+    if squad_name == "squad-creator" and field in {"description", "highlights"}:
+        return False
+
+    if policy == "always_preserve":
+        return True
+    if policy == "preserve_if_fresh_empty":
+        return _is_empty_value(fresh_value)
+
+    return False
 
 
 def merge_with_existing(fresh: Dict[str, Any], existing: Optional[Dict[str, Any]]) -> Dict[str, Any]:
@@ -643,9 +707,13 @@ def merge_with_existing(fresh: Dict[str, Any], existing: Optional[Dict[str, Any]
         if not isinstance(old_entry, dict):
             continue
 
-        for field in PRESERVE_FIELDS:
-            if field in old_entry and _should_preserve_manual_value(old_entry.get(field)):
-                fresh_entry[field] = old_entry[field]
+        for field, policy in MERGE_POLICY.items():
+            if field not in old_entry:
+                continue
+            old_value = old_entry.get(field)
+            fresh_value = fresh_entry.get(field)
+            if _should_preserve_field(squad_name, field, policy, fresh_value, old_value):
+                fresh_entry[field] = old_value
 
         # Manual validation rule: explicit manual values win.
         if "validated_explicit" in old_entry:
@@ -690,6 +758,7 @@ def write_registry(registry: Dict[str, Any], registry_path: Path) -> None:
 
     CleanDumper.add_representer(str, str_representer)
 
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
     with open(registry_path, "w", encoding="utf-8") as file:
         yaml.dump(
             registry,
@@ -728,14 +797,24 @@ def _print_summary(results: Dict[str, Any]) -> None:
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description="Scan squads and generate registry data")
+    parser = argparse.ArgumentParser(description="Scan squads and generate ecosystem registry data")
     parser.add_argument("--output", choices=["json", "yaml", "summary"], default="yaml", help="Output format")
     parser.add_argument("--squads-path", type=Path, default=None, help="Path to squads/ directory")
-    parser.add_argument("--registry-format", action="store_true", help="Output in squad-registry.yaml format")
+    parser.add_argument(
+        "--registry-format",
+        action="store_true",
+        help="Output in ecosystem registry schema format",
+    )
+    parser.add_argument(
+        "--registry-path",
+        type=Path,
+        default=None,
+        help=f"Target registry path (env fallback: {REGISTRY_PATH_ENV})",
+    )
     parser.add_argument(
         "--write",
         action="store_true",
-        help="Write directly to squad-registry.yaml (merge with existing, preserve manual enrichments)",
+        help="Write directly to target registry path (merge with existing, preserve manual enrichments)",
     )
 
     args = parser.parse_args()
@@ -749,7 +828,7 @@ def main() -> None:
     results = scan_all_squads(squads_path)
 
     if args.write:
-        registry_path = get_registry_path(squads_path)
+        registry_path = get_registry_path(squads_path, args.registry_path)
         existing = load_existing_registry(registry_path)
 
         results = scan_all_squads(squads_path, existing)
@@ -792,7 +871,12 @@ def main() -> None:
         print()
 
         if isinstance(existing, dict):
-            old_squads = set((existing.get("squads") or {}).keys())
+            raw_old = existing.get("squads") or {}
+            if isinstance(raw_old, list):
+                old_squads = set(s["name"] for s in raw_old if isinstance(s, dict) and "name" in s)
+            else:
+                old_squads = set(raw_old.keys())
+
             new_squads = set((merged.get("squads") or {}).keys())
             added = new_squads - old_squads
             removed = old_squads - new_squads
@@ -802,8 +886,18 @@ def main() -> None:
                 print(f"Removed squads: {', '.join(sorted(removed))}")
 
             changes = []
+            # Create a lookup for old counts
+            old_counts_lookup = {}
+            if isinstance(raw_old, list):
+                for s in raw_old:
+                    if isinstance(s, dict) and "name" in s:
+                        old_counts_lookup[s["name"]] = s.get("counts", {})
+            else:
+                for name, s in raw_old.items():
+                    old_counts_lookup[name] = s.get("counts", {})
+
             for name in sorted(new_squads & old_squads):
-                old_counts = (existing.get("squads", {}).get(name, {}) or {}).get("counts", {})
+                old_counts = old_counts_lookup.get(name, {})
                 new_counts = (merged.get("squads", {}).get(name, {}) or {}).get("counts", {})
                 diffs = []
                 for key in ["agents", "tasks", "workflows", "templates", "checklists", "data_files"]:

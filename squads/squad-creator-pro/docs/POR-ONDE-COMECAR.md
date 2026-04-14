@@ -28,8 +28,8 @@ SE TIVER PROBLEMAS
 ## Passo 1: Verifique os Pré-requisitos
 
 ### Obrigatório
-- [ ] **Claude Code funcionando** - Você consegue rodar `@aios-master`?
-- [ ] **Projeto AIOS** - Você está no diretório do seu projeto?
+- [ ] **Claude Code funcionando** - Você consegue rodar `@squad-creator`?
+- [ ] **Projeto AIOX** - Você está no diretório do seu projeto?
 
 ### Opcional (mas recomendado)
 - [ ] **Materiais dos experts** - PDFs, livros, transcrições
@@ -97,7 +97,7 @@ Após o tutorial, você está pronto. Execute:
 ```
 • FAQ.md ────────────── Dúvidas sobre qualquer coisa
 • COMMANDS.md ───────── Lista de todos os comandos
-• TROUBLESHOOTING.md ── Quando algo dá errado
+• squad-creator/docs/TROUBLESHOOTING.md ── Quando algo dá errado
 • QUICK-START.md ────── Resumo rápido do fluxo
 ```
 
@@ -165,7 +165,7 @@ Não recomendado. Complete em uma sessão só.
 
 ### "E se der erro?"
 
-Veja [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) ou [FAQ.md](./FAQ.md).
+Veja [TROUBLESHOOTING.md](../../squad-creator/docs/TROUBLESHOOTING.md) ou [FAQ.md](./FAQ.md).
 
 ---
 

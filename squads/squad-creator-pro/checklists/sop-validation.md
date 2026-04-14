@@ -2,7 +2,7 @@
 
 > **Pattern:** SC-CK-001 (SOP Validation Checklist)
 > **Version:** 1.0.0
-> **Used By:** @sop-extractor, extract-sop task
+> **Used By:** @squad-chief, extract-sop task
 
 ---
 
@@ -23,7 +23,7 @@ Validate that an extracted SOP meets all quality standards before handoff to squ
 - [ ] **PART 5:** Quality and Validation (checklists, quality gates, META-AXIOMAS)
 - [ ] **PART 6:** Exceptions and Troubleshooting
 - [ ] **PART 7:** Automation Analysis (summary, map, barriers, PV_PM_001)
-- [ ] **PART 8:** AIOS Squad Blueprint (agents, tasks, checkpoints, guardrails, workflow)
+- [ ] **PART 8:** AIOX Squad Blueprint (agents, tasks, checkpoints, guardrails, workflow)
 - [ ] **PART 9:** Gaps and Next Steps
 - [ ] **PART 10:** Glossary
 - [ ] **PART 11:** Extraction Metadata

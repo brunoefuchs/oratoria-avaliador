@@ -1,11 +1,13 @@
 # Task: Detect Squad Context
 
 **Task ID:** detect-squad-context
-**Version:** 1.0.0
 **Execution Type:** Hybrid (Script-first detection + Agent interpretation only for ambiguity)
+**Domain:** `Tactical`
 **Purpose:** Detect the right creation or upgrade route before any squad generation begins
 **Orchestrator:** @squad-chief
 **Mode:** Automatic with conditional elicitation
+**Model:** `Sonnet` (context arbitration and ambiguity handling)
+**Haiku Eligible:** NO -- conflicting signals require contextual judgment
 
 ## Core Principle
 
@@ -16,6 +18,18 @@ Detect first, then build.
 
 ---
 
+
+<!-- SINKRA_CONTRACT -->
+Domain: `Tactical`
+atomic_layer: Atom
+agent: squad-chief
+Input: request::detect_squad_context
+Output: artifact::detect_squad_context
+pre_condition: contexto mínimo carregado e rota validada
+post_condition: decisão registrada com artefato persistido ou handoff emitido
+performance: registrar evidências, falhas e próximo passo sem erro silencioso
+Completion Criteria: contrato mínimo SINKRA explícito e saída rastreável produzida
+
 ## Inputs
 
 | Parameter | Type | Required | Description |
@@ -25,6 +39,14 @@ Detect first, then build.
 | `intent` | enum | No | `create`, `upgrade`, `unsure` |
 
 ---
+
+## Accountability
+
+```yaml
+accountability:
+  human: squad-operator
+  scope: full
+```
 
 ## Context Categories
 
@@ -47,13 +69,30 @@ contexts:
     action: "Resume creation with gap fill"
 ```
 
+**Output Schema:** `squads/squad-creator/config/workflow-yaml-schema.yaml`
+
+## Veto Conditions
+
+```yaml
+veto_conditions:
+  - id: "VETO-CTX-001"
+    condition: "Target path is not a valid squad directory (missing canonical markers)"
+    trigger: "Before assigning context category"
+    block_behavior: "BLOCK detection result; require valid squad path or explicit greenfield intent"
+
+  - id: "VETO-CTX-002"
+    condition: "Confidence below 0.70 with conflicting evidence"
+    trigger: "After confidence scoring"
+    block_behavior: "BLOCK autonomous routing; require user confirmation from offered options"
+```
+
 ---
 
 ## Detection Flow
 
 1. Check `squads/{squad_name}/` existence.
 2. Check presence of `config.yaml`, `agents/`, `tasks/`, `workflows/`.
-3. Scan for PRD/brief references in `docs/` and `outputs/`.
+3. Scan for PRD/brief references in `docs/` and `.aiox/squad-runtime/`.
 4. Build confidence score per context.
 5. If confidence < 0.70, ask user with 3 options.
 

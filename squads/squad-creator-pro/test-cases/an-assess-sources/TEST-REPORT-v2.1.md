@@ -146,7 +146,7 @@ Completude:
 ### 4. Entrevista Tom Bilyeu (Bronze - Source Issue)
 - **Type:** Entrevista (Interview)
 - **Status:** Tier = Bronze (file contains only URL, no content)
-- **File path:** `/Users/oalanicolas/Code/mmos/outputs/minds/alex_hormozi/sources/interviews/Entrevista Tom Biley.md`
+- **File path:** `<workspace-root>/outputs/minds/alex_hormozi/sources/interviews/Entrevista Tom Biley.md`
 - **File content:**
   ```
   [3 blank lines]
@@ -332,7 +332,7 @@ Extract all 3 books sequentially to capture the mental model architecture.
 
 ## NEXT STEPS
 
-1. ✅ Output saved: `/Users/oalanicolas/Code/mmos/squads/squad-creator-pro/test-cases/an-assess-sources/haiku-v2.1-output.yaml`
+1. ✅ Output saved: `<workspace-root>/squads/squad-creator-pro/test-cases/an-assess-sources/haiku-v2.1-output.yaml`
 2. 🔄 **To-Do:** Fetch Tom Bilyeu transcript (YouTube API or fetch-page.js)
 3. 🔄 **To-Do:** Re-assess interview after transcript received
 4. 📋 **To-Do:** Search for additional video/audio sources of Hormozi

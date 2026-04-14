@@ -1,7 +1,7 @@
 # Deep Research Quality Checklist
 
 **Purpose:** Validate research output BEFORE using it to create agents and tasks.
-**Used by:** `workflows/research-then-create-agent.md` (Step 5)
+**Used by:** `workflows/wf-research-then-create-agent.yaml` (Step 5)
 **Quality Gate:** BLOCKING - research that fails cannot proceed to agent creation.
 
 ---
@@ -500,7 +500,6 @@ hard_fail:
 
 ---
 
-**Checklist Version:** 1.0.0
 **Created:** 2026-01-22
-**Part of:** squads/squad-chief
-**Used by:** workflows/research-then-create-agent.md
+**Part of:** squads/squad-creator
+**Used by:** workflows/wf-research-then-create-agent.yaml

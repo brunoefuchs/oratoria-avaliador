@@ -1,209 +1,151 @@
-# Task: validate-extraction
+---
+task-id: validate-extraction
+name: "Validate Extraction Quality"
+version: 2.0.0
+execution_type: Orchestrator
+model: Haiku
+model_rationale: "Orchestrator stub -- delegates to 3 atomic sub-tasks. Haiku for routing."
+haiku_eligible: true
+note: "Decomposed from v1.0.0 monolith (359 lines, 11-point checklist) into 3 atomic tasks."
+estimated-time: 20-30 min
+complexity: medium
+
+inputs:
+  required:
+    - expert_name: "Nome do expert avaliado"
+    - extraction_files: "Arquivos de extracao a validar"
+
+outputs:
+  primary:
+    - validation_report: "Relatorio com 11 itens, gate decision, e handoff package"
+
+elicit: false
+---
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: validate-extraction
+  task_name: Validate Extraction Quality
+  status: pending
+  responsible_executor: Agent
+  execution_type: Agent
+  estimated_time: 20-30m
+  domain: Operational
+  input:
+  - '{''expert_name'': ''Nome do expert avaliado''}'
+  - '{''extraction_files'': ''Arquivos de extracao a validar''}'
+  output:
+  - '{''validation_report'': ''Relatorio com 11 itens, gate decision, e handoff package''}'
+  action_items:
+  - Executar os passos documentados no corpo da task
+  acceptance_criteria:
+  - 'Output artifact produced: Relatorio com 11 itens, gate decision, e handoff package'
+  - Task output validated against quality standards
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Tactical
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
+# Validate Extraction Quality
 
 > **Self-Validation Gate** | Checklist antes de handoff para @pedro-valerio
+>
+> **Regra:** Se falhar, LOOP -- nao handoff.
 
-## Objetivo
+---
 
-Validar que a extração de conhecimento está completa e com qualidade suficiente para operacionalização. Se falhar, LOOP - não handoff.
+## Checklist Reference
+
+Before marking this task complete, verify against: `checklists/sop-validation.md`
+
+---
+
+## Pipeline (3 Atomic Tasks)
+
+| Phase | Task ID | Name | Est. Time |
+|-------|---------|------|-----------|
+| 1 | `validate-extraction-checklist` | Run 11-Point Checklist | 10 min |
+| 2 | `validate-extraction-adversarial` | Cross-Source & Adversarial Tests | 10 min |
+| 3 | `validate-extraction-gate` | Gate Decision & Handoff/Loop | 5 min |
+
+---
+
+## Execution Flow
+
+```
+validate-extraction-checklist
+  | checklist_results (11 items scored)
+  v
+validate-extraction-adversarial
+  | adversarial_results, cross_source_patterns
+  v
+validate-extraction-gate
+  | validation_report, gate_decision (FINAL OUTPUT)
+  v
+[PASS → HANDOFF to @pedro-valerio]
+[FAIL → LOOP with identified gaps]
+```
 
 ---
 
 ## Gate: FRAMEWORK_HANDOFF_READY
 
-### Checklist Obrigatório
-
-| # | Critério | Threshold | Status | Evidência |
-|---|----------|-----------|--------|-----------|
-| 1 | Citações diretas com `[SOURCE: página/minuto]` | ≥ 15 | [ ] | |
-| 2 | Signature phrases verificáveis | ≥ 5 | [ ] | |
-| 3 | Thinking DNA com decision architecture | Mapeada | [ ] | |
-| 4 | Heuristics com contexto (QUANDO aplicar) | Cada uma | [ ] | |
-| 5 | Anti-patterns documentados do EXPERT | Não genéricos | [ ] | |
-| 6 | Conceitos marcados como "inferido" | Zero | [ ] | |
-| 7 | Pareto ao Cubo aplicado (0,8% identificado) | Documentado | [ ] | |
-
----
-
-## Validação Detalhada
-
-### 1. Citações Diretas (≥ 15)
-
-**O que conta como citação:**
-- Frase exata do expert com fonte
-- Formato: `"{frase}" [SOURCE: livro p.123]` ou `[SOURCE: podcast 45:30]`
-
-**O que NÃO conta:**
-- Paráfrase sem fonte
-- "O expert acredita que..." sem citação
-- Inferências
-
-**Como verificar:**
-```bash
-# Contar citações no documento
-grep -c "\[SOURCE:" {arquivo}
-```
-
-### 2. Signature Phrases (≥ 5)
-
-**O que conta:**
-- Frases que o expert repete consistentemente
-- Bordões, mantras, expressões características
-- Devem aparecer em múltiplas fontes
-
-**Exemplo:**
-- Hormozi: "If you're not embarrassed by the first version..."
-- Naval: "Specific knowledge cannot be taught"
-
-**Como verificar:**
-- Buscar padrões repetidos em diferentes fontes
-- Confirmar que não é frase genérica do campo
-
-### 3. Thinking DNA com Decision Architecture
-
-**Deve conter:**
-- Como o expert decide (pipeline de decisão)
-- Quando aplica cada framework
-- Weights/prioridades entre critérios
-
-**Não pode ser:**
-- Lista genérica de "boas práticas"
-- Frameworks do campo sem adaptação do expert
-
-### 4. Heuristics com Contexto
-
-**Formato correto:**
 ```yaml
-- id: "EX001"
-  name: "Regra do X"
-  rule: "SE {situação} → ENTÃO {ação}"
-  when_to_use: "{contexto específico}"
-  source: "[SOURCE: onde extraiu]"
-```
+checkpoint_clareza_handoff:
+  question: "Insumos como um TODO trazem CLAREZA ou CONFUSAO?"
+  if_clareza: "HANDOFF para PV"
+  if_confusao: "LOOP - simplificar antes de entregar"
 
-**Formato errado:**
-```yaml
-- "Sempre faça X" (sem contexto)
-- "É importante Y" (sem trigger)
-```
+checkpoint_pareto_identificado:
+  question: "0.8% do expert esta identificado e documentado?"
+  if_sim: "Handoff pode prosseguir"
+  if_nao: "VETO - executar find-0-8 antes de handoff"
 
-### 5. Anti-Patterns do EXPERT
-
-**Deve ser:**
-- O que ESTE expert especificamente evita
-- Com justificativa do expert
-- Com [SOURCE:]
-
-**Não pode ser:**
-- "Best practices" genéricas do campo
-- "Erros comuns" sem citação do expert
-
-### 6. Zero Inferências Não Marcadas
-
-**Buscar e eliminar:**
-- Conceitos sem [SOURCE:]
-- Afirmações sobre "o que o expert pensa" sem citação
-- Generalizações sem evidência
-
-**Se precisar inferir:**
-- Marcar explicitamente: `[INFERRED] - needs validation`
-- Não entregar para PV com inferências
-
-### 7. Pareto ao Cubo Aplicado
-
-**Deve documentar:**
-- 0,8% do expert (genialidade única)
-- O que diferencia este expert de outros
-- Core do core
-
----
-
-## Fluxo de Validação
-
-```
-┌─────────────────────────────────────────┐
-│  Executar Checklist                      │
-└─────────────────────────────────────────┘
-                    │
-                    ▼
-         ┌─────────────────────┐
-         │  Todos 7 itens PASS? │
-         └─────────────────────┘
-            │              │
-           SIM            NÃO
-            │              │
-            ▼              ▼
-    ┌───────────┐   ┌─────────────────┐
-    │  HANDOFF  │   │  LOOP           │
-    │  para PV  │   │  Identificar gap│
-    └───────────┘   │  Corrigir       │
-                    │  Re-validar     │
-                    └─────────────────┘
-```
-
----
-
-## Se Falhar: Ações por Item
-
-| Item | Se FAIL | Ação |
-|------|---------|------|
-| 1. Citações < 15 | Voltar para sources | Buscar mais entrevistas/podcasts |
-| 2. Phrases < 5 | Analisar mais conteúdo | Procurar padrões repetidos |
-| 3. Decision arch faltando | Extrair mais | Focar em "como decide" |
-| 4. Heuristics sem contexto | Adicionar | Documentar QUANDO aplicar |
-| 5. Anti-patterns genéricos | Especificar | Buscar citações do expert |
-| 6. Inferências presentes | Remover ou validar | Buscar [SOURCE:] ou deletar |
-| 7. 0,8% não identificado | Aplicar find-0.8 | Executar task find-0.8.md |
-
----
-
-## Template de Validação
-
-```yaml
-# Validation Report: {expert_name}
-
-## Checklist Results
-
-| # | Critério | Result | Count/Evidence |
-|---|----------|--------|----------------|
-| 1 | Citações [SOURCE:] | ✅/❌ | {número} |
-| 2 | Signature phrases | ✅/❌ | {número} |
-| 3 | Decision architecture | ✅/❌ | {sim/não} |
-| 4 | Heuristics contextualizadas | ✅/❌ | {número} |
-| 5 | Anti-patterns específicos | ✅/❌ | {número} |
-| 6 | Zero inferências | ✅/❌ | {número encontradas} |
-| 7 | Pareto ao Cubo | ✅/❌ | {sim/não} |
-
-## Gate Decision
-
-**Status:** PASS / FAIL
-
-**Se FAIL - Gaps identificados:**
-1. {gap_1}
-2. {gap_2}
-
-**Próxima ação:**
-- {ação para corrigir}
-
-## Se PASS - Handoff Package
-
-**Artefatos prontos para @pedro-valerio:**
-- [ ] {expert}_dna.yaml
-- [ ] frameworks/*.md
-- [ ] heuristics.yaml
-- [ ] source-index.yaml
+checkpoint_depth_not_breadth:
+  question: "Insumos refletem PROFUNDIDADE ou VOLUME?"
+  if_profundidade: "Handoff com qualidade depth-first"
+  if_volume: "LOOP - reduzir volume, aumentar profundidade"
 ```
 
 ---
 
 ## Completion Criteria
 
-| Critério | Status |
+| Criterio | Status |
 |----------|--------|
-| Todos 7 itens do checklist verificados | [ ] |
-| Evidência documentada para cada item | [ ] |
-| Se FAIL: gaps identificados e ação definida | [ ] |
+| Todos 11 itens do checklist verificados | [ ] |
+| Evidencia documentada para cada item | [ ] |
+| Se FAIL: gaps identificados e acao definida | [ ] |
 | Se PASS: handoff package listado | [ ] |
 
 ---
 
-*"PV não pode operacionalizar inferências. Só entrega com 15+ citações verificáveis."*
+*"PV nao pode operacionalizar inferencias. So entrega com 15+ citacoes verificaveis."*
+
+## Task Anatomy
+
+- **Executor:** Agent
+- **Inputs:** expert_name; extraction_files
+- **Outputs:** Relatorio com 11 itens, gate decision, e handoff package
+- **Completion Criteria:** All items in Quality Check/Completion Criteria above are satisfied
+- **Guardrails:** See Veto Conditions above
+
+## Acceptance Criteria
+
+- [ ] Output artifact produced: Relatorio com 11 itens, gate decision, e handoff package
+- [ ] Task output validated against quality standards

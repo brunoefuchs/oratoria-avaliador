@@ -1,0 +1,10 @@
+
+--- Validation session: 2026-04-10T04:06:10-07:00 ---
+Squad: hormozi | Runtime: claude | Model: opus
+Result: 5/10 (CONDITIONAL) in 1m28s
+Report: /Users/oalanicolas/Code/aiox-pro/outputs/squad-validations/hormozi/20260410-040738
+
+--- Validation session: 2026-04-10T04:10:51-07:00 ---
+Squad: hormozi | Runtime: claude | Model: opus
+Result: 5/10 (CONDITIONAL) in 1m27s
+Report: /Users/oalanicolas/Code/aiox-pro/outputs/squad-validations/hormozi/20260410-041218

@@ -1,16 +1,34 @@
 # Task: Refresh Squad Registry
 
 **Task ID:** refresh-registry
-**Version:** 3.0.0
-**Purpose:** Scan all squads in the ecosystem and update squad-registry.yaml
+**Purpose:** Scan all squads in the ecosystem and update ecosystem-registry.yaml
 **Orchestrator:** @squad-chief
 **Mode:** 100% Deterministic (Script only)
 **Execution Type:** `Worker` (Script handles everything — scan, merge, write)
+**Domain:** `Operational`
 **Worker Script:** `scripts/refresh-registry.py --write`
 **Model:** None (no LLM needed)
+**Haiku Eligible:** N/A (Worker task)
 **Mapped in:** `command_scripts` section of squad-chief.md
+**Registry Path Resolution:** `--registry-path` > `AIOX_ECOSYSTEM_REGISTRY_PATH` > `.aiox/squad-runtime/ecosystem-registry.yaml`
+
+**Accountability:** `human: squad-operator | scope: review_only`
+
+**Coherence Threshold:** `>= 0.95` | **Error Behavior:** `raise` (no silent failure)
 
 ---
+
+
+<!-- SINKRA_CONTRACT -->
+Domain: `Operational`
+atomic_layer: Atom
+agent: squad-chief
+Input: request::refresh_registry
+Output: artifact::refresh_registry
+pre_condition: contexto mínimo carregado e rota validada
+post_condition: decisão registrada com artefato persistido ou handoff emitido
+performance: registrar evidências, falhas e próximo passo sem erro silencioso
+Completion Criteria: contrato mínimo SINKRA explícito e saída rastreável produzida
 
 ## ⛔ EXECUTION: Script Only — Zero LLM
 
@@ -21,7 +39,7 @@ EXECUTE THIS COMMAND AND DISPLAY OUTPUT:
 
 DO NOT:
 - Count agents/tasks manually
-- Read config.yaml files yourself
+- Read squad manifests yourself (`config.yaml` / `squad.yaml`)
 - Infer domains or keywords
 - Generate highlights or example_use
 - Do ANY enrichment manually
@@ -37,11 +55,11 @@ New squads get auto-inferred values that can be manually improved later.
 ```
 100% DETERMINISTIC (Python Script)
 ├── Count agents, tasks, etc.
-├── Read config.yaml metadata
+├── Read canonical squad metadata from config.yaml (fallback: squad.yaml)
 ├── List directory contents
 ├── Merge with existing registry (preserve manual enrichments)
 ├── Auto-infer domain/keywords for NEW squads only
-├── Write squad-registry.yaml
+├── Write ecosystem-registry.yaml
 └── Print summary with changes detected
 ```
 
@@ -61,10 +79,27 @@ TRIGGER (*refresh-registry command or post-create hook)
     → Scans squads/ directory (counts, config metadata, agent names)
     → Loads existing registry (preserves manual enrichments)
     → Merges: fresh counts + preserved semantics
-    → Writes updated squad-registry.yaml
+    → Writes updated ecosystem-registry.yaml
     → Prints summary with changes detected
     ↓
-OUTPUT: Updated squad-registry.yaml + console summary
+OUTPUT: Updated ecosystem-registry.yaml + console summary
+```
+
+---
+
+## Veto Conditions
+
+```yaml
+veto_conditions:
+  - id: "VETO-REG-001"
+    condition: "Target registry write requested without backup artifact"
+    trigger: "Before --write operation"
+    block_behavior: "BLOCK write unless backup exists or operator explicitly accepts risk"
+
+  - id: "VETO-REG-002"
+    condition: "squads/ root not detected or manifest scan fails"
+    trigger: "Before scan starts"
+    block_behavior: "BLOCK refresh; require valid squads path"
 ```
 
 ---
@@ -95,10 +130,10 @@ post_create_hook:
 ### 4. Pre-Commit Hook (Recommended)
 ```bash
 # .claude/hooks/refresh-registry.sh
-# Trigger: Changes to squads/*/config.yaml
+# Trigger: Changes to squads/*/config.yaml or squads/*/squad.yaml
 
 #!/bin/bash
-if git diff --cached --name-only | grep -q "squads/.*/config.yaml"; then
+if git diff --cached --name-only | grep -qE "squads/.*/(config|squad)\.yaml"; then
   echo "Squad config changed, refreshing registry..."
   # Claude Code will handle this via hook
 fi
@@ -125,14 +160,14 @@ python3 squads/squad-creator/scripts/refresh-registry.py --write
 
 **What the script does:**
 1. Scans `squads/` directory
-2. Reads each `config.yaml`
+2. Reads each canonical `config.yaml` (fallback: `squad.yaml`)
 3. Counts files in each subdirectory (agents, tasks, workflows, templates, checklists, data)
 4. Lists agent names
 5. Checks for README.md, CHANGELOG.md
-6. Loads existing `squad-registry.yaml`
+6. Loads existing `ecosystem-registry.yaml`
 7. Merges: fresh deterministic data + preserved semantic enrichments
 8. Auto-infers domain/keywords/highlights for NEW squads only
-9. Writes updated `squad-registry.yaml`
+9. Writes updated `ecosystem-registry.yaml`
 10. Prints summary with changes detected
 
 **Merge strategy:**
@@ -156,7 +191,7 @@ python3 scripts/refresh-registry.py --output summary
 
 ```yaml
 output:
-  file: "squads/squad-creator/data/squad-registry.yaml"
+  file: "{registry_path}"
   console: |
     Registry updated successfully!
 

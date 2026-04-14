@@ -1,246 +1,166 @@
-# Squad Creator Scripts
+# Squad Creator Pro -- Scripts
 
-> Worker scripts para operações determinísticas - 100% Python, zero tokens LLM.
+> Inventory: 44 root scripts, 24 test files, 2 cross-provider scripts
+> Audit source: 2026-03-16 wave-loop hardening reconciliation
 
-## Arquitetura de Execução
+## Convention
 
-O Squad Creator usa o **Executor Decision Tree** para decidir quem executa cada operação:
+- **Root scripts:** `scripts/` root (44 files)
+- **Primary Pro-native core:** curated below (22 files)
+- **Compatibility proxies/wrappers:** paths kept in `squad-creator-pro` for DLS stability, delegating canonical logic to `squad-creator`
+- **Test files:** `scripts/tests/` (24 files total = 22 executable entries + `conftest.py` + `__init__.py`)
+- **Cross-provider tooling:** `scripts/cross-provider/` (2 files)
+- **Counting convention:** `config.yaml` `pro_stats.scripts` counts all root script files in `scripts/`
+
+---
+
+## Primary Pro-Native Scripts (22)
+
+| # | Script | Language | Called By | Description | Status |
+|---|--------|----------|----------|-------------|--------|
+| 1 | `assess-sources.sh` | Bash | tasks/an-assess-sources.md | Source quality assessment and scoring | ACTIVE |
+| 2 | `clone-review.sh` | Bash | tasks/an-clone-review.md, config/model-routing.yaml | Clone review execution with model routing | ACTIVE |
+| 3 | `coherence-validator.py` | Python | workflows/wf-create-squad.yaml, data/hybridops-patterns.md | Squad coherence validation (also delegated from base adapter) | ACTIVE |
+| 4 | `create-agent-preflight.py` | Python | NONE | Deterministic preflight checks for create-agent task | DEPRECATED |
+| 5 | `fidelity-score.sh` | Bash | tasks/an-fidelity-score.md, tasks/optimize.md, config/model-routing.yaml | Fidelity scoring with multi-task reference | ACTIVE |
+| 6 | `model-tier-validator.cjs` | Node.js | tasks/qualify-task.md, tasks/smoke-test-model-routing.md, workflows/wf-model-tier-qualification.yaml, config/scoring-rubric.yaml | Model tier validation and cost enforcement | ACTIVE |
+| 7 | `model-usage-logger.cjs` | Node.js | tasks/smoke-test-model-routing.md | Model usage logging for cost tracking | ACTIVE |
+| 8 | `modernization-score.sh` | Bash | tasks/pv-modernization-score.md | Process Vanguard modernization scoring | ACTIVE |
+| 9 | `on-specialist-complete.py` | Python | skills/squad.md (SubagentStop hook) | Post-specialist completion handler writing canonical runtime state in `.aiox/squad-runtime` | ACTIVE (Pro-native hook) |
+| 10 | `quality_gate.py` | Python | NONE (has test suite: test_quality_gate.py) | Quality gate evaluation engine | KEPT (planned wiring) |
+| 11 | `save-session-metrics.py` | Python | skills/squad.md (Stop hook) | Session metrics persistence on stop | ACTIVE |
+| 12 | `scoring.py` | Python | NONE directly (delegated from base adapter) | Modular scoring engine | ACTIVE (cross-squad) |
+| 13 | `squad-context-loader.cjs` | Node.js | squad-workflow-runner.cjs (internal) | Pipeline context loader for agent wrappers | KEPT (Pro-exclusive infra trio) |
+| 14 | `squad-state-manager.cjs` | Node.js | squad-workflow-runner.cjs, squad-context-loader.cjs (internal) | Pipeline state persistence (init/update/get/list) | KEPT (Pro-exclusive infra trio) |
+| 15 | `squad-workflow-runner.cjs` | Node.js | NONE (CLI entrypoint, references state-manager + context-loader) | Pipeline orchestrator (start/resume/next/status/approve/revise/abort) | KEPT (Pro-exclusive infra trio) |
+| 16 | `sync-chief-codex-skill.js` | Node.js | tasks/sync-chief-codex-skill.md | Generates skill file from squad config | ACTIVE |
+| 17 | `validate-agent-output.py` | Python | skills/squad.md (PreToolUse hook) | Agent output validation hook | ACTIVE |
+| 18 | `validate-clone.sh` | Bash | tasks/an-validate-clone.md | Clone validation execution | ACTIVE |
+| 19 | `validate-squad.sh` | Bash | workflows/validate-squad.yaml, tasks/optimize.md, tasks/workspace-integration-hardening.md, workflows/wf-optimize-squad.yaml | Squad-level validation (multi-workflow reference) | ACTIVE |
+| 20 | `validate-workspace-contract.py` | Python | tasks/workspace-integration-hardening.md | Workspace contract validation | ACTIVE |
+| 21 | `wave-loop.cjs` | Node.js | squad-workflow-runner.cjs (delegation), direct CLI | External SSH-style fresh-session loop for `*create-squad --wave=N` | ACTIVE |
+| 22 | `wave-loop.sh` | Bash | direct CLI / SSH launcher | Thin shell wrapper for `wave-loop.cjs` | ACTIVE |
+
+---
+
+## Compatibility Proxies & Wrappers
+
+These files intentionally stay in `squad-creator-pro` to preserve local paths used by commands, workflows, tests, and agent activation. They delegate canonical behavior to `squad-creator` instead of forking logic in the pack.
+
+- Python proxies: `checklist_validator.py`, `dependency_check.py`, `inventory.py`, `naming_validator.py`, `security_scanner.py`, `squad-analytics.py`, `squad_utils.py`, `sync-ide-skills.py`, `validate-squad-structure.py`, `yaml_validator.py`
+- Node/Bash wrappers: `detect-environment-contract.cjs`, `export-antigravity-workflows.cjs`, `generate-squad-greeting.js`, `generate-squad-guide.js`, `rename-squad.sh`, `scaffold-squad.cjs`, `validate-squad.sh`, `verify-squad-completeness.sh`
+- Shared runtime libs delegated to base: `lib/config-loader.js`, `lib/squad-runtime-paths.cjs`, `lib/validate-runtime-state.cjs`
+- Intentionally local despite same content today: `validate-all.sh` remains local because it is the Pro aggregate entrypoint
+
+---
+
+## Orphan Scripts (Not Referenced in Tasks/Workflows)
+
+From SCP-1 audit: 6 scripts had no direct task or workflow consumer. Each was evaluated using the decision framework (git history, cross-references, test coverage, isolation level).
+
+| # | Script | Decision | Rationale |
+|---|--------|----------|-----------|
+| 1 | `squad-state-manager.cjs` | KEEP | Pro-exclusive runtime core. No base counterpart; referenced by workflow-runner and context-loader. |
+| 2 | `squad-workflow-runner.cjs` | KEEP | Pro-exclusive runtime core. CLI entrypoint for orchestration, wave control, and checkpoint progression. |
+| 3 | `squad-context-loader.cjs` | KEEP | Pro-exclusive runtime core. Called by wrappers/runner to hydrate current squad execution context. |
+| 4 | `scoring.py` | KEEP | Cross-squad dependency: `squads/squad-creator/scripts/scoring.py` is an adapter that delegates to this Pro script. |
+| 5 | `quality_gate.py` | KEEP | Has full test suite (`test_quality_gate.py`). Planned for future task/workflow wiring. |
+| 6 | `create-agent-preflight.py` | DEPRECATE | Fully isolated: no task, workflow, skill, or cross-squad references. No test suite. Last modified in initial upgrade pack (SCPRO.3). |
+
+`on-specialist-complete.py` is also intentionally kept local: the Pro hook writes canonical runtime state under `.aiox/squad-runtime`, while the base copy is a legacy fallback and is not the authoritative implementation for the pack.
+
+### Runtime CLI Detail
+
+The runtime CJS scripts form a self-contained CLI pipeline runtime:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    EXECUTOR DECISION TREE                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  É DETERMINÍSTICO? (mesma entrada = mesma saída sempre)          │
-│       │                                                          │
-│       ├── SIM → WORKER (Python script)                           │
-│       │         • Operações de arquivo                           │
-│       │         • Parse YAML/JSON                                │
-│       │         • Contagem e inventário                          │
-│       │         • Validação de sintaxe                           │
-│       │                                                          │
-│       └── NÃO → Requer análise semântica?                        │
-│                 │                                                │
-│                 ├── SIM → AGENT (LLM)                            │
-│                 │         • Inferir domínio                      │
-│                 │         • Gerar highlights                     │
-│                 │         • Análise de qualidade                 │
-│                 │                                                │
-│                 └── MISTO → HYBRID                               │
-│                             • Worker coleta dados                │
-│                             • Agent enriquece/analisa            │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+squad-workflow-runner.cjs (entrypoint)
+  |-- requires squad-state-manager.cjs (state persistence)
+  |-- delegates wave-loop command to wave-loop.cjs
+  |-- requires squad-context-loader.cjs (agent context)
+       |-- reads from squad-state-manager.cjs (state lookup)
 ```
 
-## Scripts por Categoria
-
-### 🔧 IDE Sync (Worker)
-
-| Script | Linhas | Propósito |
-|--------|--------|-----------|
-| `sync-ide-command.py` | 430 | Sincroniza squad components para IDEs |
+These are NOT invoked by task markdown files or workflow YAML. They are standalone CLI tools intended for direct node execution:
 
 ```bash
-# Sincronizar squad completo
-python3 scripts/sync-ide-command.py squad squad-creator
-
-# Preview sem executar
-python3 scripts/sync-ide-command.py squad squad-creator --dry-run
-
-# Forçar sobrescrita
-python3 scripts/sync-ide-command.py agent oalanicolas --force
+node squad-workflow-runner.cjs start <slug> --name "Name"
+node squad-workflow-runner.cjs wave-loop <slug> --runtime auto
+node squad-workflow-runner.cjs resume [slug]
+node squad-state-manager.cjs init <slug>
+node squad-state-manager.cjs status [slug]
+node squad-context-loader.cjs <agent_key> [slug]
+node wave-loop.cjs <slug> --dry-run
 ```
 
-**Suporta:**
-- Claude Code: `.claude/commands/{pack}/`
-- Cursor: `.cursor/rules/` (converte MD → MDC)
+There is no equivalent runtime trio in `squad-creator`; this subsystem is native to the Pro DLS.
+
+Wave loop operator doc:
+
+- [WAVE-LOOP.md](./WAVE-LOOP.md)
 
 ---
 
-### ✅ Validação (Worker/Hybrid)
+## Cross-Squad Dependencies
 
-| Script | Linhas | Propósito | Tipo |
-|--------|--------|-----------|------|
-| `validate-squad-structure.py` | 535 | Phases 0-2 da validação | Worker |
-| `quality_gate.py` | 414 | Quality gates e thresholds | Worker |
-| `yaml_validator.py` | 487 | Validação de sintaxe YAML | Worker |
-| `checklist_validator.py` | 419 | Validação de checklists | Worker |
-| `naming_validator.py` | 284 | Validação de nomenclatura | Worker |
+| Script | External Reference | Direction | Detail |
+|--------|-------------------|-----------|--------|
+| `scoring.py` | `squads/squad-creator/scripts/scoring.py` (adapter) | base --> pro delegation | Base adapter checks if Pro script exists, delegates with full argv passthrough |
+| `coherence-validator.py` | `squads/squad-creator/scripts/coherence-validator.py` (adapter) | base --> pro delegation | Same adapter pattern: exists check + subprocess delegation |
 
-```bash
-# Validar estrutura (JSON output para Agent)
-python3 scripts/validate-squad-structure.py squad-creator --output json
-
-# Validar YAML
-python3 scripts/yaml_validator.py squads/squad-creator-pro/config.yaml
-
-# Quality gate
-python3 scripts/quality_gate.py squads/squad-creator-pro/
-```
+Both adapters follow the same pattern:
+1. Check if `squad-creator-pro/scripts/{script}` exists
+2. If yes: `subprocess.run([sys.executable, pro_script, *sys.argv[1:]])` and mirror exit code
+3. If no: return `SKIPPED_PRO_ONLY` payload with fallback hint
 
 ---
 
-### 📊 Analytics (Hybrid)
+## Test Files (24 total)
 
-| Script | Linhas | Propósito | Tipo |
-|--------|--------|-----------|------|
-| `refresh-registry.py` | 267 | Escaneia squads, gera JSON | Worker |
-| `squad-analytics.py` | 335 | Métricas e estatísticas | Worker |
-| `inventory.py` | 268 | Inventário de componentes | Worker |
-| `scoring.py` | 392 | Scoring de qualidade | Worker |
+Located in `scripts/tests/`. Convention: `test_{script_name}.{ext}` mirrors the operational script.
 
-```bash
-# Refresh registry (output JSON para Agent enriquecer)
-python3 scripts/refresh-registry.py --output json
+| # | Test Script | Tests For | Language |
+|---|-------------|-----------|----------|
+| 1 | `test_assess_sources.sh` | assess-sources.sh | Bash |
+| 2 | `test_checklist_validator.py` | (checklist validation logic) | Python |
+| 3 | `test_clone_review.sh` | clone-review.sh | Bash |
+| 4 | `test_coherence_validator.py` | coherence-validator.py | Python |
+| 5 | `test_dependency_check.py` | (dependency checking logic) | Python |
+| 6 | `test_fidelity_score.sh` | fidelity-score.sh | Bash |
+| 7 | `test_inventory.py` | (inventory validation logic) | Python |
+| 8 | `test_modernization_score.sh` | modernization-score.sh | Bash |
+| 9 | `test_naming_validator.py` | (naming convention validation) | Python |
+| 10 | `test_quality_gate.py` | quality_gate.py | Python |
+| 11 | `test_refresh_registry.py` | (registry refresh logic) | Python |
+| 12 | `test_scoring.py` | scoring.py | Python |
+| 13 | `test_security_scanner.py` | (security scanning logic) | Python |
+| 14 | `test_squad_analytics.py` | (squad analytics logic) | Python |
+| 15 | `test_validate_clone.sh` | validate-clone.sh | Bash |
+| 16 | `test_yaml_validator.py` | (YAML validation logic) | Python |
+| 17 | `run_bash_tests.sh` | (test runner for all bash tests) | Bash |
+| 18 | `test_squad_runtime_pipeline_e2e.cjs` | squad runtime pipeline | Node.js |
+| 19 | `test_validate_squad_runtime_state_e2e.cjs` | validate-squad runtime state | Node.js |
+| 20 | `test_wave_loop_runtime_e2e.cjs` | wave-loop.cjs | Node.js |
+| 21 | `test_wave_loop_runtime_unit.cjs` | wave-loop.cjs | Node.js |
+| 22 | `test_load_business_sops.cjs` | load-business-sops.cjs | Node.js |
 
-# Analytics
-python3 scripts/squad-analytics.py squad-creator
-
-# Inventário completo
-python3 scripts/inventory.py squads/squad-creator-pro/
-```
-
----
-
-### 🔍 Dependências
-
-| Script | Linhas | Propósito |
-|--------|--------|-----------|
-| `dependency_check.py` | 345 | Verifica dependências entre componentes |
-
-```bash
-python3 scripts/dependency_check.py squads/squad-creator-pro/
-```
-
----
-
-## Padrão de Execução
-
-Todos os scripts seguem o padrão **EXEC-W-001** (Worker - Deterministic):
-
-```python
-#!/usr/bin/env python3
-"""
-{Script Name} - Worker Script (Deterministic)
-
-{Description of what it does}
-
-Usage:
-    python scripts/{script}.py {args}
-
-Pattern: EXEC-W-001 (Worker - Deterministic)
-"""
-```
-
-### Output Formats
-
-| Flag | Formato | Uso |
-|------|---------|-----|
-| `--output text` | Human-readable | Terminal (default) |
-| `--output json` | JSON estruturado | Para Agent processar |
-| `--verbose` | Detalhado | Debug |
+Supporting files: `conftest.py` (pytest fixtures), `__init__.py` (package marker).
 
 ---
 
-## Fluxo Hybrid (Worker → Agent)
+## Cross-Provider Scripts (2)
 
-Para tasks Hybrid, o Worker coleta dados e o Agent enriquece:
+Located in `scripts/cross-provider/`. Used for multi-provider comparison workflows.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    HYBRID EXECUTION FLOW                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  [1] WORKER SCRIPT (Determinístico)                              │
-│      │                                                           │
-│      │  python3 scripts/refresh-registry.py --output json        │
-│      │                                                           │
-│      └──→ JSON com dados factuais:                               │
-│           • Contagens (agents, tasks, etc.)                      │
-│           • Metadados de config.yaml                             │
-│           • Lista de arquivos                                    │
-│           • Timestamps                                           │
-│                                                                  │
-│  [2] AGENT (LLM - Semântico)                                     │
-│      │                                                           │
-│      │  Recebe JSON do Worker                                    │
-│      │                                                           │
-│      └──→ Enriquece com:                                         │
-│           • Inferir domínio (content_marketing, technical, etc.) │
-│           • Extrair keywords do README                           │
-│           • Gerar highlights                                     │
-│           • Análise de gaps                                      │
-│                                                                  │
-│  [3] OUTPUT FINAL                                                │
-│      │                                                           │
-│      └──→ Resultado combinado (dados + análise)                  │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+| # | Script | Language | Description |
+|---|--------|----------|-------------|
+| 1 | `compare-results.js` | Node.js | Compare outputs across different LLM providers |
+| 2 | `cross-provider-runner.js` | Node.js | Execute tasks across multiple providers for benchmarking |
 
 ---
 
-## Testes
+## Deprecated Scripts
 
-Cada script tem testes correspondentes em `scripts/tests/`:
-
-```bash
-# Rodar todos os testes
-cd squads/squad-creator
-python -m pytest scripts/tests/ -v
-
-# Rodar teste específico
-python -m pytest scripts/tests/test_sync_ide_command.py -v
-```
-
-| Script | Teste | Cases |
-|--------|-------|-------|
-| `sync-ide-command.py` | `test_sync_ide_command.py` | 25+ |
-| `validate-squad-structure.py` | `test_validate_squad_structure.py` | 30+ |
-| `quality_gate.py` | `test_quality_gate.py` | 15+ |
-| `yaml_validator.py` | `test_yaml_validator.py` | 20+ |
-| `refresh-registry.py` | `test_refresh_registry.py` | 20+ |
-| `squad-analytics.py` | `test_squad_analytics.py` | 25+ |
-
----
-
-## Economia de Custos
-
-A separação Worker/Agent reduz custos significativamente:
-
-| Métrica | Valor |
-|---------|-------|
-| **Economia mensal** | ~$45/mês |
-| **Economia anual** | ~$540/ano |
-| **Tokens LLM evitados** | ~15M tokens/mês |
-
-### Por que Worker é mais barato?
-
-```
-AGENT (LLM):
-  - Custo por operação: ~$0.01-0.10
-  - Tempo: 2-10 segundos
-  - Variabilidade: Alta
-
-WORKER (Python):
-  - Custo por operação: ~$0.00
-  - Tempo: 0.1-1 segundo
-  - Variabilidade: Zero (determinístico)
-```
-
----
-
-## Contribuindo
-
-Ao criar novos scripts:
-
-1. **Docstring completa** com Usage e Pattern
-2. **Suporte a `--output json`** para integração com Agent
-3. **Criar teste** em `scripts/tests/`
-4. **Atualizar este README**
-
----
-
-_Versão: 1.0.0_
-_Compatível com: Squad Creator v2.9.0+_
+| Script | Deprecated Since | Reason | Removal Target |
+|--------|-----------------|--------|----------------|
+| `create-agent-preflight.py` | SCP-5 (2026-03-06) | Fully isolated: no task, workflow, skill, or test references. Original purpose (preflight checks for create-agent) was never wired into any consumer. | Next major version or cleanup pass |

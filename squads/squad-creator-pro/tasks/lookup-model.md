@@ -1,7 +1,55 @@
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: lookup-model
+  task_name: lookup-model
+  status: pending
+  responsible_executor: Worker
+  execution_type: Worker
+  estimated_time: 15m
+  domain: Operational
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Load Config
+  - Lookup Task
+  - Return Result
+  acceptance_criteria:
+  - Task name provided
+  - Config loaded
+  - Tier returned
+  - If task not found, return "opus" (safe default)
+  - 'Output artifact produced: Completed lookup-model output artifact'
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+  coherence_threshold: 0.95
+  error_behavior: raise
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Strategic
+  atomic_layer: Atom
+  executor: Worker
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
 # Task: lookup-model
 
 **Command:** `*lookup-model <task-name>`
 **Execution Type:** Worker (deterministic, no LLM needed)
+**Model:** Haiku
+**Haiku Eligible:** YES
 
 ## Purpose
 
@@ -76,3 +124,16 @@ Task(
 - [ ] Config loaded
 - [ ] Tier returned
 - [ ] If task not found, return "opus" (safe default)
+
+## Task Anatomy
+
+- **Executor:** Worker
+- **Inputs:** Task-specific context and prior pipeline outputs
+- **Outputs:** Completed lookup-model output artifact
+- **Completion Criteria:** All outputs produced and validated
+- **Guardrails:** None identified
+
+## Acceptance Criteria
+
+- [ ] Output artifact produced: Completed lookup-model output artifact
+- [ ] Task output validated against quality standards

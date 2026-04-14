@@ -1,0 +1,15 @@
+{
+  "artifact_violations": [
+    {
+      "type": "forbidden_file",
+      "path": "squads/squad-creator/.state.json"
+    }
+  ],
+  "reference_violations": [
+    {
+      "type": "forbidden_reference",
+      "path": "squads/squad-creator/tasks/example.md",
+      "token": "outputs/minds/"
+    }
+  ]
+}

@@ -22,7 +22,7 @@ const yaml = require('js-yaml');
 
 // Paths
 const SQUAD_ROOT = path.join(__dirname, '..');
-const METRICS_DIR = path.join(SQUAD_ROOT, '../../outputs/metrics');
+const METRICS_DIR = path.join(SQUAD_ROOT, '../../.aiox/squad-runtime/metrics');
 const CONFIG_PATH = path.join(SQUAD_ROOT, 'config/model-routing.yaml');
 const LOG_PATH = path.join(METRICS_DIR, 'model-usage.jsonl');
 

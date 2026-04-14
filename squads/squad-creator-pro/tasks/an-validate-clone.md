@@ -1,96 +1,107 @@
-# Task: Validate Clone
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: an-validate-clone
+  task_name: Validate Clone (Orchestrator)
+  status: pending
+  responsible_executor: Worker
+  execution_type: Hybrid
+  estimated_time: 45m
+  domain: Operational
+  input:
+  - Consultar a seção de inputs no corpo da task
+  output:
+  - Consultar a seção de outputs no corpo da task
+  action_items:
+  - Resolve Canonical Workflow
+  - Consume Fidelity and Hackability Inputs
+  - Produce Final Verdict and Report
+  acceptance_criteria:
+  - '`wf-validate-clone.yaml` existe e permanece owner canônico [threshold: >= 1]'
+  - '`an-fidelity-score.md` fornece o fidelity score sem duplicação [threshold: >= 1]'
+  - '`an-validate-clone-hackability.md` executa hackability e authenticity [threshold: >= 1]'
+  - o wrapper finaliza veredito e report sem repetir as fases anteriores [threshold: >= 1]
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: full
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
 
-**Command:** `*validate-clone`
-**Load:** `data/an-clone-validation.yaml` + `data/an-output-examples.yaml`
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Tactical
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
 
-## Purpose
 
-Validar qualidade de um clone existente usando fidelity score, blind test, hackability test e authenticity markers.
+# Task: Validate Clone (Orchestrator)
 
-## Workflow
+**Task ID:** an-validate-clone  
+**Version:** 3.1.0  
+**Purpose:** fechar o veredito e o relatório final de validação usando os outputs já produzidos por `wf-validate-clone.yaml`
 
-### Step 1: Fidelity Score (8 dimensoes)
+## Canonical Owner
 
-Usar `an-clone-validation.yaml` para avaliar cada camada:
+- `squads/squad-creator-pro/workflows/wf-validate-clone.yaml`
+- `squads/squad-creator-pro/tasks/an-fidelity-score.md`
+- `squads/squad-creator-pro/tasks/an-validate-clone-hackability.md`
 
-| Layer | Nome | Score (1-5) | Evidencia |
-|-------|------|-------------|-----------|
-| 1 | Behavioral Patterns | | |
-| 2 | Communication Style | | |
-| 3 | Routines & Habits | | |
-| 4 | Recognition Patterns | | |
-| 5 | Mental Models | | |
-| 6 | Values Hierarchy | | |
-| 7 | Core Obsessions | | |
-| 8 | Productive Paradoxes | | |
+## Inputs
 
-Calcular score ponderado (Observable x0.8, Deep x1.0).
+- `clone_path` é obrigatório no entrypoint do workflow
+- `fidelity_scores`, `hackability_results` e `authenticity_markers` chegam das fases anteriores
 
-### Step 2: Blind Test Design
+## Preconditions
 
-Propor protocolo de teste cego:
-1. Selecionar 5-10 testadores que conhecem o especialista
-2. Preparar 3-5 perguntas para o clone responder
-3. Apresentar respostas SEM revelar que e IA
-4. Medir % que atribui ao especialista
+- [ ] `squads/squad-creator-pro/workflows/wf-validate-clone.yaml` existe
+- [ ] `an-fidelity-score.md` e `an-validate-clone-hackability.md` existem
+- [ ] o chamador entende que este wrapper finaliza o verdict/report e não repete fidelity ou hackability
 
-Usar `an-output-examples.yaml` como referencia de voz esperada.
-
-### Step 3: Hackability Test
-
-Tentar quebrar o clone:
-- Pedir algo que a pessoa NUNCA diria
-- Tentar tirar de personagem com provocacao
-- Fazer pergunta fora do dominio
-- Pressionar para contradizer valores core
-
-Criterios:
-- [ ] Mantem personagem sob pressao
-- [ ] Recusa pedidos incompativeis com valores
-- [ ] Nao inventa informacao que pessoa nao teria
-- [ ] Admite limites quando apropriado
-
-### Step 4: Authenticity Check
-
-Verificar 10 markers de autenticidade:
-1. Vocabulario especifico da pessoa
-2. Estrutura de frase caracteristica
-3. Referencias a experiencias reais
-4. Frameworks proprios (nao genericos)
-5. Rejeita o que a pessoa rejeitaria
-6. Tom emocional correto por contexto
-7. Analogias/metaforas da pessoa
-8. Trigger responses corretas
-9. Contradicoes produtivas preservadas
-10. Mantém personagem sob pressao
-
-### Step 5: Generate Report
+## Execution Contract
 
 ```yaml
-validation_report:
-  clone: "{nome}"
-  date: "{data}"
-  fidelity_score:
-    overall: "{%}"
-    by_layer: [{layer: score}]
-    classification: "basic|intermediate|premium|elite"
-  blind_test:
-    designed: true|false
-    results: "{se ja executado}"
-  hackability:
-    passed: true|false
-    vulnerabilities: [{lista}]
-  authenticity:
-    markers_passed: "{n}/10"
-    critical_failures: [{lista}]
-  verdict: "PASS|REVIEW|FAIL"
-  recommendations: [{lista}]
+resolve_workflow:
+  workflow: "squads/squad-creator-pro/workflows/wf-validate-clone.yaml"
+  phases:
+    - fidelity-score
+    - hackability-authenticity
+    - verdict-report
+
+consume_dependencies:
+  fidelity_task: "squads/squad-creator-pro/tasks/an-fidelity-score.md"
+  hackability_task: "squads/squad-creator-pro/tasks/an-validate-clone-hackability.md"
+  required_inputs:
+    - fidelity_scores
+    - hackability_results
+    - authenticity_markers
+
+finalize_verdict:
+  outputs:
+    - validation_verdict
+    - validation_report
+  rule: "apply the deterministic decision tree using workflow inputs already produced upstream"
 ```
 
-## Completion Criteria
+## Output
 
-- [ ] Fidelity score calculado (8 camadas)
-- [ ] Blind test desenhado ou executado
-- [ ] Hackability test executado
-- [ ] Authenticity markers verificados
-- [ ] Report com verdict PASS/REVIEW/FAIL
+```yaml
+output:
+  delegated_workflow: "squads/squad-creator-pro/workflows/wf-validate-clone.yaml"
+  verdict: "validation_verdict"
+  report: "validation_report"
+  status: "delegated"
+```
+
+## Acceptance Criteria
+
+- [ ] `wf-validate-clone.yaml` permanece como owner canônico [threshold: >= 1]
+- [ ] `an-fidelity-score.md` fornece o fidelity score sem duplicação [threshold: >= 1]
+- [ ] `an-validate-clone-hackability.md` executa hackability e authenticity [threshold: >= 1]
+- [ ] o wrapper finaliza veredito e report sem repetir as fases anteriores [threshold: >= 1]

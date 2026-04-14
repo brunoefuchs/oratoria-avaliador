@@ -1,12 +1,12 @@
-# Workflow Template (AIOS Quality Standard)
+# Workflow Template (AIOX Quality Standard)
 # Version: 1.0.0
-# Standard: AIOS multi-phase workflow pattern
+# Standard: AIOX multi-phase workflow pattern
 # Min Lines: 500+
 
 template:
   id: squad-workflow-template
   name: Squad Workflow
-  quality_standard: "aios-workflow-v2"
+  quality_standard: "aiox-workflow-v2"
   min_lines: 500
 
   output:
@@ -23,7 +23,7 @@ template:
     - Multiple agents involved
 
 # ============================================================================
-# WORKFLOW STRUCTURE (AIOS Standard)
+# WORKFLOW STRUCTURE (AIOX Standard)
 # ============================================================================
 # Multi-phase workflows with checkpoints, agent assignments, and quality gates
 # ============================================================================

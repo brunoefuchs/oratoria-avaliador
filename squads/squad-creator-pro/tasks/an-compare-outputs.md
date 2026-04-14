@@ -1,337 +1,132 @@
-# Task: Compare Model Outputs
+---
+task-id: an-compare-outputs
+name: "Compare Model Outputs"
+version: 3.0.0
+execution_type: Orchestrator
+model: Opus
+model_rationale: "Orchestrator stub -- delegates to 1 consolidated sub-task. Opus REQUIRED (evaluator independence)."
+haiku_eligible: false
+note: "v3.0.0: De-atomized from 3 subtasks to 1. load was pure data marshaling, report was a post-condition of score."
+estimated-time: 15-20 min
+complexity: medium
+
+inputs:
+  required:
+    - task_name: "Task being evaluated (e.g., an-assess-sources)"
+    - opus_baseline: "Path to Opus output file"
+    - haiku_output: "Path to Haiku output file"
+    - task_file: "Original task definition (for reference)"
+
+outputs:
+  primary:
+    - qualification_report: "Full qualification report with decision"
+
+elicit: false
+---
+<!-- SINKRA_TASK_METADATA:START -->
+```yaml
+sinkra_task_metadata:
+  task_id: an-compare-outputs
+  task_name: Compare Model Outputs
+  status: pending
+  responsible_executor: Agent
+  execution_type: Agent
+  estimated_time: 15-20m
+  domain: Operational
+  input:
+  - '{''task_name'': ''Task being evaluated (e.g., an-assess-sources)''}'
+  - '{''opus_baseline'': ''Path to Opus output file''}'
+  - '{''haiku_output'': ''Path to Haiku output file''}'
+  - '{''task_file'': ''Original task definition (for reference)''}'
+  output:
+  - '{''qualification_report'': ''Full qualification report with decision''}'
+  action_items:
+  - Executar os passos documentados no corpo da task
+  acceptance_criteria:
+  - Both output files loaded and parsed
+  - All 4 dimensions scored using rubric
+  - Veto conditions checked
+  - Total score calculated
+  - Decision determined (QUALIFIED/CONDITIONAL/NOT_QUALIFIED)
+  output_persistence: transient_output
+  accountable_id: Human:Squad_Operator
+  accountability_scope: review_only
+  escalation_priority: medium
+```
+<!-- SINKRA_TASK_METADATA:END -->
+
+<!-- SINKRA_CONTRACT:START -->
+```yaml
+sinkra_contract:
+  Domain: Tactical
+  atomic_layer: Atom
+  executor: Agent
+  pre_condition: "inputs, dependências e artefatos prévios resolvidos antes de iniciar a execução."
+  post_condition: "output principal gerado, validado e pronto para handoff da próxima fase."
+  performance: "executar dentro do SLA declarado, registrar erro explicitamente e escalar via handoff sem falha silenciosa."
+```
+<!-- SINKRA_CONTRACT:END -->
+
+
+# Compare Model Outputs
 
 **Command:** `*compare-outputs`
-**Version:** 1.0.0
-**Execution Type:** Agent (Opus ONLY - evaluator must be most capable model)
-**Model:** `Opus` (REQUIRED - evaluator cannot be same tier as test subject)
-**Purpose:** Systematic comparison of Opus baseline vs Haiku test outputs for Model Tier Qualification
+
+> **CRITICAL:** Evaluator Independence -- Opus ONLY. NEVER use Haiku to evaluate Haiku.
 
 ---
 
-## CRITICAL: Evaluator Independence
+## Pipeline (1 Consolidated Task)
+
+| Phase | Task ID | Name | Est. Time |
+|-------|---------|------|-----------|
+| 1 | `an-compare-outputs-score` | Load, Score & Report | 15-20 min |
+
+> **v3.0.0 Change:** De-atomized from 3 subtasks. `load` was pure data marshaling and `report` was a post-condition of `score`. All merged into a single task with 3 sequential steps.
+
+---
+
+## Execution Flow
+
+```
+an-compare-outputs-score
+  Step 1: Load & Extract (parse YAML, validate, normalize)
+  Step 2: Score 4 Dimensions (tier_match, score_variance, checkpoint_match, recommendation_quality)
+  Step 3: Determine Verdict & Report (thresholds, rationale, save)
+  |
+  v
+[QUALIFIED | CONDITIONAL | NOT_QUALIFIED]
+```
+
+---
+
+## Evaluator Rules
 
 ```yaml
 evaluator_rules:
-  model: "opus"  # NEVER use Haiku to evaluate Haiku
-  blind_mode: false  # We know which is which (baseline vs test)
+  model: "opus"
+  blind_mode: false
   bias_mitigation:
     - "Score WHAT IS WRITTEN, not what you expect"
     - "Do NOT assume Opus is better - measure objectively"
-    - "If outputs are equivalent, say so (don't force differences)"
-```
-
----
-
-## Inputs
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `task_name` | string | Yes | Task being evaluated (e.g., "an-assess-sources") |
-| `opus_baseline` | file | Yes | Path to Opus output file |
-| `haiku_output` | file | Yes | Path to Haiku output file |
-| `task_file` | file | Yes | Original task definition (for reference) |
-
----
-
-## Evaluation Rubric (100 points)
-
-### Dimension 1: TIER MATCH (40 points)
-
-```yaml
-tier_match:
-  weight: 40
-  description: "Do both outputs classify items into the same tiers?"
-
-  scoring:
-    perfect_match: 40    # 100% of items have same tier
-    high_match: 32       # 90-99% same tier
-    moderate_match: 24   # 75-89% same tier
-    low_match: 16        # 50-74% same tier
-    poor_match: 0        # <50% same tier
-
-  calculation: |
-    match_rate = count(opus_tier == haiku_tier) / total_items
-
-    IF match_rate == 1.0 → 40 points
-    IF match_rate >= 0.9 → 32 points
-    IF match_rate >= 0.75 → 24 points
-    IF match_rate >= 0.5 → 16 points
-    ELSE → 0 points
-
-  veto_condition: |
-    IF match_rate < 0.75 → VETO (different tier = different user action)
-    Rationale: User decides based on tier, not score details
-```
-
-### Dimension 2: SCORE VARIANCE (30 points)
-
-```yaml
-score_variance:
-  weight: 30
-  description: "Are numerical scores within acceptable variance?"
-
-  thresholds:
-    excellent: 5%     # Scores within 5%
-    good: 10%         # Scores within 10%
-    acceptable: 15%   # Scores within 15%
-    poor: 20%         # Scores within 20%
-    unacceptable: ">20%"
-
-  scoring:
-    within_5pct: 30
-    within_10pct: 24
-    within_15pct: 18
-    within_20pct: 12
-    beyond_20pct: 0
-
-  calculation: |
-    FOR each scored item:
-      variance = abs(opus_score - haiku_score) / opus_score * 100
-
-    avg_variance = mean(all variances)
-    max_variance = max(all variances)
-
-    # Use WORST case (max) for scoring, not average
-    IF max_variance <= 5% → 30 points
-    IF max_variance <= 10% → 24 points
-    IF max_variance <= 15% → 18 points
-    IF max_variance <= 20% → 12 points
-    ELSE → 0 points
-
-  veto_condition: |
-    IF max_variance > 15% → REVIEW (significant scoring difference)
-    IF max_variance > 25% → VETO (unreliable scoring)
-```
-
-### Dimension 3: CHECKPOINT MATCH (20 points)
-
-```yaml
-checkpoint_match:
-  weight: 20
-  description: "Do binary checkpoints (true/false) match?"
-
-  applies_to: "Tasks with binary checkpoint scoring"
-
-  scoring:
-    perfect_match: 20    # 100% checkpoints match
-    high_match: 16       # 95-99% match
-    moderate_match: 12   # 90-94% match
-    low_match: 8         # 80-89% match
-    poor_match: 0        # <80% match
-
-  calculation: |
-    FOR each item with checkpoints:
-      FOR each checkpoint:
-        match = (opus_checkpoint == haiku_checkpoint)
-
-    match_rate = count(matches) / total_checkpoints
-
-    IF match_rate == 1.0 → 20 points
-    IF match_rate >= 0.95 → 16 points
-    IF match_rate >= 0.90 → 12 points
-    IF match_rate >= 0.80 → 8 points
-    ELSE → 0 points
-
-  note: |
-    If task doesn't use binary checkpoints, award 20 points
-    (dimension not applicable)
-```
-
-### Dimension 4: RECOMMENDATION QUALITY (10 points)
-
-```yaml
-recommendation_quality:
-  weight: 10
-  description: "Do recommendations lead to same user actions?"
-
-  scoring:
-    same_actions: 10       # Same recommended actions
-    similar_actions: 7     # Same direction, different specifics
-    different_actions: 3   # Different recommendations
-    contradictory: 0       # Opposite recommendations
-
-  evaluation_criteria:
-    - "Would user take same action based on each output?"
-    - "Are priorities the same (what to do first)?"
-    - "Are gaps/issues identified the same?"
-
-  note: |
-    This is the most subjective dimension.
-    Focus on ACTIONABLE outcomes, not wording.
+    - "If outputs are equivalent, say so"
 ```
 
 ---
 
 ## Qualification Thresholds
 
-```yaml
-qualification_decision:
-  thresholds:
-    QUALIFIED: ">= 85 points AND no veto triggered"
-    CONDITIONAL: "70-84 points OR veto with mitigation possible"
-    NOT_QUALIFIED: "< 70 points OR hard veto"
-
-  veto_conditions:
-    - id: "MTQ_VC_001"
-      name: "Score Variance >15%"
-      severity: "review"
-
-    - id: "MTQ_VC_002"
-      name: "Score Variance >25%"
-      severity: "veto"
-
-    - id: "MTQ_VC_003"
-      name: "Tier Match <90%"
-      severity: "review"
-
-    - id: "MTQ_VC_004"
-      name: "Tier Match <75%"
-      severity: "veto"
-
-    - id: "MTQ_VC_005"
-      name: "Contradictory Recommendations"
-      severity: "veto"
-```
-
----
-
-## Workflow
-
-### Step 1: Load Inputs
-
-```yaml
-step_1:
-  action: "Read both output files and task definition"
-  inputs:
-    - opus_baseline
-    - haiku_output
-    - task_file
-  validation:
-    - "Both files exist and are valid YAML"
-    - "Both files have same structure"
-    - "Task file provides context for evaluation"
-```
-
-### Step 2: Extract Comparable Items
-
-```yaml
-step_2:
-  action: "Identify all items to compare"
-  extract:
-    - items: "List of scored items (sources, dimensions, etc.)"
-    - scores: "Numerical scores per item"
-    - tiers: "Classification tiers per item"
-    - checkpoints: "Binary checkpoints if applicable"
-    - recommendations: "Action items and priorities"
-```
-
-### Step 3: Calculate Dimension Scores
-
-```yaml
-step_3:
-  action: "Score each dimension using rubric"
-
-  tier_match:
-    calculate: "match_rate = matching_tiers / total_items"
-    score: "Apply scoring table"
-    check_veto: "match_rate < 0.75?"
-
-  score_variance:
-    calculate: "variance per item, take max"
-    score: "Apply scoring table"
-    check_veto: "max_variance > 25%?"
-
-  checkpoint_match:
-    calculate: "matching_checkpoints / total_checkpoints"
-    score: "Apply scoring table"
-
-  recommendation_quality:
-    evaluate: "Would user take same action?"
-    score: "Apply scoring table"
-    check_veto: "Contradictory?"
-```
-
-### Step 4: Generate Report
-
-```yaml
-step_4:
-  action: "Generate qualification report"
-
-  output_format: |
-    qualification_report:
-      task: "{task_name}"
-      evaluation_date: "{ISO date}"
-      evaluator: "opus"
-
-      inputs:
-        opus_baseline: "{path}"
-        haiku_output: "{path}"
-
-      dimension_scores:
-        tier_match:
-          score: X/40
-          match_rate: X%
-          details: [...]
-
-        score_variance:
-          score: X/30
-          avg_variance: X%
-          max_variance: X%
-          details: [...]
-
-        checkpoint_match:
-          score: X/20
-          match_rate: X%
-          details: [...]
-
-        recommendation_quality:
-          score: X/10
-          assessment: "same|similar|different|contradictory"
-          details: [...]
-
-      total_score: X/100
-
-      veto_conditions:
-        triggered: [...]
-        not_triggered: [...]
-
-      decision: "QUALIFIED | CONDITIONAL | NOT_QUALIFIED"
-
-      rationale: |
-        {Explanation of decision}
-
-      recommendations:
-        if_qualified: |
-          - Update model-routing.yaml: tier = haiku
-          - Add validated: true with test_date
-        if_conditional: |
-          - {Specific fixes needed}
-          - Re-test after fixes
-        if_not_qualified: |
-          - Keep tier = opus
-          - Document root cause
-```
+| Decision | Criteria |
+|----------|---------|
+| QUALIFIED | >= 85 points AND no veto triggered |
+| CONDITIONAL | 70-84 points OR veto with mitigation possible |
+| NOT_QUALIFIED | < 70 points OR hard veto |
 
 ---
 
 ## Output
 
-Save qualification report to:
-```
-squads/squad-creator-pro/test-cases/{task_name}/qualification-report.yaml
-```
-
----
-
-## Usage Example
-
-```bash
-*compare-outputs \
-  --task an-assess-sources \
-  --opus squads/squad-creator-pro/test-cases/an-assess-sources/opus-baseline.yaml \
-  --haiku squads/squad-creator-pro/test-cases/an-assess-sources/haiku-v2.2.1-output.yaml \
-  --task-file squads/squad-creator-pro/tasks/an-assess-sources.md
-```
+Save to: `squads/squad-creator-pro/test-cases/{task_name}/qualification-report.yaml`
 
 ---
 
@@ -342,13 +137,18 @@ squads/squad-creator-pro/test-cases/{task_name}/qualification-report.yaml
 - [ ] Veto conditions checked
 - [ ] Total score calculated
 - [ ] Decision determined (QUALIFIED/CONDITIONAL/NOT_QUALIFIED)
-- [ ] Qualification report generated with full details
 - [ ] Report saved to test-cases/{task}/qualification-report.yaml
 
----
+## Task Anatomy
 
-## Changelog
+- **Executor:** Agent
+- **Inputs:** task_name; opus_baseline; haiku_output; task_file
+- **Outputs:** Full qualification report with decision
+- **Completion Criteria:** All outputs produced and validated
+- **Guardrails:** See Veto Conditions in subtask
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2026-02-11 | Initial version with 4-dimension rubric |
+## Acceptance Criteria
+
+- [ ] All veto conditions checked and none triggered
+- [ ] Output artifact produced: Full qualification report with decision
+- [ ] Task output validated against quality standards

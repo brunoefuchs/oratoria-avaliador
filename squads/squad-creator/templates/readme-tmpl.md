@@ -157,14 +157,37 @@ sections:
       {{key_features}}
 
   - id: integration
-    title: Integration with Core AIOS
-    instruction: Explain how this squad integrates with AIOS framework
+    title: Integration with Core AIOX
+    instruction: Explain how this squad integrates with AIOX framework
     template: |
-      ## Integration with Core AIOS
+      ## Integration with Core AIOX
 
       {{squad_name}} integrates seamlessly with:
 
       {{integration_details}}
+
+  - id: workspace-governance
+    title: Workspace Integration Governance
+    instruction: |
+      Declare required workspace integration level and contract.
+      Use canonical levels: none | read_only | controlled_runtime_consumer | workspace_first.
+    template: |
+      ## Workspace Integration Governance
+
+      - **Integration level:** `{{workspace_integration_level}}`
+      - **Rationale:** {{workspace_integration_rationale}}
+      - **Read paths:** {{workspace_read_paths}}
+      - **Write paths:** {{workspace_write_paths}}
+      - **Template namespace:** {{workspace_template_namespace}}
+      - **Owner:** {{workspace_integration_owner}}
+      - **Execution mode:** {{workspace_integration_execution_mode}}
+
+      ### Required structural artifacts
+      - `config.yaml` with `workspace_integration.level`
+      - `scripts/bootstrap-*-workspace.sh` (if `workspace_first`)
+      - `scripts/validate-*-essentials.sh` (if `workspace_first`)
+      - `workspace-handoff.yaml` for `COO` (if `controlled_runtime_consumer` or `workspace_first`)
+      - `squads/c-level/` present in the repo (if `controlled_runtime_consumer` or `workspace_first`)
 
   - id: getting-started
     title: Getting Started Guide
@@ -199,7 +222,7 @@ sections:
 
       This squad requires:
 
-      - Core AIOS-FULLSTACK framework
+      - Core AIOX-FULLSTACK framework
       {{additional_dependencies}}
 
   - id: support
@@ -228,4 +251,4 @@ sections:
       **Ready to {{pack_tagline}}? Let's get started! 🚀**
 
       _Version: {{version}}_
-      _Compatible with: AIOS-FULLSTACK v4+_
+      _Compatible with: AIOX-FULLSTACK v4+_

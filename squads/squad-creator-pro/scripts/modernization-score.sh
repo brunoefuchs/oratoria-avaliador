@@ -2,7 +2,7 @@
 # modernization-score.sh - Deterministic modernization scoring (no LLM needed)
 # Usage: ./modernization-score.sh <workflow-file> [--json]
 #
-# Applies 12-point checklist to evaluate if workflow follows modern AIOS patterns
+# Applies 12-point checklist to evaluate if workflow follows modern AIOX patterns
 # Based on pv-workflow-validation.yaml criteria
 
 set -e
@@ -17,7 +17,7 @@ fi
 if [[ -z "$WORKFLOW_FILE" ]]; then
     echo "Usage: $0 <workflow-file> [--json]"
     echo ""
-    echo "Evaluates a workflow/skill file against 12 modern AIOS patterns."
+    echo "Evaluates a workflow/skill file against 12 modern AIOX patterns."
     echo "Returns score X/12 with per-pattern evidence."
     exit 1
 fi
@@ -96,15 +96,15 @@ else
 fi
 
 # ============================================================================
-# P6: File-Based Communication (outputs/ directory)
+# P6: File-Based Communication (.aiox/squad-runtime/ directory)
 # ============================================================================
-if grep -qiE "outputs/" "$WORKFLOW_FILE"; then
+if grep -qiE "\\.aiox/squad-runtime/" "$WORKFLOW_FILE"; then
     P6="PASS"
-    P6_EVIDENCE=$(grep -n -m1 -iE "outputs/" "$WORKFLOW_FILE" | head -1 | sed 's/"/\\"/g')
+    P6_EVIDENCE=$(grep -n -m1 -iE "\\.aiox/squad-runtime/" "$WORKFLOW_FILE" | head -1 | sed 's/"/\\"/g')
     TOTAL=$((TOTAL + 1))
 else
     P6="FAIL"
-    P6_EVIDENCE="No outputs/ directory references found"
+    P6_EVIDENCE="No .aiox/squad-runtime/ directory references found"
 fi
 
 # ============================================================================
@@ -169,15 +169,15 @@ else
 fi
 
 # ============================================================================
-# P12: Artifact Directory (outputs/{slug}/ structured)
+# P12: Artifact Directory (.aiox/squad-runtime/{slug}/ structured)
 # ============================================================================
-if grep -qiE "outputs/.*/" "$WORKFLOW_FILE"; then
+if grep -qiE "\\.aiox/squad-runtime/.*/" "$WORKFLOW_FILE"; then
     P12="PASS"
-    P12_EVIDENCE=$(grep -n -m1 -iE "outputs/.*/" "$WORKFLOW_FILE" | head -1 | sed 's/"/\\"/g')
+    P12_EVIDENCE=$(grep -n -m1 -iE "\\.aiox/squad-runtime/.*/" "$WORKFLOW_FILE" | head -1 | sed 's/"/\\"/g')
     TOTAL=$((TOTAL + 1))
 else
     P12="FAIL"
-    P12_EVIDENCE="No structured artifact directory (outputs/{slug}/) found"
+    P12_EVIDENCE="No structured artifact directory (.aiox/squad-runtime/{slug}/) found"
 fi
 
 # ============================================================================
@@ -237,13 +237,13 @@ ENDJSON
     [[ "$P3" == "FAIL" ]] && RECS+=('      {"priority": "high", "pattern": "Blocking Execution", "action": "Use Task tool with subagent_type for agent delegation"}')
     [[ "$P4" == "FAIL" ]] && RECS+=('      {"priority": "medium", "pattern": "Parallel Execution", "action": "Add run_in_background for independent tasks"}')
     [[ "$P5" == "FAIL" ]] && RECS+=('      {"priority": "low", "pattern": "Context Preamble", "action": "Add git status/gotchas context loading"}')
-    [[ "$P6" == "FAIL" ]] && RECS+=('      {"priority": "high", "pattern": "File-Based Communication", "action": "Use outputs/ directory for inter-agent communication"}')
+    [[ "$P6" == "FAIL" ]] && RECS+=('      {"priority": "high", "pattern": "File-Based Communication", "action": "Use .aiox/squad-runtime/ directory for inter-agent communication"}')
     [[ "$P7" == "FAIL" ]] && RECS+=('      {"priority": "medium", "pattern": "Agent File References", "action": "Reference .claude/agents/ files instead of hardcoded personas"}')
     [[ "$P8" == "FAIL" ]] && RECS+=('      {"priority": "medium", "pattern": "Task Dependencies", "action": "Use blockedBy for task ordering"}')
     [[ "$P9" == "FAIL" ]] && RECS+=('      {"priority": "low", "pattern": "Permission Mode", "action": "Set explicit bypassPermissions or acceptEdits"}')
     [[ "$P10" == "FAIL" ]] && RECS+=('      {"priority": "high", "pattern": "Proper Finalization", "action": "Add shutdown_request + TeamDelete cleanup"}')
     [[ "$P11" == "FAIL" ]] && RECS+=('      {"priority": "low", "pattern": "Anti-Pattern Docs", "action": "Document NEVER/DO NOT patterns"}')
-    [[ "$P12" == "FAIL" ]] && RECS+=('      {"priority": "medium", "pattern": "Artifact Directory", "action": "Use outputs/{slug}/ structured artifact paths"}')
+    [[ "$P12" == "FAIL" ]] && RECS+=('      {"priority": "medium", "pattern": "Artifact Directory", "action": "Use .aiox/squad-runtime/{slug}/ structured artifact paths"}')
 
     # Join with commas
     for i in "${!RECS[@]}"; do
@@ -294,13 +294,13 @@ else
     [[ "$P3" == "FAIL" ]] && echo "    - { priority: 'high', pattern: 'Blocking Execution', action: 'Use Task tool with subagent_type for agent delegation' }"
     [[ "$P4" == "FAIL" ]] && echo "    - { priority: 'medium', pattern: 'Parallel Execution', action: 'Add run_in_background for independent tasks' }"
     [[ "$P5" == "FAIL" ]] && echo "    - { priority: 'low', pattern: 'Context Preamble', action: 'Add git status/gotchas context loading' }"
-    [[ "$P6" == "FAIL" ]] && echo "    - { priority: 'high', pattern: 'File-Based Communication', action: 'Use outputs/ directory for inter-agent communication' }"
+    [[ "$P6" == "FAIL" ]] && echo "    - { priority: 'high', pattern: 'File-Based Communication', action: 'Use .aiox/squad-runtime/ directory for inter-agent communication' }"
     [[ "$P7" == "FAIL" ]] && echo "    - { priority: 'medium', pattern: 'Agent File References', action: 'Reference .claude/agents/ files instead of hardcoded personas' }"
     [[ "$P8" == "FAIL" ]] && echo "    - { priority: 'medium', pattern: 'Task Dependencies', action: 'Use blockedBy for task ordering' }"
     [[ "$P9" == "FAIL" ]] && echo "    - { priority: 'low', pattern: 'Permission Mode', action: 'Set explicit bypassPermissions or acceptEdits' }"
     [[ "$P10" == "FAIL" ]] && echo "    - { priority: 'high', pattern: 'Proper Finalization', action: 'Add shutdown_request + TeamDelete cleanup' }"
     [[ "$P11" == "FAIL" ]] && echo "    - { priority: 'low', pattern: 'Anti-Pattern Docs', action: 'Document NEVER/DO NOT patterns' }"
-    [[ "$P12" == "FAIL" ]] && echo "    - { priority: 'medium', pattern: 'Artifact Directory', action: 'Use outputs/{slug}/ structured artifact paths' }"
+    [[ "$P12" == "FAIL" ]] && echo "    - { priority: 'medium', pattern: 'Artifact Directory', action: 'Use .aiox/squad-runtime/{slug}/ structured artifact paths' }"
 
     echo ""
     echo "# Cost: \$0 (zero tokens)"

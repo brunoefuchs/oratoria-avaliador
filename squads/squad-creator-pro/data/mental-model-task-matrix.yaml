@@ -279,7 +279,7 @@ OBSESSIONS:
         action_if_fail: "Reordenar: primeiro eliminar 80%, depois automatizar, depois amplificar 0.8%"
         rationale: "Não automatiza desperdício. ELIMINA primeiro."
 
-      - task: "find-0.8"
+      - task: "find-0-8"
         step: "ALL"
         step_name: "Todas as zonas"
         checkpoint_type: "leverage_integral"
@@ -309,7 +309,7 @@ MODELS:
         action_if_fail: "Aplicar framework antes de prosseguir"
         rationale: "Crown Jewel > Ouro > Bronze. 0.8% gera 51% do resultado."
 
-      - task: "find-0.8"
+      - task: "find-0-8"
         step: "ALL"
         step_name: "Checklist Lendário completo"
         checkpoint_type: "integral_application"
@@ -333,7 +333,7 @@ MODELS:
         checkpoint_type: "veto"
         question: "0.8% do expert está identificado e documentado?"
         action_if_pass: "Handoff pode prosseguir"
-        action_if_fail: "VETO - executar find-0.8 antes de handoff"
+        action_if_fail: "VETO - executar find-0-8 antes de handoff"
         rationale: "Sem identificar genialidade = clone mediano."
 
   clarity_first:
@@ -580,7 +580,7 @@ coverage_matrix:
         - "MODELS.clarity_first (Phase 5)"
         - "PARADOXES.clarity_from_chaos (Phase 2)"
 
-    find-0.8:
+    find-0-8:
       total_checkpoints: 2
       models_used:
         - "OBSESSIONS.eficiencia_alavancagem (ALL)"

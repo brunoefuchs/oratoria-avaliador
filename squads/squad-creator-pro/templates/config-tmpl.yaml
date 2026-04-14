@@ -16,7 +16,7 @@ sections:
     instruction: |
       Initial Setup for Squad Configuration
 
-      This template generates the config.yaml file for a new AIOS squad.
+      This template generates the config.yaml file for a new AIOX squad.
 
       Gather the following information from the user:
       - Pack name (kebab-case, e.g., 'legal-assistant')
@@ -52,7 +52,7 @@ sections:
             This squad provides specialized agents, tasks, and templates
             for legal professionals. It automates document drafting, case analysis,
             legal research, and compliance workflows.
-          author: AIOS Community
+          author: AIOX Community
           icon: "⚖️"
           slashPrefix: legalAssistant
 
@@ -315,12 +315,94 @@ sections:
           fail_fast: true
           allow_manual_override: false
 
+  - id: fw-compliance
+    title: Governance Framework Compliance
+    instruction: |
+      Generate the governance framework compliance block for the squad.
+
+      This is MANDATORY for all squads in the Hub. Every squad MUST declare:
+
+      1. artifact_contracts[] — What artifacts this squad produces, with template paths
+         and lifecycle states. Minimum 1 contract required.
+         Ask the user: "What are the main outputs/artifacts this squad produces?"
+
+      2. bu_mapping — Which Business Unit this squad belongs to.
+         Default: "hub-framework" for shared squads.
+
+      3. supported_modes[] — Which operational modes this squad supports.
+         Valid modes: CRIAR, RESOLVER, GERENCIAR, ENTENDER, VALIDAR, CONFIGURAR, PLANEJAR, EXPLORAR
+
+      4. artifact_lifecycle — Tracking configuration (use defaults).
+      5. instance_lifecycle — Squad instance states (use defaults).
+      6. journey_log — Event logging (use defaults).
+
+      Mode mapping guide:
+      - Squad creates things → CRIAR
+      - Squad fixes/debugs → RESOLVER
+      - Squad manages ongoing processes → GERENCIAR
+      - Squad explains/documents → ENTENDER
+      - Squad validates/reviews → VALIDAR
+      - Squad configures/sets up → CONFIGURAR
+      - Squad plans/strategizes → PLANEJAR
+      - Squad explores/researches → EXPLORAR
+    elicit: true
+    template: |
+      # Governance Framework Compliance (mandatory for Hub)
+      artifact_contracts:
+        {{#each artifact_contracts}}
+        - artifact_id: "{{artifact_id}}"
+          template_path: "templates/{{template_file}}"
+          lifecycle_states: [draft, pending_validation, validated, approved, rejected, consumed, superseded, archived]
+        {{/each}}
+
+      artifact_lifecycle:
+        tracking_enabled: true
+        state_persistence: ".aiox/squad-runtime/{{pack_name}}/artifact-state.yaml"
+        transitions: [draft -> pending_validation -> validated/rejected -> approved -> consumed/superseded -> archived]
+
+      instance_lifecycle:
+        tracking_enabled: true
+        state_persistence: ".aiox/squad-runtime/{{pack_name}}/instance.yaml"
+        states: [CRIADA, EM_EXECUCAO, COMPLETA, PAUSADA, BLOQUEADA, CANCELADA, ARQUIVADA]
+
+      journey_log:
+        enabled: true
+        template: "templates/journey-log-tmpl.yaml"
+        persistence: ".aiox/squad-runtime/{{pack_name}}/journey-log.yaml"
+
+      bu_mapping: "{{bu_mapping}}"
+      supported_modes: [{{supported_modes}}]
+    examples:
+      - |
+        artifact_contracts:
+          - artifact_id: "analysis-report"
+            template_path: "templates/analysis-report-tmpl.md"
+            lifecycle_states: [draft, pending_validation, validated, approved]
+
+        artifact_lifecycle:
+          tracking_enabled: true
+          state_persistence: ".aiox/squad-runtime/my-squad/artifact-state.yaml"
+          transitions: [draft -> pending_validation -> validated/rejected -> approved -> consumed/superseded -> archived]
+
+        instance_lifecycle:
+          tracking_enabled: true
+          state_persistence: ".aiox/squad-runtime/my-squad/instance.yaml"
+          states: [CRIADA, EM_EXECUCAO, COMPLETA, PAUSADA, BLOQUEADA, CANCELADA, ARQUIVADA]
+
+        journey_log:
+          enabled: true
+          template: "templates/journey-log-tmpl.yaml"
+          persistence: ".aiox/squad-runtime/my-squad/journey-log.yaml"
+
+        bu_mapping: "hub-framework"
+        supported_modes: [CRIAR, VALIDAR]
+
   - id: optional-config
     title: Optional Configuration
     instruction: |
       Ask user if they want to add optional configuration:
       - Dependencies on other squads
-      - Required AIOS core version
+      - Required AIOX core version
       - Custom installation hooks
       - Environment variables
 
@@ -332,9 +414,9 @@ sections:
       dependencies:
         {{dependencies}}
 
-      # Optional: Minimum AIOS version required
+      # Optional: Minimum AIOX version required
       requires:
-        aios-version: {{min_version}}
+        aiox-version: {{min_version}}
 
       # Optional: Installation hooks
       hooks:

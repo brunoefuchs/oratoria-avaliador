@@ -623,4 +623,4 @@ task:
 **Pattern Reference:** HO-TP-001 (Task Anatomy Standard)
 **Created:** 2026-01-24
 **Part of:** squads/squad-creator
-**Based on:** AIOS Best Practices
+**Based on:** AIOX Best Practices

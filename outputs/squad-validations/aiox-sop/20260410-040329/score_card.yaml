@@ -1,0 +1,30 @@
+validation:
+  squad: "aiox-sop"
+  squad_path: "/Users/oalanicolas/Code/aiox-pro/squads/aiox-sop"
+  validated_by: "validate-squad.sh v4.0"
+  validated_date: "2026-04-10T04:03:32-07:00"
+  runtime: "claude"
+  model: "opus"
+  duration_seconds: 37
+
+scores:
+  final: 6
+  raw: 6.00
+  verdict: "CONDITIONAL"
+  type: "pipeline"
+
+dimensions:
+  functionality: 9
+  security: 10
+  workflow_contract: 10
+  structural_completeness: 8
+  agent_quality: 10
+  squad_agnosticism: 10
+  production_evidence: 8
+  config_quality: 10
+  documentation: 10
+
+metrics:
+  agents: 6
+  tasks: 22
+  checklists: 6

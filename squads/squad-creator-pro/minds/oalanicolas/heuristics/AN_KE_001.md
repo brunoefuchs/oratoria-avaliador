@@ -1,166 +1,117 @@
+---
+id: "AN_KE_001"
+title: "Knowledge Extraction Architecture"
+mind: "oalanicolas"
+type: "heuristics"
+zone: "excelencia"
+tags:
+  - "Knowledge Extraction"
+  - "Framework"
+  - "Quality Gate"
+pipeline_instances:
+  - "source-curation"
+  - "extraction"
+cross_mind_map:
+  convergent:
+    - id: "PV_PA_001"
+      title: "SINKRA Process Hierarchy (The 7 Levels)"
+      mind: "pedro_valerio"
+      resonance: "Ambos trabalham com hierarquia composicional para organizar e escalar o conhecimento. AN extrai e estrutura conhecimento para a base; PV organiza processos em subníveis hierárquicos até o DNA empresarial. Mesmo impulso: estrutura previne entropia."
+    - id: "PV_PA_008"
+      title: "Boundary Rigidity (Compositional Hierarchy)"
+      mind: "pedro_valerio"
+      resonance: "PV mantém fronteiras rígidas entre os níveis da taxonomia SINKRA. AN extrai conhecimento atômico respeitando a arquitetura central de camadas, garantindo sua reutilização em templates. Hierarquia rígida é o princípio compartilhado."
+---
+
 # AN_KE_001 - Knowledge Extraction Architecture
 
-**Type:** Primary Framework
-**Phase:** 3 (DNA Extraction)
-**Agent:** @oalanicolas
-**Pattern:** Extraction Pipeline
+**Type:** Decision Heuristic
+**Phase:** 1 (Diagnostics)
+**Agent:** @process-architect
+**Pattern:** HO-PP-AN001
 
 ## Purpose
 
-Framework principal para extração de conhecimento com rastreabilidade total. Define o pipeline completo desde descoberta de fontes até validação final antes do handoff.
+Estabelecer a espinha dorsal inegociável da extração de conhecimento crítico, prevenindo estruturalmente que "volume" de dados se disfarce de "curadoria" e que a Trindade do DNA (Playbook/Framework/Swipe) seja violada. A velocidade de ship NUNCA pode atropelar o funil rígido de Extração de DNA. Acurácia do DNA > Velocidade de Deploy.
 
 ## Configuration
 
 ```yaml
 AN_KE_001:
   name: "Knowledge Extraction Architecture"
-  phase: 3
-  agent: "@oalanicolas"
-
-  pipeline:
-    - step: 1
-      name: "Source Discovery & Classification"
-      action: "Identificar e classificar fontes (ouro/bronze)"
-      veto_check: "AN_VC_001, AN_VC_003"
-    - step: 2
-      name: "Pareto ao Cubo"
-      action: "Classificar em 4 zonas (0,8%, 4%, 20%, 80%)"
-      heuristic: "AN_KE_003"
-    - step: 3
-      name: "Deconstruction"
-      action: "Perguntas que revelam frameworks ocultos"
-      task_file: "tasks/deconstruct.md"
-    - step: 4
-      name: "DNA Extraction"
-      action: "Extrair Voice + Thinking DNA"
-      veto_check: "AN_VC_002, AN_VC_004"
-    - step: 5
-      name: "Self-Validation"
-      action: "Checklist antes do handoff"
-      veto_check: "AN_VC_005"
+  phase: 1
+  zone: "excelencia"
+  trigger: "Início de qualquer missão de clonagem de expert ou raspagem de inteligência tática."
 
   weights:
-    source_quality: 0.9
-    citation_coverage: 0.8
-    trinity_completeness: 0.7
+    trinity_adherence: 1.0
+    source_quality_ratio: 0.9
 
   thresholds:
-    citations_minimum: 15
-    signature_phrases_minimum: 5
-    ouro_ratio_minimum: 0.6
+    speed_over_accuracy_tolerance: 0.0
 
   veto_conditions:
-    - condition: "citations < 15"
-      action: "VETO - Insufficient citations"
-      maps_to: "AN_VC_004"
-    - condition: "ouro_ratio < 0.6"
-      action: "VETO - Too much bronze"
-      maps_to: "AN_VC_003"
-    - condition: "trinity_incomplete"
-      action: "VETO - Missing Playbook, Framework, or Swipe"
-      maps_to: "AN_VC_002"
+    - condition: "pipeline_bypasses_gold_classification_to_save_time == true"
+      action: "VETO - Handoff invalid. Never deliver output skipping the Gold/Bronze curation ratio."
 
   output:
     type: "decision"
-    values: ["APPROVE", "REVIEW", "VETO"]
-    handoff_to: "@pedro-valerio"
-    handoff_format: "INSUMOS_READY"
+    values: ["APPROVE_EXTRACTION", "REQUIRE_RAG_FILTRATION", "VETO"]
 ```
 
-## Decision Tree
+## Failure Modes (Anti-Patterns)
 
-```
-IF (source_quality >= 0.6 AND citations >= 15 AND trinity_complete)
-  THEN APPROVE → Proceed to handoff
+```yaml
+failure_modes:
+  - type: "omission"
+    name: "Speed over Curation (The Coward)"
+    trigger: "Ceder à pressão de tempo ('Ship First') na etapa de RAG."
+    manifestation: "Jogar 30h de áudio bruto ou livros inteiros de um expert no LLM sem rodar o Pareto de curadoria. O LLM dilui o conhecimento 'Ouro' nas banalidades 'Bronze'."
+    detection: "O clone mental sai educado e polido, mas totalmente estéril de genialidade e edge cases táticos."
+    recovery: "Destruir a base vetorial. Forçar a classificação prévia Ouro/Bronze. Alimentar apenas os 20% vitais."
 
-ELSE IF (source_quality >= 0.6 AND citations < 15)
-  THEN REVIEW → Extract more citations
-
-ELSE IF (source_quality < 0.6)
-  THEN VETO → Return to source curation
-
-TERMINATION: Handoff approved with INSUMOS_READY format
-FALLBACK: LOOP back to weakest step until all criteria pass
+  - type: "misapplication"
+    name: "Bureaucratic Deep Extraction (The Zealot)"
+    trigger: "Aplicar o pipeline de Trindade inteiro para referências triviais e puramente factuais."
+    manifestation: "Burocratizar demais a extração ao ponto de esgotar o budget do projeto para criar um simples Catalog Bot."
+    detection: "Usando framework pesado (Minds/Clones) para extrair um PDF de FAQ."
+    recovery: "Limitar a Arquitetura de Extração de Conhecimento Tácito apenas a cérebros humanos ou metodologias proprietárias. Use WebFetch simples para fatos."
 ```
 
 ## Evaluation Criteria
 
-| Criterion | Weight | Threshold | Description |
-|-----------|--------|-----------|-------------|
-| Source quality (ouro ratio) | 0.9 | >= 0.6 | Fontes ouro / total fontes |
-| Citation coverage | 0.8 | >= 15 | Citações com [SOURCE:] |
-| Trinity completeness | 0.7 | 3/3 | Playbook + Framework + Swipe |
-| Signature phrases | 0.6 | >= 5 | Frases verificáveis do expert |
-
-## Validation Questions
-
-1. "As fontes são majoritariamente ouro (comentários, entrevistas, stories)?"
-2. "Existem 15+ citações com [SOURCE: página/minuto]?"
-3. "A Trindade está completa (Playbook + Framework + Swipe)?"
-4. "Zero conceitos marcados como [INFERRED] sem validação?"
-5. "Pareto ao Cubo foi aplicado (4 zonas classificadas)?"
-
-## Performance Metrics
-
 ```yaml
-performance:
-  decision_speed: "1-2 hours per extraction iteration"
-  accuracy_rate: "90% (when following pipeline strictly)"
-  confidence_level: "85% (requires self-validation pass)"
-  quality_correlation: "Direct - better sources = better clone"
+evaluation_criteria:
+  - metric: "Source Ratio Ouro"
+    weight: 1.0
+    threshold: ">= 0.6"
+    description: "60% ou mais das fontes base têm de ser puro input Ouro (Não roteirizados, alta densidade)."
+  - metric: "Citações Explícitas"
+    weight: 1.0
+    threshold: ">= 15"
+    description: "Para formar a trindade, as afirmações precisam ter raízes exatas de múltiplas referências distintas para evitar alucinação."
+  - metric: "Inference Bias"
+    weight: 1.0
+    threshold: "=== FALSE"
+    description: "As premissas do modelo podem ser rastreadas diretamente à fala do expert, sem inferência cega?"
 ```
 
-## Failure Modes
+## Decision Tree
 
-### Volume Over Curation
-- **Trigger:** Pressão por entregas rápidas, muitas fontes disponíveis
-- **Manifestation:** 30h de áudio sem classificação = clone genérico
-- **Detection:** Clone responses são genéricas, sem signature phrases
-- **Recovery:** Voltar para Step 1, aplicar classificação ouro/bronze
-- **Prevention:** Veto condition AN_VC_001 bloqueia volume sem curadoria
+```javascript
+IF (Iniciando processamento de sources do Expert) {
+  EVALUATE("Source Type Ratio");
+  IF (Ratio de fontes Ouro < 0.6) {
+    VETO("Material basal muito fraco ou não focado");
+    REQUIRE_RAG_FILTRATION("Minere mais fontes ouro antes do RAG");
+  }
+} ELSE IF (Montando os Insumos para o Handoff Final) {
+  IF (Citações_Explícitas < 15) {
+    VETO("Falta rastreabilidade empírica da mente original");
+  } ELSE {
+    APPROVE_EXTRACTION();
+  }
+}
 
-### Inference Without Source
-- **Trigger:** Conceito parece óbvio, "todo mundo sabe"
-- **Manifestation:** Clone fala coisas que expert nunca disse
-- **Detection:** Buscar citação, não encontrar [SOURCE:]
-- **Recovery:** Marcar [INFERRED] ou encontrar fonte real
-- **Prevention:** Veto condition AN_VC_004 bloqueia conceitos sem fonte
-
-## Integration with Workflow
-
-```yaml
-checkpoint:
-  id: "dna-extraction-complete"
-  heuristic: AN_KE_001
-  phase: 3
-
-  criteria:
-    - metric: "ouro_ratio"
-      threshold: 0.6
-      operator: ">="
-    - metric: "citations_count"
-      threshold: 15
-      operator: ">="
-    - metric: "trinity_components"
-      threshold: 3
-      operator: "=="
-
-  veto_conditions:
-    - condition: "self_validation_failed"
-      action: "HALT - Loop back to weakest step"
-
-  validation_questions:
-    - "Source classification complete?"
-    - "Pareto ao Cubo applied?"
-    - "Trinity complete?"
-    - "Self-validation passed?"
-
-  pass_action: "Handoff to @pedro-valerio with INSUMOS_READY"
-  fail_action: "Loop back with feedback on failing criteria"
+NEVER("Assumir inferência sem citação ou avaliar qualidade por Volume de Tokens.");
 ```
-
----
-
-**Pattern Compliance:** Extraction Pipeline with Quality Gates
-**Source:** AN Mind Artifacts - Knowledge Extraction Framework
-**Handoff:** @pedro-valerio (INSUMOS_READY format)

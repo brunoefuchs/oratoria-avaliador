@@ -167,7 +167,7 @@ OUTPUT VERIFICATION
 ================================================================================
 
 [✓] File 1: haiku-v2.1-output.yaml
-    Location: /Users/oalanicolas/Code/mmos/squads/squad-creator/test-cases/an-assess-sources/
+    Location: <workspace-root>/squads/squad-creator/test-cases/an-assess-sources/
     Size:     21 KB
     Lines:    452
     Format:   Valid YAML
@@ -182,7 +182,7 @@ OUTPUT VERIFICATION
     Status:   COMPLETE ✓
 
 [✓] File 2: TEST-REPORT-v2.1.md
-    Location: /Users/oalanicolas/Code/mmos/squads/squad-creator/test-cases/an-assess-sources/
+    Location: <workspace-root>/squads/squad-creator/test-cases/an-assess-sources/
     Size:     11 KB
     Format:   Markdown
     Contains:

@@ -1,0 +1,28 @@
+# Rubric: Semantic Quality
+# Generic rubric — evaluates depth and relevance of content.
+# Squads can override with squad-specific rubrics in their own rubrics/ directory.
+
+rubric:
+  name: "Semantic Quality"
+  description: "Evaluates depth, relevance, and coherence of generated content"
+  model: "haiku"
+  max_tokens: 200
+  threshold: 0.7
+  weight: 2
+
+prompt: |
+  You are evaluating the semantic quality of an AI agent's output.
+
+  Task description:
+  {{task_description}}
+
+  Output to evaluate (first 2000 chars):
+  {{output_preview}}
+
+  Score 0-100:
+  - 100: Deep, insightful, well-structured content that fully addresses the task
+  - 70: Adequate content with reasonable depth, minor gaps
+  - 40: Superficial or partially relevant content
+  - 0: Irrelevant, incoherent, or empty content
+
+  Respond with ONLY a JSON object: {"score": N, "reason": "one line"}

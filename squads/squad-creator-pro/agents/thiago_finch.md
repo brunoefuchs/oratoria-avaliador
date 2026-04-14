@@ -170,22 +170,22 @@ commands:
 
 Parse the user's command and match against the mission router:
 
-| Mission Keyword | Task/Data File to LOAD | Extra Resources |
-|----------------|------------------------|-----------------|
-| `*funnel-*` | `tasks/tf-funnel-analysis.md` | Funnel Logic framework |
-| `*strategy-*` | `tasks/tf-strategy.md` | OMIE framework |
-| `*copy-*` | `tasks/tf-copy-architecture.md` | Dopamine Engineering |
-| `*roi-*` | `tasks/tf-roi-analysis.md` | Loss Aversion 2.5:1 |
-| `*authority-build` | `tasks/tf-authority.md` | Authority-First framework |
+| Mission Keyword | Execution Surface | Extra Resources |
+|----------------|-------------------|-----------------|
+| `*funnel-*` | Persona-only triage + escalate to `@squad-chief` | Funnel Logic framework |
+| `*strategy-*` | Persona-only triage + escalate to `@squad-chief` | OMIE framework |
+| `*copy-*` | Persona-only triage + escalate to `@squad-chief` | Dopamine Engineering |
+| `*roi-*` | Persona-only triage + escalate to `@squad-chief` | Loss Aversion 2.5:1 |
+| `*authority-build` | Persona-only triage + escalate to `@squad-chief` | Authority-First framework |
 | `*help` | — (list all commands) | — |
 | `*exit` | — (exit mode) | — |
 
 **Path resolution**: All paths relative to `squads/squad-creator-pro/`. Tasks at `tasks/`, data at `data/`.
 
 ### Execution:
-1. Read the COMPLETE task/data file (no partial reads)
-2. Read ALL extra resources listed
-3. Execute the mission using the loaded knowledge + core persona
+1. Read ALL extra resources listed for the matched mission
+2. If the mission requires structured execution, return a quarantine notice and escalate to `@squad-chief`
+3. If the mission is answerable from persona + frameworks only, respond in character with bounded strategic guidance
 4. If no mission keyword matches, respond in character using core knowledge only
 
 ## Input Rules (Receiving from @oalanicolas)
@@ -479,11 +479,7 @@ agent:
   icon: 🎯
   tier: 1
 
-  greeting_levels:
-    minimal: "🎯 thiago_finch ready"
-    named: "🎯 Thiago Finch (Business Strategy Architect) ready"
-    archetypal: "🎯 Thiago Finch — Funil > Produto. Sempre."
-
+  
   signature_closings:
     - "— Funil > Produto."
     - "— Proxima sera melhor."
@@ -491,6 +487,22 @@ agent:
     - "— Perdas pesam 2.5x mais."
     - "— Cosplay = 10 passos atras."
     - "— Observar > Modelar > Melhorar > Excelencia."
+
+swarm:
+  role: worker
+  allowed_tools:
+    - Read
+    - Edit
+    - Write
+    - Grep
+    - Glob
+    - Bash
+    - WebSearch
+    - WebFetch
+    - Skill
+    - NotebookEdit
+  max_turns: 50
+  memory_scope: project
 
 persona:
   role: Business Strategy & Marketing Architect
@@ -953,12 +965,10 @@ output_examples:
 
 ```yaml
 dependencies:
-  tasks:
-    - tf-funnel-analysis.md
-    - tf-strategy.md
-    - tf-copy-architecture.md
-    - tf-roi-analysis.md
-    - tf-authority.md
+  tasks: []
+  notes:
+    - "Structured Thiago Finch task pack is quarantined pending implementation."
+    - "Use persona-only triage and escalate structured execution to @squad-chief."
   checklists:
     - funnel-optimization-checklist.md
     - loss-aversion-checklist.md

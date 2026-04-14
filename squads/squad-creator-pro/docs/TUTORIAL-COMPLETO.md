@@ -405,7 +405,7 @@ Tudo mais foi automático.
 
 ### Antes de começar
 - [ ] Claude Code está funcionando?
-- [ ] Você está no diretório do projeto AIOS?
+- [ ] Você está no diretório do projeto AIOX?
 - [ ] Sabe o domínio que quer criar?
 
 ### Durante a criação
@@ -425,7 +425,7 @@ Tudo mais foi automático.
 1. **Crie seu primeiro squad** seguindo este tutorial
 2. **Explore os comandos:** [COMMANDS.md](./COMMANDS.md)
 3. **Entenda os conceitos:** [CONCEPTS.md](./CONCEPTS.md)
-4. **Problemas?** [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+4. **Problemas?** [TROUBLESHOOTING.md](../../squad-creator/docs/TROUBLESHOOTING.md)
 
 ---
 
@@ -450,7 +450,7 @@ Após seguir este tutorial, você deve conseguir:
 |----------|-------|---------|
 | [POR-ONDE-COMECAR](./POR-ONDE-COMECAR.md) | **TUTORIAL-COMPLETO** | [COMMANDS](./COMMANDS.md) |
 
-**Dúvidas?** [FAQ.md](./FAQ.md) | **Erro?** [TROUBLESHOOTING.md](./TROUBLESHOOTING.md)
+**Dúvidas?** [FAQ.md](./FAQ.md) | **Erro?** [TROUBLESHOOTING.md](../../squad-creator/docs/TROUBLESHOOTING.md)
 
 ---
 

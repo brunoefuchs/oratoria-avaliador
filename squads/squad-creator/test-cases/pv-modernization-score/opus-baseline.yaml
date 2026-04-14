@@ -22,7 +22,7 @@ modernization_score:
   file: "squads/squad-creator/workflows/wf-clone-mind.yaml"
   date: "2026-02-11"
   score: "2/12"
-  interpretation: "Majoritariamente legado - rewrite necessario"
+  interpretation_summary: "Majoritariamente legado - rewrite necessario"
 
   # ═════════════════════════════════════════════════════════════════════════════
   # PATTERN-BY-PATTERN ASSESSMENT
@@ -61,7 +61,7 @@ modernization_score:
         are YAML document keys, not SKILL.md frontmatter (which uses YAML
         frontmatter delimited by `---` at the top of a Markdown file).
 
-        Modern AIOS workflows should be SKILL.md files with proper frontmatter
+        Modern AIOX workflows should be SKILL.md files with proper frontmatter
         including `name:`, `description:`, and optionally `context: fork`,
         `agent:`, `allowed-tools:`, etc. This workflow uses none of those
         SKILL.md conventions.
@@ -305,7 +305,7 @@ modernization_score:
     but its execution model is entirely declarative YAML. The two passing
     patterns (file-based communication and structured output directory)
     show good architectural instincts around artifact management, but
-    the core orchestration layer uses none of the modern AIOS primitives
+    the core orchestration layer uses none of the modern AIOX primitives
     (Teams, Tasks, SKILL.md, blockedBy, bypassPermissions, etc.).
 
     This is a classic "content-rich but execution-legacy" workflow: the

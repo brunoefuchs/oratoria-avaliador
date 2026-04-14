@@ -183,8 +183,91 @@ performance:
   maintenance_reduction: "~40% (fewer unique implementations)"
 ```
 
+## System Tensions (sys_tension)
+
+**Paradox Identified:** Maximizing REUSE (thorough search) conflicts with Speed-to-Market (quick decisions).
+
+**Resolution:** Time-boxed search (10 min) with escalation protocol ensures both principles coexist.
+
+```yaml
+sys_tension:
+  tension_id: "AN_KE_007_T1"
+  name: "REUSE pressure vs Speed-to-Market"
+  tension_with: "AN_KE_073 (Parallel Subagents for Throughput) — parallel search vs sequential discovery discipline"
+  poles:
+    pole_a:
+      name: "REUSE (Maximize)"
+      implication: "Thorough search, adaptation overhead, slower initial delivery"
+    pole_b:
+      name: "Speed (Maximize)"
+      implication: "Quick decisions, duplicated code, future maintenance burden"
+
+  resolution:
+    principle: "Search-First but Time-Boxed"
+    time_box_minutes: 10
+    escalation: "If no match found in 10min, CREATE with documentation"
+    metric: "similarity >= 80% → REUSE; 50-79% → ADAPT; < 50% + time-boxed → CREATE"
+
+  stakeholders:
+    - "@oalanicolas (cognitive authority)"
+    - "Pedro Valerio (process discipline)"
+    - "Alan (speed/delivery accountability)"
+
+  severity: "HIGH"
+  recurrence: "On every creation decision"
+```
+
+## L4 Standard Validation
+
+```yaml
+l4_validation:
+  format_version: "1.0"
+  validated_at: "2026-03-30"
+  validation_status: "ready"
+
+  completeness:
+    - purpose_statement: ✅ "SEMPRE verificar antes de criar"
+    - decision_tree: ✅ "4-way split: REUSE/ADAPT/REFERENCE/CREATE"
+    - similarity_matrix: ✅ "5-factor weighted assessment"
+    - checklist: ✅ "6-question validation"
+    - anti_patterns: ✅ "4 NIH/search/timing/customization patterns"
+
+  coherence:
+    - veto_mapping: ✅ "AN_VC_006 (Create Without Discovery)"
+    - phase_alignment: ✅ "Phase 0 (Discovery)"
+    - agent_authority: ✅ "@oalanicolas recognized as cognitive authority"
+    - enforcement: ✅ "Actionable checklist + time-boxed search"
+
+  traceability:
+    source: "CLAUDE.md - IDS Principles"
+    relates_to: ["AN_VC_006", "PV_PA_038"]
+    domain: "Creation Heuristics (L3-Creation)"
+
+  notes: "High-leverage heuristic for ecosystem consistency. Severity: HIGH. System tension documented (REUSE vs Speed). Ready for L3 operations."
+```
+
 ---
 
 **Pattern Compliance:** REUSE > CREATE
 **Veto Mapping:** AN_VC_006 (Create Without Discovery)
 **Integration:** Phase 0 of any creation workflow
+**System Tension:** AN_KE_007_T1 (REUSE pressure vs Speed-to-Market)
+
+---
+
+## Validation
+
+| Criterion | Status | Notes |
+|-----------|--------|-------|
+| **Purpose Clear** | ✅ | REUSE > CREATE adopted from CLAUDE.md IDS Principles |
+| **Decision Tree Complete** | ✅ | 4-way split (REUSE/ADAPT/REFERENCE/CREATE) with similarity thresholds |
+| **Similarity Matrix** | ✅ | 5-factor weighted assessment (Purpose, Structure, Components, Interface, Domain) |
+| **Checklist Actionable** | ✅ | 6 validation questions + time-boxed search (10min) |
+| **Anti-Patterns Mapped** | ✅ | NIH Syndrome, Shallow Search, Create-First-Search-Later, Over-Customization |
+| **System Tension Resolved** | ✅ | REUSE vs Speed paradox resolved via time-boxed search + escalation |
+| **Veto Enforcement** | ✅ | Maps to AN_VC_006 (Create Without Discovery) |
+| **Phase Alignment** | ✅ | Phase 0 (Discovery) — executed before any creation proposal |
+| **Stakeholder Authority** | ✅ | @oalanicolas (cognitive), Pedro Valerio (process), Alan (delivery) |
+| **Format & Structure** | ✅ | L4 Standard format with yaml blocks, decision tree, and validation checklist |
+
+**Assessment:** APPROVED for operational use. High-leverage heuristic for ecosystem consistency. System tension explicitly acknowledged and resolved.

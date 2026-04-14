@@ -4,6 +4,7 @@
 **Phase:** 4 (Workflows)
 **Agent:** @hybridOps:workflow-designer
 **Pattern:** HO-PP-003 (Quality Gate Pattern)
+**sys_tension:** (efficiency_vs_judgment, resolve_via_impact_threshold)
 
 ## Purpose
 
@@ -189,3 +190,9 @@ checkpoint:
 
 **Pattern Compliance:** HO-PP-003 (Quality Gate) ✓ | HO-AP-XXX (Automation Patterns) ✓
 **Source:** PV Mind Artifacts - Heurísticas de Decisão
+
+## Validation
+
+**Paradox Resolution:** The tension between full automation (efficiency) and preserving human judgment (wisdom) is resolved via the systemic impact threshold (≥0.6). Tasks with high impact remain manual despite high frequency, ensuring critical decisions retain human oversight while routine low-impact tasks are fully automated. This prevents both automation runaway (removing human judgment from sensitive decisions) and efficiency waste (keeping low-value manual work alive).
+
+**Guardrails Enforcement:** The veto_conditions ensure automation never bypasses safety. The "2x rule" creates audit triggers for design failures, preventing silent accumulation of manual technical debt. Loop prevention, idempotency, and manual escape routes are non-negotiable, making the heuristic anti-fragile against misapplication.

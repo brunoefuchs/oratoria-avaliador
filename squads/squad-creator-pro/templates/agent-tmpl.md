@@ -4,7 +4,7 @@
 template:
   id: squad-agent-template
   name: Squad Agent (Hybrid Loader)
-  quality_standard: "aios-agent-v2"
+  quality_standard: "aiox-agent-v2"
   min_lines: 800
 
   output:

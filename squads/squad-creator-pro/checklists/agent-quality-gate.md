@@ -431,4 +431,4 @@ research-then-create-agent workflow
 
 **Version:** 2.0.0
 **Created:** 2026-01-30
-**Standard:** AIOS Agent Quality Level
+**Standard:** AIOX Agent Quality Level

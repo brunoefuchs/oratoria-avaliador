@@ -1,0 +1,28 @@
+# Rubric: Task Completion
+# Generic rubric — checks whether the agent completed the requested task.
+# Squads can override with squad-specific rubrics in their own rubrics/ directory.
+
+rubric:
+  name: "Task Completion"
+  description: "Checks whether the agent completed the requested task per acceptance criteria"
+  model: "haiku"
+  max_tokens: 200
+  threshold: 0.7
+  weight: 3
+
+prompt: |
+  You are evaluating whether an AI agent completed its assigned task.
+
+  Task requirements:
+  {{task_description}}
+
+  Agent output (first 2000 chars):
+  {{output_preview}}
+
+  Score 0-100:
+  - 100: All requirements fully met, nothing missing
+  - 70: Most requirements met, minor omissions
+  - 40: Partial completion, significant gaps
+  - 0: Task not attempted or completely wrong
+
+  Respond with ONLY a JSON object: {"score": N, "reason": "one line"}

@@ -1,7 +1,7 @@
 # Decision Heuristics Framework
 
 > **Version:** 1.0.0
-> **Source:** AIOS Quality Standards
+> **Source:** AIOX Quality Standards
 
 Framework for creating decision heuristics that validate choices at workflow checkpoints.
 
@@ -616,5 +616,5 @@ anti_patterns:
 
 ---
 
-*AIOS Decision Heuristics Framework v1.1*
+*AIOX Decision Heuristics Framework v1.1*
 *Updated: Specialist Selection Heuristic added*

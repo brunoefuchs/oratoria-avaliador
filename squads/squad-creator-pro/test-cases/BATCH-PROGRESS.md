@@ -28,8 +28,8 @@
 | 1 | refresh-registry | ✅ PRE-QUALIFIED | Hybrid (Script 80%) | **HAIKU** - Script counts, LLM enriches |
 | 2 | squad-analytics | ✅ PRE-QUALIFIED | Hybrid (Script 80%) | **HAIKU** - Script metrics, LLM interprets |
 | 3 | migrate-workflows-to-yaml | ⏸️ DEPRECATED | - | One-time task (completed 2026-02-05) |
-| 4 | install-commands | ✅ PRE-QUALIFIED | Worker (100%) | **SCRIPT** - 0 tokens, file operations only |
-| 5 | sync-ide-command | ✅ PRE-QUALIFIED | Worker (100%) | **SCRIPT** - 0 tokens, file operations only |
+| 4 | install-skills | ✅ PRE-QUALIFIED | Worker (100%) | **SCRIPT** - 0 tokens, file operations only |
+| 5 | sync-ide-skills | ✅ PRE-QUALIFIED | Worker (100%) | **SCRIPT** - 0 tokens, file operations only |
 
 ---
 
@@ -60,7 +60,7 @@ Example: `pv-axioma-assessment`
 - **Haiku/Script Qualified:** 12 (86%)
   - Wave 1: pv-axioma-assessment, qa-after-creation*, an-fidelity-score→script, an-assess-sources (v2.2.2)
   - Wave 1 (fixed): pv-modernization-score→script, validate-squad, an-clone-review (v2.2.0), an-validate-clone (v2.2.0)
-  - Wave 2: refresh-registry, squad-analytics, install-commands, sync-ide-command
+  - Wave 2: refresh-registry, squad-analytics, install-skills, sync-ide-skills
 - **Opus Required:** 1 (7%) - an-diagnose-clone (tested, fix attempted, OPUS CONFIRMED)
 - **Deprecated:** 1 (7%) - migrate-workflows-to-yaml
 - **Pending:** 0 tasks

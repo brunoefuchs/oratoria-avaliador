@@ -1,0 +1,19 @@
+version: "1.0.0"
+runner: "__RUNNER_NAME__"
+phases:
+  - id: phase-1-discovery
+    name: Discovery
+    agent: analyst
+    budget_usd: 0.25
+    max_turns: 6
+    recommended_model: gemini
+    expected_outputs:
+      - discovery.md
+  - id: phase-2-delivery
+    name: Delivery
+    agent: dev
+    budget_usd: 0.75
+    max_turns: 10
+    recommended_model: opus
+    expected_outputs:
+      - final-artifact.md

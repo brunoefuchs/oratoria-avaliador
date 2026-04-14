@@ -145,7 +145,7 @@ validation:
 
   if_fail:
     action: "LOOP - apply AN_KE_003"
-    task: "tasks/find-0.8.md"
+    task: "tasks/find-0-8.md"
 ```
 
 ---

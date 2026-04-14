@@ -1,0 +1,80 @@
+{
+  "squad": "brand",
+  "result": "CONDITIONAL",
+  "analysis_language": "en",
+  "report_language": "pt-br",
+  "localized_report_available": false,
+  "final_score_raw": 6.00,
+  "final_score": 6,
+  "type": "expert",
+  "dimensions": {
+    "functionality":           {"score": 9, "weight": "HIGH"},
+    "security":                {"score": 10, "weight": "HIGH"},
+    "workflow_contract":       {"score": 10, "weight": "MEDIUM"},
+    "structural_completeness": {"score": 8, "weight": "MEDIUM"},
+    "agent_quality":           {"score": 8, "weight": "MEDIUM"},
+    "squad_agnosticism":       {"score": 8, "weight": "HIGH"},
+    "production_evidence":     {"score": 6, "weight": "HIGH"},
+    "config_quality":          {"score": 9, "weight": "MEDIUM"},
+    "documentation":           {"score": 10, "weight": "LOW"}
+  },
+  "metrics": {
+    "agents": 16,
+    "tasks": 22,
+    "checklists": 2,
+    "total_lines": 15128
+  },
+  "structure": {
+    "mandatory_checks": {
+      "pass": 2,
+      "total": 2,
+      "tested_flag_present": true,
+      "architecture_doc_present": true
+    },
+    "contextual_lifecycle_checks": {
+      "pass": 2,
+      "total": 2,
+      "warnings": 0,
+      "update_task_present": true,
+      "delete_task_present": true
+    }
+  },
+  "deterministic": {
+    "tier1_fail": 1,
+    "security_fail": 0,
+    "xref_fail": 0,
+    "workflow_contract_fail": 0,
+    "agnosticism_violations": 1,
+    "agent_quality_gaps": 1,
+    "warnings": 2
+  },
+  "workflow_contracts": {
+    "files_checked": 8,
+    "errors": 0,
+    "warnings": 0
+  },
+  "production": {
+    "score": 3,
+    "max": 5
+  },
+  "claude_analysis": {
+    "prompt_quality": 0,
+    "structure_coherence": 0,
+    "coverage": 0,
+    "documentation": 0,
+    "quality_score": "N/A",
+    "dimensional_scores": {
+      "structural_completeness": 0,
+      "security_audit": 0,
+      "workflow_analysis": 0,
+      "agent_quality": 0,
+      "squad_agnosticism": 0,
+      "config_quality": 0,
+      "production_evidence": 0
+    }
+  },
+  "blocking_issues": ["advanced workspace integration requires squads/c-level"],
+  "score_guardrails": ["blocking_issues_open:score<=6"],
+  "improvements": "",
+  "priority_fixes": ""
+}

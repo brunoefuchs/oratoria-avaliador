@@ -1,4 +1,4 @@
-# Pedro Valério - Workflow Validation & AIOS Knowledge
+# Pedro Valério - Workflow Validation & AIOX Knowledge
 # Loaded on-demand by: *modernization-score, *agent-activation-check, *validation-script, *smoke-test-design, *preservation-audit
 # Source: pedro-valerio.md (extracted for lazy loading)
 
@@ -155,7 +155,7 @@ modernization_score:
       legacy_if: "Inline output blocks"
     - id: 7
       name: "Agent File References"
-      check: "Read your agent file at .claude/commands/..."
+      check: "Read your agent file at .claude/skills/.../SKILL.md"
       legacy_if: "Personas hardcoded no workflow"
     - id: 8
       name: "Task Dependencies"
@@ -266,10 +266,10 @@ preservation_audit:
   principle: "Refactor muda COMO executa, não O QUE executa"
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# AIOS Agent Execution Knowledge
+# AIOX Agent Execution Knowledge
 # ═══════════════════════════════════════════════════════════════════════════════
 
-aios_agent_execution:
+aiox_agent_execution:
   principle: |
     "Agentes devem ser ATIVADOS, não SIMULADOS. A diferença é onde a definição
     do agente fica: no system prompt (ativação real) ou na user message (faz de conta)."

@@ -1,206 +1,115 @@
-# AN_KE_002 - Trinity Framework
+---
+id: "AN_KE_002"
+title: "Regra 40/20/40 (The Trinity Allocation)"
+mind: "oalanicolas"
+type: "heuristics"
+zone: "excelencia"
+tags:
+  - "Scale"
+  - "Framework"
+  - "Quality Gate"
+pipeline_instances:
+  - "resource-allocation"
+  - "sprint-ops"
+cross_mind_map:
+  convergent:
+    - id: "PV_PA_002"
+      title: "Task-First Assignment (The Invisible Executor)"
+      mind: "pedro_valerio"
+      resonance: "Ambos defendem critérios cruéis de alocação de capacidade (Code/LLM/Time). AN estabelece um orçamento severo de tempo antes de refatorar; PV estabelece a prioridade da tarefa ignorando o executor como algo secundário. Essência: Alocação impiedosa de recursos baseada em valor."
+  tension:
+    - id: "PV_PA_016"
+      title: "The Hybrid Lean Wastes"
+      mind: "pedro_valerio"
+      divergence: "O 'slack' (40% não-fazer de AN) entra em tensão conceitual natural com a eliminação de desperdício em Wait Time de PV. Enquanto PV pune o gargalo invisível entre agents, AN protege um buffer maciço intencional de folga estratégica para pensamento."
+      invalidates: false
+---
 
-**Type:** Structural Framework
-**Phase:** 3 (DNA Extraction)
-**Agent:** @oalanicolas
-**Pattern:** Knowledge Structure Pattern
+# AN_KE_002 - Regra 40/20/40 (The Trinity Allocation)
+
+**Type:** Architecture Heuristic
+**Phase:** 2 (Structural Assembly)
+**Agent:** @process-architect
+**Pattern:** HO-PP-AN002
 
 ## Purpose
 
-Estruturar conhecimento extraído em três componentes complementares que, juntos, permitem um clone funcional. Clone precisa dos TRÊS para operar bem.
-
-## The Trinity
-
-```yaml
-trinity:
-  playbook:
-    definition: "A receita completa - passo a passo"
-    analogy: "Receita de bolo"
-    contains:
-      - "Steps sequenciais"
-      - "Dependencies entre passos"
-      - "Inputs e outputs de cada step"
-      - "Timing e ordem"
-    if_missing: "Clone não sabe O QUE fazer"
-
-  framework:
-    definition: "A forma/estrutura - SE X, ENTÃO Y"
-    analogy: "Forma do bolo"
-    contains:
-      - "Rules e heuristics"
-      - "Decision trees"
-      - "Veto conditions"
-      - "Prioritization logic"
-    if_missing: "Clone não sabe QUANDO/COMO decidir"
-
-  swipe_file:
-    definition: "Exemplos validados - provas que funcionam"
-    analogy: "Fotos de bolos prontos"
-    contains:
-      - "Output examples reais"
-      - "Cases de sucesso"
-      - "Templates preenchidos"
-      - "Before/after comparisons"
-    if_missing: "Clone não tem referência de QUALIDADE"
-```
+Travar a distribuição de força e tempo na engenharia de Mind Clones para impedir que a arrogância do "Prompt Engineering" ofusque a mineração crua de dados. O dev tende a achar que qualquer burrice do LLM se resolve somando instruções mágicas. Um prompt não faz milagres se a base cognitiva (Trindade) for lixo. Alan resolve focando a energia pesada (40%) no mapeamento ANTES e no refinamento empírico (40%) DEPOIS, tratando o prompt como mero encanamento (20%).
 
 ## Configuration
 
 ```yaml
 AN_KE_002:
-  name: "Trinity Framework"
-  phase: 3
-  agent: "@oalanicolas"
-
-  components:
-    playbook:
-      required: true
-      validation: "Has sequential steps with dependencies"
-    framework:
-      required: true
-      validation: "Has decision rules (SE X, ENTÃO Y)"
-    swipe_file:
-      required: true
-      validation: "Has real output examples"
+  name: "Regra 40/20/40 (The Trinity Allocation)"
+  phase: 2
+  zone: "excelencia"
+  trigger: "Alocação sistêmica de esforço e budget cognitivo ao iniciar ou iterar um Agente/Clone especialista."
 
   weights:
-    playbook_completeness: 0.8
-    framework_clarity: 0.9
-    swipe_quality: 0.7
+    curation_allocation: 1.0
+    refinement_allocation: 1.0
+
+  thresholds:
+    prompt_engineering_ceiling: 0.2
 
   veto_conditions:
-    - condition: "any_component_missing"
-      action: "VETO - Complete trinity before handoff"
-      maps_to: "AN_VC_002"
-    - condition: "playbook_only"
-      action: "VETO - Adicionar framework antes"
-    - condition: "framework_without_examples"
-      action: "REVIEW - Buscar swipe file"
+    - condition: "time_spent_on_prompt_engineering > 0.2_of_total_budget == true"
+      action: "VETO - Stop writing rules. You are trying to teach something you haven't extracted. Return to Gold Curation."
 
   output:
-    type: "structured_knowledge"
-    format: "Playbook + Framework + Swipe File"
+    type: "decision"
+    values: ["APPROVE_ALLOCATION", "REVERT_TO_CURATION", "VETO"]
+```
+
+## Failure Modes (Anti-Patterns)
+
+```yaml
+failure_modes:
+  - type: "omission"
+    name: "Prompt Magic Delusion (The Hubris)"
+    trigger: "Pulando a curadoria pesada da Trindade por pressa de ver a IA 'falar'."
+    manifestation: "O dev cospe 3 PDFs lixo genéricos no context window e perde 3 semanas lutando com a IA regurgitando clichês, tentando consertá-la com um prompt gigante."
+    detection: "Prompt file System com > 2000 palavras tentando moldar um comportamento tático que devia simplesmente estar em um JSON de RAG documentado."
+    recovery: "Zerar o prompt. Trocar fontes Bronze por Ouro na base de indexação."
+
+  - type: "misapplication"
+    name: "Over-Engineering the Trivial (The Zealot)"
+    trigger: "Um agente simples precisa apenas buscar respostas factuais em uma tabela (DB)."
+    manifestation: "Gastar semanas curando e montando 'Trindade Documental' para um mero support-bot factual que não requer estilo, apenas dados diretos."
+    detection: "Esforço massivo de 40% inicial aplicado a scripts sem nenhum conhecimento tácito humano."
+    recovery: "Limitar a regra 40/20/40 estritamente para Clones Mentais complexos e sistemas de raciocínio. Workers não precisam de Trindade."
+```
+
+## Evaluation Criteria
+
+```yaml
+evaluation_criteria:
+  - metric: "Prompt Time Ceiling"
+    weight: 1.0
+    threshold: "<= 0.20"
+    description: "Tempo total gasto lidando com prompts textuais brutos deve ser cravado abaixo de 20% do budget da squad."
+  - metric: "Curation Floor"
+    weight: 1.0
+    threshold: ">= 0.40"
+    description: "Pelo menos 40% da sprint foi gasta lapidando, extraindo e validando Ouro (Frameworks, Playbooks) direto da fonte humana?"
+  - metric: "Testing Floor"
+    weight: 1.0
+    threshold: ">= 0.40"
+    description: "O restante do tempo é gasto em unit tests táticos provando que a IA realmente age como o Expert nos edge-cases?"
 ```
 
 ## Decision Tree
 
+```javascript
+IF (Iniciando a modelagem arquitetural do Agente) {
+  EVALUATE("Budget de Tempo da Sessão");
+  IF (Time_spent_on_Prompt_Engineering > 0.2) {
+    VETO("Excesso na camada de instrução.");
+    REVERT_TO_CURATION("Você inseriu muita lógica e poucos dados. Volte aos dados Ouro.");
+  } ELSE {
+    APPROVE_ALLOCATION("40% Curadoria / 20% Instrução / 40% Validação");
+  }
+}
+
+NEVER("Tentar consertar gaps ou amnésias cognitivas da IA entupindo o prompt com discursos motivacionais. Alimente-a com fatos.");
 ```
-IF (has_playbook AND has_framework AND has_swipe)
-  THEN trinity_complete = TRUE → APPROVE
-
-ELSE IF (has_playbook AND has_framework AND NOT has_swipe)
-  THEN REVIEW → Search for output examples
-
-ELSE IF (has_playbook AND NOT has_framework)
-  THEN VETO → Extract decision rules first
-
-ELSE IF (NOT has_playbook)
-  THEN VETO → Start with step-by-step extraction
-
-TERMINATION: All three components documented with [SOURCE:]
-FALLBACK: Identify weakest component, focus extraction there
-```
-
-## Diagnostic Questions
-
-| Component | Diagnostic Question | If NO |
-|-----------|---------------------|-------|
-| Playbook | "Tenho passos sequenciais documentados?" | Extract steps |
-| Framework | "Tenho regras SE/ENTÃO documentadas?" | Extract decision rules |
-| Swipe | "Tenho exemplos reais de output?" | Find/create examples |
-
-## Application Examples
-
-### Complete Trinity Example
-
-```yaml
-example_expert: "Alex Hormozi - Offers"
-
-playbook:
-  - "Step 1: Identify dream outcome"
-  - "Step 2: List all problems preventing outcome"
-  - "Step 3: Create solutions for each problem"
-  - "Step 4: Trim/stack solutions into offer"
-  - "Step 5: Name offer using MAGIC formula"
-  source: "$100M Offers, Chapter 7"
-
-framework:
-  - rule: "SE valor percebido < 10x preço → ENTÃO ajustar offer"
-  - rule: "SE time delay > 0 → ENTÃO adicionar velocidade"
-  - rule: "SE effort alto → ENTÃO automatizar ou fazer-por-você"
-  source: "Value Equation from $100M Offers"
-
-swipe_file:
-  - example: "Gym Launch offer transformation"
-  - example: "ALAN consulting package"
-  - example: "Software licensing pivot"
-  source: "Case studies from book + podcast"
-```
-
-### Incomplete Trinity Example
-
-```yaml
-example_problem: "Clone genérico de copywriting"
-
-has:
-  - playbook: "AIDA formula steps"
-  - framework: null  # MISSING
-  - swipe_file: "Some ad examples"
-
-diagnosis: "Clone sabe O QUE fazer (AIDA) e vê exemplos,
-            mas não sabe QUANDO usar AIDA vs PAS vs outro framework"
-
-fix: "Extract decision rules: SE awareness level X → ENTÃO use Y framework"
-```
-
-## Validation Checklist
-
-```yaml
-validation:
-  playbook_check:
-    - "Steps são sequenciais?"
-    - "Dependencies estão claras?"
-    - "Tem [SOURCE:] para cada step?"
-
-  framework_check:
-    - "Tem regras SE/ENTÃO?"
-    - "Tem veto conditions?"
-    - "Decision tree está documentado?"
-
-  swipe_check:
-    - "Exemplos são do próprio expert?"
-    - "Exemplos mostram aplicação real?"
-    - "Tem before/after quando aplicável?"
-```
-
-## Performance Metrics
-
-```yaml
-performance:
-  completeness_detection: "100% (binary - has or doesn't)"
-  quality_assessment: "Manual review required"
-  common_gap: "Framework (65% of incomplete trinities)"
-  fix_time: "2-4h per missing component"
-```
-
-## Failure Modes
-
-### Playbook-Only Trap
-- **Trigger:** Expert teaches steps clearly, frameworks implicit
-- **Manifestation:** Clone follows recipe but can't adapt
-- **Detection:** Clone fails on edge cases
-- **Recovery:** Ask "QUANDO você decide fazer isso diferente?"
-- **Prevention:** Always ask "E se X não funcionar?"
-
-### Framework-Without-Proof Trap
-- **Trigger:** Framework extraído mas sem exemplos reais
-- **Manifestation:** Clone sounds theoretical, not practical
-- **Detection:** No [SOURCE:] pointing to real cases
-- **Recovery:** Search for "case study", "exemplo", "cliente"
-- **Prevention:** Every framework needs >= 1 swipe example
-
----
-
-**Pattern Compliance:** Knowledge Structure Pattern
-**Source:** AN Mind Artifacts - Trinity Framework
-**Veto Mapping:** AN_VC_002 (Trinity Incomplete)

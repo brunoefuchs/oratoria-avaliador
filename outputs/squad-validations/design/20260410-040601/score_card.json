@@ -1,0 +1,80 @@
+{
+  "squad": "design",
+  "result": "CONDITIONAL",
+  "analysis_language": "en",
+  "report_language": "pt-br",
+  "localized_report_available": false,
+  "final_score_raw": 4.74,
+  "final_score": 5,
+  "type": "pipeline",
+  "dimensions": {
+    "functionality":           {"score": 9, "weight": "HIGH"},
+    "security":                {"score": 10, "weight": "HIGH"},
+    "workflow_contract":       {"score": 10, "weight": "MEDIUM"},
+    "structural_completeness": {"score": 0, "weight": "MEDIUM"},
+    "agent_quality":           {"score": 4, "weight": "MEDIUM"},
+    "squad_agnosticism":       {"score": 2, "weight": "HIGH"},
+    "production_evidence":     {"score": 10, "weight": "HIGH"},
+    "config_quality":          {"score": 6, "weight": "MEDIUM"},
+    "documentation":           {"score": 8, "weight": "LOW"}
+  },
+  "metrics": {
+    "agents": 8,
+    "tasks": 89,
+    "checklists": 14,
+    "total_lines": 44565
+  },
+  "structure": {
+    "mandatory_checks": {
+      "pass": 0,
+      "total": 2,
+      "tested_flag_present": false,
+      "architecture_doc_present": false
+    },
+    "contextual_lifecycle_checks": {
+      "pass": 0,
+      "total": 2,
+      "warnings": 2,
+      "update_task_present": false,
+      "delete_task_present": false
+    }
+  },
+  "deterministic": {
+    "tier1_fail": 6,
+    "security_fail": 0,
+    "xref_fail": 0,
+    "workflow_contract_fail": 0,
+    "agnosticism_violations": 6,
+    "agent_quality_gaps": 4,
+    "warnings": 1
+  },
+  "workflow_contracts": {
+    "files_checked": 10,
+    "errors": 0,
+    "warnings": 0
+  },
+  "production": {
+    "score": 5,
+    "max": 5
+  },
+  "claude_analysis": {
+    "prompt_quality": 0,
+    "structure_coherence": 0,
+    "coverage": 0,
+    "documentation": 0,
+    "quality_score": "N/A",
+    "dimensional_scores": {
+      "structural_completeness": 0,
+      "security_audit": 0,
+      "workflow_analysis": 0,
+      "agent_quality": 0,
+      "squad_agnosticism": 0,
+      "config_quality": 0,
+      "production_evidence": 0
+    }
+  },
+  "blocking_issues": ["config.yaml missing 'pack:' section (CI hard-mandatory)", "workspace integration level is required", "Invalid YAML: templates/ds-state-persistence-tmpl.yaml:192 — found unhashable key", "Invalid YAML: templates/ds-tokens-schema-tmpl.yaml:7 — but found another document", "Invalid YAML: templates/state-persistence-tmpl.yaml:217 — found unhashable key", "Invalid YAML: templates/tokens-schema-tmpl.yaml:7 — but found another document"],
+  "score_guardrails": [],
+  "improvements": "",
+  "priority_fixes": ""
+}

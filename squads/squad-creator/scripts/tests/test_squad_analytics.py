@@ -2,12 +2,14 @@
 """Tests for squad-analytics.py."""
 
 import importlib.util
+import json
 from pathlib import Path
 
 import pytest
 
 
 SCRIPT_PATH = Path(__file__).parent.parent / "squad-analytics.py"
+REPO_ROOT = SCRIPT_PATH.parent.parent.parent
 
 spec = importlib.util.spec_from_file_location("squad_analytics", SCRIPT_PATH)
 squad_analytics = importlib.util.module_from_spec(spec)
@@ -16,6 +18,7 @@ spec.loader.exec_module(squad_analytics)
 count_files_by_extension = squad_analytics.count_files_by_extension
 count_md_files = squad_analytics.count_md_files
 list_files = squad_analytics.list_files
+simple_yaml_parse = squad_analytics.simple_yaml_parse
 read_config = squad_analytics.read_config
 analyze_squad = squad_analytics.analyze_squad
 calculate_quality_score = squad_analytics.calculate_quality_score
@@ -58,11 +61,15 @@ class TestRecursiveCounting:
         assert count_files_by_extension(root, [".py"]) == 2
         assert count_files_by_extension(root, [".py", ".ts"]) == 3
 
+    def test_count_files_by_extension_missing_dir(self, tmp_path: Path) -> None:
+        assert count_files_by_extension(tmp_path / "missing", [".py"]) == 0
+
     def test_count_md_files_excludes_readme_template(self, tmp_path: Path) -> None:
         docs = tmp_path / "docs"
         docs.mkdir()
 
         (docs / "README.md").write_text("# ignore")
+        (docs / "readme.md").write_text("# ignore")
         (docs / "template.md").write_text("# ignore")
         (docs / "actual.md").write_text("# keep")
 
@@ -77,6 +84,54 @@ class TestRecursiveCounting:
 
         files = list_files(workflows, [".yaml", ".yml"])
         assert files == ["main", "nested/child"]
+
+    def test_list_files_sorted_and_excludes_readme(self, tmp_path: Path) -> None:
+        docs = tmp_path / "docs"
+        docs.mkdir()
+        (docs / "z.md").write_text("# Z")
+        (docs / "a.md").write_text("# A")
+        (docs / "README.md").write_text("# ignore")
+
+        files = list_files(docs, [".md"])
+        assert files == ["a", "z"]
+
+
+class TestSimpleYamlParse:
+    def test_simple_yaml_parse_basic(self) -> None:
+        parsed = simple_yaml_parse(
+            """
+name: test-squad
+version: 1.0.0
+description: Test description
+""".strip()
+        )
+        assert parsed["name"] == "test-squad"
+        assert parsed["version"] == "1.0.0"
+        assert parsed["description"] == "Test description"
+
+    def test_simple_yaml_parse_quoted_and_comments(self) -> None:
+        parsed = simple_yaml_parse(
+            """
+# comment
+name: "quoted-value"
+other: 'single-quoted'
+""".strip()
+        )
+        assert parsed["name"] == "quoted-value"
+        assert parsed["other"] == "single-quoted"
+
+    def test_simple_yaml_parse_skips_list_items(self) -> None:
+        parsed = simple_yaml_parse(
+            """
+name: test
+items:
+  - item1
+  - item2
+version: 1.0.0
+""".strip()
+        )
+        assert parsed["name"] == "test"
+        assert parsed["version"] == "1.0.0"
 
 
 class TestManifestAndQuality:
@@ -101,6 +156,36 @@ class TestManifestAndQuality:
             "data": 1,
         }
         assert "⭐" in calculate_quality_score(counts, has_readme=True, has_config=True)
+
+    def test_calculate_quality_score_tiers(self) -> None:
+        high = {
+            "agents": 1,
+            "tasks": 1,
+            "workflows": 1,
+            "templates": 1,
+            "checklists": 1,
+            "data": 1,
+        }
+        medium = {
+            "agents": 1,
+            "tasks": 1,
+            "workflows": 0,
+            "templates": 0,
+            "checklists": 0,
+            "data": 0,
+        }
+        low = {
+            "agents": 0,
+            "tasks": 0,
+            "workflows": 0,
+            "templates": 0,
+            "checklists": 0,
+            "data": 0,
+        }
+
+        assert calculate_quality_score(high, has_readme=True, has_config=True) == "⭐⭐⭐"
+        assert calculate_quality_score(medium, has_readme=True, has_config=True) == "⭐⭐"
+        assert calculate_quality_score(low, has_readme=False, has_config=False) == "🔨"
 
 
 class TestAnalyzeSquad:
@@ -221,6 +306,26 @@ class TestFormatTable:
         assert "SQUAD ANALYTICS" in table
         assert "MATURITY DISTRIBUTION" in table
         assert "alpha" in table
+
+
+class TestCommandContracts:
+    def test_command_surfaces_use_valid_squad_analytics_cli(self) -> None:
+        squad_chief = (REPO_ROOT / "squads" / "squad-creator" / "agents" / "squad-chief.md").read_text(encoding="utf-8")
+        assert 'script: "python3 squads/squad-creator/scripts/squad-analytics.py"' in squad_chief
+        assert 'squad-analytics.py squad-creator' not in squad_chief
+
+        task = (REPO_ROOT / "squads" / "squad-creator" / "tasks" / "squad-analytics.md").read_text(encoding="utf-8")
+        assert "--format json > /tmp/preflight-analytics.json" in task
+        assert "--json > /tmp/preflight-analytics.json" not in task
+
+        package_json = json.loads((REPO_ROOT / "squads" / "squad-creator" / "package.json").read_text(encoding="utf-8"))
+        assert package_json["scripts"]["analytics"] == "python3 scripts/squad-analytics.py --squad squad-creator"
+
+        scripts_readme = (REPO_ROOT / "squads" / "squad-creator" / "scripts" / "README.md").read_text(encoding="utf-8")
+        assert "python3 scripts/squad-analytics.py --squad squad-creator" in scripts_readme
+
+        scaffold = (REPO_ROOT / "squads" / "squad-creator" / "scripts" / "scaffold-squad.cjs").read_text(encoding="utf-8")
+        assert "python3 squads/squad-creator/scripts/squad-analytics.py --squad ${slug}" in scaffold
 
 
 if __name__ == "__main__":

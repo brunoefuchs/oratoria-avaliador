@@ -21,7 +21,7 @@ test_metadata:
 # ============================================================
 
 execution:
-  method: "bash squads/squad-creator-pro/scripts/validate-squad.sh copy --json"
+  method: "bash squads/squad-creator/scripts/validate-squad.sh copy --json"
   followed_v4_instructions: true
   script_ran_first: true
   preflight_generated: true
