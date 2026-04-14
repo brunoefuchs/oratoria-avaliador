@@ -1,0 +1,26 @@
+{
+  "name": "@aios-fullstack/squad-creator",
+  "version": "1.0.0",
+  "description": "Squad Creator - Tools for creating and managing AIOS squads",
+  "main": "index.js",
+  "scripts": {
+    "install:squad": "echo 'Use the tasks in this squad to install other squads'"
+  },
+  "keywords": [
+    "aios",
+    "aios-fullstack",
+    "squad",
+    "squad-creator",
+    "tools"
+  ],
+  "author": "AIOS Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Pedrovaleriolopez/aios-fullstack",
+    "directory": "squads/squad-creator"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

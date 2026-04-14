@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Histórico de Performances | Eloquent AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#8ebfff",
+              "on-tertiary-fixed-variant": "#633f00",
+              "on-secondary-fixed": "#001f24",
+              "on-primary": "#00315b",
+              "outline-variant": "#434652",
+              "surface-variant": "#2d3449",
+              "surface-container-high": "#222a3d",
+              "primary-fixed-dim": "#a2c9ff",
+              "background": "#0b1326",
+              "secondary": "#45d8ed",
+              "on-tertiary-fixed": "#291800",
+              "primary": "#a2c9ff",
+              "surface-tint": "#a2c9ff",
+              "tertiary-fixed": "#ffddb4",
+              "tertiary": "#ffb954",
+              "on-secondary-container": "#00444d",
+              "tertiary-container": "#6a4400",
+              "on-error-container": "#ffdad6",
+              "surface-container-lowest": "#060e20",
+              "on-surface-variant": "#c3c6d4",
+              "on-primary-fixed-variant": "#004881",
+              "inverse-primary": "#0060a8",
+              "tertiary-fixed-dim": "#ffb954",
+              "secondary-container": "#00bacd",
+              "on-error": "#690005",
+              "on-surface": "#dae2fd",
+              "inverse-surface": "#dae2fd",
+              "surface-container-highest": "#2d3449",
+              "on-primary-fixed": "#001c38",
+              "outline": "#8d909d",
+              "error-container": "#93000a",
+              "surface-dim": "#0b1326",
+              "primary-fixed": "#d3e4ff",
+              "surface-container-low": "#131b2e",
+              "inverse-on-surface": "#283044",
+              "on-background": "#dae2fd",
+              "primary-container": "#004d89",
+              "on-secondary-fixed-variant": "#004f58",
+              "on-secondary": "#00363d",
+              "secondary-fixed": "#98f0ff",
+              "surface-bright": "#31394d",
+              "surface-container": "#171f33",
+              "secondary-fixed-dim": "#45d8ed",
+              "error": "#ffb4ab",
+              "surface": "#0b1326",
+              "on-tertiary": "#452b00",
+              "on-tertiary-container": "#f6af46"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="bg-[#0b1326] dark:bg-[#0b1326] docked full-width top-0 sticky z-50 shadow-[0_40px_40px_rgba(218,226,253,0.08)]">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a professional person with a friendly expression in a modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzcvYu83gu2ihpNVGDG2sxlu2B1-jDn-Ys6cBfXrs4I6MJliMB-R9V6VHOZc_4ARlzOll1Bq_xadnw2aPn0bEuw1o_fTRlbSa9nixdBykOCUeM28ymEMK-fpTzJCoZtUGEp8qcRvknOFN_s021uFlVFikOROsq_ZaiPZIbFiWFnjgIUzCTvJcAVNHxKAuLF0zCC3z1z_uutDYPdi-UbdYbF4u5liWCTqpeZ11xFPOPwbfVm0_Vk_9iZZZIzoZYhUTmI6i1qqWz5A"/>
+</div>
+<h1 class="text-[#45d8ed] font-extrabold tracking-tighter text-xl font-headline">Eloquent AI</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#c3c6d4] hover:bg-[#222a3d] transition-colors duration-200 p-2 rounded-full active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-5xl mx-auto px-6 pt-8 space-y-10">
+<!-- Hero Section / Evolution Chart -->
+<section class="space-y-6">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<header>
+<p class="text-secondary font-label uppercase tracking-widest text-xs mb-2">Sua Jornada</p>
+<h2 class="text-4xl md:text-5xl font-extrabold font-headline tracking-tight text-on-surface">Histórico de Performances</h2>
+</header>
+<div class="bg-surface-container-low px-4 py-2 rounded-xl border border-outline-variant/15">
+<span class="text-on-surface-variant text-sm font-medium">Nota Média</span>
+<div class="flex items-baseline gap-1">
+<span class="text-3xl font-bold text-secondary">82</span>
+<span class="text-on-surface-variant text-xs">/100</span>
+</div>
+</div>
+</div>
+<!-- Evolução Visual (Fluency Wave Inspired) -->
+<div class="bg-surface-container-low rounded-3xl p-8 relative overflow-hidden group">
+<div class="flex items-end justify-between h-48 gap-2 md:gap-4">
+<!-- Bars -->
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[40%] transition-all group-hover:bg-primary-container/40 relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">JAN</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[55%] transition-all group-hover:bg-primary-container/40 relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">FEV</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[45%] transition-all group-hover:bg-primary-container/40 relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">MAR</div>
+</div>
+<div class="flex-1 bg-secondary rounded-t-lg h-[78%] shadow-[0_0_20px_rgba(69,216,237,0.3)] relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-label text-secondary font-bold">ABR</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[65%] transition-all group-hover:bg-primary-container/40 relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">MAI</div>
+</div>
+<div class="flex-1 bg-surface-container-high rounded-t-lg h-[82%] transition-all group-hover:bg-primary-container/40 relative">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-label text-on-surface-variant">JUN</div>
+</div>
+</div>
+<!-- Fluency Wave Overlay -->
+<div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary-container opacity-50 blur-sm"></div>
+</div>
+</section>
+<!-- Search & Filter -->
+<section class="flex flex-wrap items-center gap-4">
+<div class="relative flex-1 min-w-[280px]">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-container-highest border-none rounded-full py-3 pl-12 pr-6 text-on-surface placeholder:text-outline focus:ring-2 focus:ring-secondary/40 transition-all" placeholder="Buscar apresentações..." type="text"/>
+</div>
+<button class="bg-surface-container-high text-on-surface px-6 py-3 rounded-full font-medium flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="filter_list">filter_list</span>
+                Filtrar
+            </button>
+</section>
+<!-- Bento Performance List -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Video Card 1 -->
+<div class="bg-surface-container-low p-5 rounded-[2.5rem] group hover:bg-surface-container-high transition-all duration-300 flex flex-col gap-4">
+<div class="relative h-40 rounded-3xl overflow-hidden">
+<img alt="Talk Thumbnail" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" data-alt="A person gesturing during a keynote presentation on a dimly lit stage with blue atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSrWockt3Xzpq4l30ljUOtjlWwPRsdE0pfhnjnYv4WCl-fcZN3LISRfhqVYblDOXZAANvzQVj1JioNPIfA2bf8PHbSoSNfTqAgjvU9nEweyR4ldBssszpqBgCaoQKQegq3ZJn5r3yexTg04Wc2fpJgmBEN6U4aR3LPfCkBI3ZDMjja2KNXFT2y2VsaO8g7t3kkjkItwfaFvjshE6NeNBjg-OykgPxkothHdYMe1ZDJDhfhvDGQkiYBtnpA4pXAwK3gKzfYHpOIbQ"/>
+<div class="absolute top-3 right-3 bg-background/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-secondary">
+                        78/100
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
+</div>
+<div class="space-y-1 px-2">
+<p class="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">12 de Abril, 2024</p>
+<h3 class="text-xl font-bold font-headline tracking-tight text-on-surface group-hover:text-secondary transition-colors">Pitch para Investidores v1</h3>
+<div class="flex gap-2 pt-3">
+<span class="bg-secondary-container/20 text-on-secondary-container text-[10px] px-2 py-0.5 rounded-sm">Confiança</span>
+<span class="bg-secondary-container/20 text-on-secondary-container text-[10px] px-2 py-0.5 rounded-sm">Clareza</span>
+</div>
+</div>
+</div>
+<!-- Video Card 2 -->
+<div class="bg-surface-container-low p-5 rounded-[2.5rem] group hover:bg-surface-container-high transition-all duration-300 flex flex-col gap-4">
+<div class="relative h-40 rounded-3xl overflow-hidden">
+<img alt="Office Talk" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" data-alt="Woman speaking confidently in a modern glass-walled conference room during a sunny morning" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7DFtZ5twOd3YiH-VuzYXSfcAJqSstxQQw3VvAdjO0KXEhhBo8u_e0UHlcNjdvsTnEfvm9oBuECPB6VPnRDHcRox9lEQShvmjJg6n45TPgOyhWbn4lILzwGDAIv0L3B9Zv2smClegnu1mw2tO44DCZlR_MEqbmAM8MPDidEGMYplq9-kwwfUJiQleMBtDvVKL1AN2fGupNpo_a1S-SUV7q78hlcB3xvwqjJjTEm0J8hnlJCgA5ACAfacY112E6buO6AIx5yaeDsA"/>
+<div class="absolute top-3 right-3 bg-background/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-tertiary">
+                        92/100
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
+</div>
+<div class="space-y-1 px-2">
+<p class="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">05 de Abril, 2024</p>
+<h3 class="text-xl font-bold font-headline tracking-tight text-on-surface group-hover:text-tertiary transition-colors">Reunião de Alinhamento Q2</h3>
+<div class="flex gap-2 pt-3">
+<span class="bg-tertiary-container/20 text-on-tertiary-container text-[10px] px-2 py-0.5 rounded-sm">Persuasão</span>
+<span class="bg-tertiary-container/20 text-on-tertiary-container text-[10px] px-2 py-0.5 rounded-sm">Ritmo</span>
+</div>
+</div>
+</div>
+<!-- Video Card 3 -->
+<div class="bg-surface-container-low p-5 rounded-[2.5rem] group hover:bg-surface-container-high transition-all duration-300 flex flex-col gap-4">
+<div class="relative h-40 rounded-3xl overflow-hidden">
+<img alt="Class Presentation" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" data-alt="Close-up of hands gesturing over a wooden podium with professional presentation notes in a soft focus background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCsayNXEYA4yROZUKSTuyf_hVggDKjDugv-GI_WWds7hY7Eya9X96ojygCdFJtxMHlrjvZ1Nu1MAui1ep9EKfgnkme-bvbi8mkOT7CJHiaMduEWBVqQwRvALSzzMNY0b934SOK7D8K2kdRpkqUx8hlBFuIXC-hwYK8fierRKOhCqjY9cURrWCIQZGlKrBNlWKt_vGVbOBrZFd1IScfR4E-WT0bt6LlbD_j4SJ75sxAFR9myIKeeMFhKm3AMgwAEU0zmYkSdFRURVQ"/>
+<div class="absolute top-3 right-3 bg-background/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-secondary">
+                        64/100
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
+</div>
+<div class="space-y-1 px-2">
+<p class="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">28 de Março, 2024</p>
+<h3 class="text-xl font-bold font-headline tracking-tight text-on-surface group-hover:text-secondary transition-colors">Prática de Oratória: TED</h3>
+<div class="flex gap-2 pt-3">
+<span class="bg-secondary-container/20 text-on-secondary-container text-[10px] px-2 py-0.5 rounded-sm">Pausas</span>
+<span class="bg-secondary-container/20 text-on-secondary-container text-[10px] px-2 py-0.5 rounded-sm">Vocal</span>
+</div>
+</div>
+</div>
+<!-- Video Card 4 -->
+<div class="bg-surface-container-low p-5 rounded-[2.5rem] group hover:bg-surface-container-high transition-all duration-300 flex flex-col gap-4">
+<div class="relative h-40 rounded-3xl overflow-hidden">
+<img alt="Dashboard View" class="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all" data-alt="Multiple screens showing analytics and data visualizations in a futuristic dark control room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYSLajdEkxjBmKeOhcLpRPqOGR3p5eRDMTq-YheIcfZxJ8Yk3DBmSSbn2V5Qb2YFxGtB9BX2mvB98fWTZa74nJNm8oi5zlGy4lKidxfsUGwqEx_nGYHQ9wT6kARhN1k1L7vViYbvIHDLQiyOVOhQVVIT_r6Mk5PeA19QsPq9HQfAKystAfhMs40y1JMWW5mxkP_XmGOA-0Fei9rOKU2FHZtq-Y0ljpKQmpAyoFn5LkED5yGb52QoVjdM5n4E_AUm-ktSzkxbH-VQ"/>
+<div class="absolute top-3 right-3 bg-background/80 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-secondary">
+                        85/100
+                    </div>
+<div class="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"></div>
+</div>
+<div class="space-y-1 px-2">
+<p class="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">15 de Março, 2024</p>
+<h3 class="text-xl font-bold font-headline tracking-tight text-on-surface group-hover:text-secondary transition-colors">Apresentação Técnica</h3>
+<div class="flex gap-2 pt-3">
+<span class="bg-secondary-container/20 text-on-secondary-container text-[10px] px-2 py-0.5 rounded-sm">Estrutura</span>
+<span class="bg-secondary-container/20 text-on-secondary-container text-[10px] px-2 py-0.5 rounded-sm">Fluência</span>
+</div>
+</div>
+</div>
+<!-- CTA Card -->
+<div class="bg-gradient-to-br from-primary-container to-surface-container-high p-8 rounded-[2.5rem] flex flex-col items-center justify-center text-center gap-6 border border-primary/20">
+<div class="w-16 h-16 rounded-full bg-secondary flex items-center justify-center shadow-[0_0_30px_rgba(69,216,237,0.4)]">
+<span class="material-symbols-outlined text-on-primary text-3xl" data-icon="add">add</span>
+</div>
+<div class="space-y-2">
+<h4 class="text-xl font-bold font-headline">Nova Prática?</h4>
+<p class="text-on-surface-variant text-sm px-4">Continue sua evolução analisando um novo vídeo agora.</p>
+</div>
+<button class="bg-secondary text-on-primary px-8 py-3 rounded-full font-bold text-sm hover:scale-105 active:scale-95 transition-all">
+                    Começar Análise
+                </button>
+</div>
+</section>
+<!-- Insights Section (Tonal Layering) -->
+<section class="bg-surface-container-high/40 rounded-[3rem] p-10 border border-outline-variant/10">
+<div class="grid md:grid-cols-2 gap-12 items-center">
+<div class="space-y-6">
+<h2 class="text-3xl font-extrabold font-headline leading-tight">Você está no caminho certo para a maestria.</h2>
+<p class="text-on-surface-variant leading-relaxed">Seu <span class="text-secondary font-bold">Ritmo de Fala</span> melhorou em 14% nos últimos 30 dias. A IA detectou que você está usando menos muletas linguísticas (como "ééé" ou "tipo") em suas apresentações matinais.</p>
+<div class="flex flex-wrap gap-3">
+<div class="bg-surface-container-highest px-4 py-3 rounded-2xl flex items-center gap-3">
+<span class="material-symbols-outlined text-tertiary" data-icon="trending_up">trending_up</span>
+<div>
+<p class="text-[10px] uppercase font-label text-outline">Meta Semanal</p>
+<p class="text-sm font-bold">85% Concluída</p>
+</div>
+</div>
+<div class="bg-surface-container-highest px-4 py-3 rounded-2xl flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary" data-icon="stars">stars</span>
+<div>
+<p class="text-[10px] uppercase font-label text-outline">Conquista</p>
+<p class="text-sm font-bold">Voz Prateada</p>
+</div>
+</div>
+</div>
+</div>
+<div class="relative aspect-square">
+<div class="absolute inset-0 bg-gradient-to-br from-secondary/20 to-primary-container/20 rounded-full blur-[60px]"></div>
+<div class="relative h-full w-full bg-surface-container-low rounded-[2.5rem] border border-outline-variant/20 p-8 flex flex-col justify-between">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-4xl text-secondary" data-icon="insights">insights</span>
+<span class="text-[10px] font-label text-outline">ANÁLISE IA</span>
+</div>
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium mb-1">
+<span>Clareza Vocal</span>
+<span>88%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[88%]"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium mb-1">
+<span>Linguagem Corporal</span>
+<span>72%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[72%]"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-medium mb-1">
+<span>Retenção de Público</span>
+<span>65%</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[65%]"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 bg-[#131b2e]/60 backdrop-blur-xl dark:bg-[#131b2e]/60 border-t border-[#434652]/15 flex justify-around items-center px-4 pb-2 z-50 rounded-t-[2rem] shadow-2xl">
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="school">school</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider">Courses</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#45d8ed] to-[#004d89] text-white rounded-2xl px-5 py-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="analytics" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="mic_external_on">mic_external_on</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider">Speak</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider">Profile</span>
+</a>
+</nav>
+</body></html>

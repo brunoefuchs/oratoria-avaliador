@@ -4,18 +4,30 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ScoreCard } from "@/components/score-card";
 import { StarRating } from "@/components/star-rating";
+import { AppShell } from "@/components/app-shell";
 import { fetchReport, submitRating, createShare } from "@/lib/api-client";
 
 const DIMENSION_LABELS: Record<string, string> = {
   variety: "Variedade Vocal",
-  voice: "Voz e Diccao",
-  gesture: "Presenca Visual",
-  posture: "Postura e Presenca",
+  voice: "Voz e Dicção",
+  gesture: "Presença Visual",
+  posture: "Postura e Presença",
   fillers: "Clareza Verbal",
 };
 
-// Ordem de exibicao das dimensoes (archetypes removido — extra a ser desbloqueado)
 const DIMENSION_ORDER = ["variety", "voice", "gesture", "posture", "fillers"];
+
+function getScoreTone(score: number) {
+  if (score >= 70) return "text-secondary";
+  if (score >= 40) return "text-tertiary";
+  return "text-error";
+}
+
+function getCongruenceTone(score: number) {
+  if (score >= 70) return "text-secondary";
+  if (score >= 40) return "text-tertiary";
+  return "text-error";
+}
 
 export default function ReportPage() {
   const params = useParams();
@@ -24,6 +36,7 @@ export default function ReportPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [shareStatus, setShareStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetchReport(id)
@@ -34,32 +47,34 @@ export default function ReportPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <p className="text-gray-500">Carregando relatorio...</p>
-      </main>
+      <AppShell maxWidth="lg" showBack backHref="/" backLabel="Início">
+        <div className="min-h-[50vh] flex items-center justify-center">
+          <p className="text-on-surface-variant text-sm">
+            Carregando relatório...
+          </p>
+        </div>
+      </AppShell>
     );
   }
 
   if (error || !data) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 p-8">
-        <p className="text-red-600">{error || "Relatorio nao encontrado"}</p>
-        <button
-          onClick={() => router.push("/")}
-          className="rounded-lg bg-blue-600 px-6 py-2 text-white"
-        >
-          Voltar
-        </button>
-      </main>
+      <AppShell maxWidth="md" showBack backHref="/" backLabel="Início">
+        <div className="min-h-[40vh] flex flex-col items-center justify-center gap-4 text-center">
+          <span className="material-symbols-outlined text-error text-5xl">
+            error
+          </span>
+          <p className="text-error">{error || "Relatório não encontrado"}</p>
+          <button
+            onClick={() => router.push("/")}
+            className="bg-ai-pulse text-on-primary font-bold px-6 py-3 rounded-full shadow-cta-glow active:scale-95 transition"
+          >
+            Voltar
+          </button>
+        </div>
+      </AppShell>
     );
   }
-
-  const overallColor =
-    data.overall_score >= 70
-      ? "text-green-600"
-      : data.overall_score >= 40
-        ? "text-yellow-600"
-        : "text-red-600";
 
   const report = data.report || {};
   const resumo = report.resumo || report.summary || "";
@@ -69,287 +84,422 @@ export default function ReportPage() {
   const plano = report.plano_12_semanas || [];
   const mensagemFinal = report.mensagem_final || "";
 
-  // Ordenar dimensoes conforme DIMENSION_ORDER
   const sortedDimensions = DIMENSION_ORDER.filter(
     (d) => d in (data.dimension_scores || {})
   );
 
+  const handleShare = async () => {
+    try {
+      const result = await createShare(id);
+      const shareUrl = `${window.location.origin}/report/${id}/shared?token=${result.share_token}`;
+      await navigator.clipboard.writeText(shareUrl);
+      setShareStatus("Link copiado!");
+      setTimeout(() => setShareStatus(null), 2500);
+    } catch {
+      setShareStatus("Erro ao gerar link.");
+      setTimeout(() => setShareStatus(null), 2500);
+    }
+  };
+
   return (
-    <main className="mx-auto max-w-2xl p-6 space-y-8">
-      {/* Score Geral */}
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold">Seu Relatorio de Oratoria</h1>
-        <div className={`text-6xl font-bold ${overallColor}`}>
-          {data.overall_score}
-        </div>
-        <p className="text-sm text-gray-500">Score geral (0-100)</p>
-      </div>
-
-      {/* Resumo */}
-      {resumo && (
-        <div className="rounded-xl bg-gray-50 p-5">
-          <p className="text-sm text-gray-700 leading-relaxed">{resumo}</p>
-        </div>
-      )}
-
-      {/* Forcas */}
-      {forcas.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-green-700">Seus Pontos Fortes</h2>
-          <div className="space-y-2">
-            {forcas.map((forca: any, i: number) => (
-              <div key={i} className="rounded-xl bg-green-50 p-4 ring-1 ring-green-200">
-                <p className="text-sm font-semibold text-green-800">
-                  {forca.titulo}
+    <AppShell maxWidth="2xl" showBack backHref="/" backLabel="Início">
+      <div className="space-y-10 md:space-y-14">
+        {/* Score Hero */}
+        <section className="rounded-3xl bg-surface-container-low p-6 md:p-10 stage-ambient relative overflow-hidden">
+          <span className="font-label text-xs uppercase tracking-[0.3em] text-secondary/80">
+            Seu relatório · The Resonant Stage
+          </span>
+          <div className="mt-4 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div>
+              <h1 className="font-headline text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
+                Sua performance foi
+                <br />
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-secondary to-primary">
+                  iluminada pela IA
+                </span>
+              </h1>
+              {resumo && (
+                <p className="mt-5 text-on-surface-variant leading-relaxed max-w-xl">
+                  {resumo}
                 </p>
-                <p className="mt-1 text-sm text-green-700">{forca.descricao}</p>
-                {forca.impacto && (
-                  <p className="mt-1 text-xs text-green-600 italic">{forca.impacto}</p>
-                )}
-              </div>
-            ))}
+              )}
+            </div>
+            <div className="shrink-0 flex items-baseline gap-2">
+              <span
+                className={`font-headline text-6xl md:text-8xl font-extrabold ${getScoreTone(
+                  data.overall_score
+                )}`}
+              >
+                {data.overall_score}
+              </span>
+              <span className="text-on-surface-variant text-2xl">/100</span>
+            </div>
           </div>
-        </div>
-      )}
+          <div className="absolute bottom-0 left-0 right-0 fluency-wave opacity-60" />
+        </section>
 
-      {/* Dimension Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {sortedDimensions.map((dimension) => {
-          const score = data.dimension_scores[dimension] as number;
-          const feedback = dimensoes[dimension];
-          return (
-            <ScoreCard
-              key={dimension}
-              title={DIMENSION_LABELS[dimension] || dimension}
-              dimensionKey={dimension}
-              score={score}
-              summary={feedback?.dica || feedback?.tip}
-              onClick={() => router.push(`/report/${id}/${dimension}`)}
-            />
-          );
-        })}
-      </div>
-
-      {/* Arquetipos Vocais — Extra bloqueado */}
-      <div className="rounded-xl bg-gray-100 p-4 flex items-center gap-3 opacity-60">
-        <span className="text-2xl">🔒</span>
-        <div>
-          <p className="text-sm font-semibold text-gray-500">Arquetipos Vocais</p>
-          <p className="text-xs text-gray-400">Em breve — recurso avancado a ser desbloqueado</p>
-        </div>
-      </div>
-
-      {/* Melhorias 80/20 */}
-      {melhorias.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-amber-700">
-            Top Melhorias (Regra 80/20)
-          </h2>
-          <p className="text-xs text-gray-500">
-            As mudancas que vao gerar o maior impacto na sua comunicacao
-          </p>
-          <div className="space-y-3">
-            {melhorias
-              .sort((a: any, b: any) => (a.prioridade || 0) - (b.prioridade || 0))
-              .map((melhoria: any, i: number) => (
-                <details
+        {/* Forças */}
+        {forcas.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-secondary text-2xl">
+                bolt
+              </span>
+              <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight">
+                Pontos Fortes
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-4">
+              {forcas.map((forca: any, i: number) => (
+                <article
                   key={i}
-                  className="rounded-xl bg-amber-50 ring-1 ring-amber-200 overflow-hidden"
+                  className="rounded-2xl bg-surface-container-low p-5 ghost-border"
                 >
-                  <summary className="cursor-pointer p-4 text-sm font-semibold text-amber-800 hover:bg-amber-100">
-                    <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-200 text-xs font-bold text-amber-800">
-                      {i + 1}
-                    </span>
-                    {melhoria.titulo}
-                  </summary>
-                  <div className="border-t border-amber-200 p-4 space-y-2">
-                    <p className="text-sm text-amber-700">{melhoria.descricao}</p>
-                    {melhoria.exercicio && (
-                      <div className="rounded-lg bg-white p-3">
-                        <p className="text-xs font-semibold text-amber-600 uppercase">
-                          Exercicio pratico
-                        </p>
-                        <p className="mt-1 text-sm text-gray-700">
-                          {melhoria.exercicio}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </details>
-              ))}
-          </div>
-        </div>
-      )}
-
-      {/* Congruencia */}
-      {data.detailed_metrics?.congruence?.total_contradicoes > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-purple-700">
-            Congruencia
-          </h2>
-          <div className="rounded-xl bg-purple-50 p-4 ring-1 ring-purple-200">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-purple-800">
-                Score de alinhamento corpo-voz
-              </span>
-              <span className={`text-xl font-bold ${
-                data.detailed_metrics.congruence.score >= 70
-                  ? "text-green-600"
-                  : data.detailed_metrics.congruence.score >= 40
-                    ? "text-yellow-600"
-                    : "text-red-600"
-              }`}>
-                {data.detailed_metrics.congruence.score}
-              </span>
-            </div>
-            <div className="mt-2 space-y-1">
-              {data.detailed_metrics.congruence.contradicoes.map((c: any, i: number) => (
-                <p key={i} className="text-xs text-purple-600">
-                  ⚡ {c.descricao}
-                </p>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Arco da Performance (analise temporal) */}
-      {data.detailed_metrics?.temporal?.disponivel && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-indigo-700">
-            Arco da Performance
-          </h2>
-          <p className="text-xs text-gray-500">
-            {data.detailed_metrics.temporal.padrao_descricao}
-          </p>
-          <div className="grid grid-cols-3 gap-2">
-            {["abertura", "meio", "fechamento"].map((terco) => {
-              const t = data.detailed_metrics.temporal.por_terco?.[terco];
-              if (!t) return null;
-              const color =
-                t.score >= 70
-                  ? "bg-green-50 text-green-700 ring-green-200"
-                  : t.score >= 40
-                    ? "bg-yellow-50 text-yellow-700 ring-yellow-200"
-                    : "bg-red-50 text-red-700 ring-red-200";
-              return (
-                <div
-                  key={terco}
-                  className={`rounded-xl p-4 text-center ring-1 ${color}`}
-                >
-                  <p className="text-2xl font-bold">{t.score}</p>
-                  <p className="text-xs font-medium capitalize mt-1">{terco}</p>
-                  {t.fillers > 0 && (
-                    <p className="text-xs mt-1 opacity-70">
-                      {t.fillers} vicio{t.fillers > 1 ? "s" : ""}
+                  <p className="font-headline text-lg font-bold text-on-surface">
+                    {forca.titulo}
+                  </p>
+                  <p className="mt-2 text-sm text-on-surface-variant leading-relaxed">
+                    {forca.descricao}
+                  </p>
+                  {forca.impacto && (
+                    <p className="mt-3 text-xs text-secondary italic border-l-2 border-secondary/40 pl-3">
+                      {forca.impacto}
                     </p>
                   )}
-                </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Dimensões */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="material-symbols-outlined text-secondary text-2xl">
+              analytics
+            </span>
+            <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight">
+              Dimensões analisadas
+            </h2>
+          </div>
+          <p className="text-on-surface-variant text-sm">
+            Clique em qualquer dimensão para ver métricas e feedback detalhados.
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+            {sortedDimensions.map((dimension) => {
+              const score = data.dimension_scores[dimension] as number;
+              const feedback = dimensoes[dimension];
+              return (
+                <ScoreCard
+                  key={dimension}
+                  title={DIMENSION_LABELS[dimension] || dimension}
+                  dimensionKey={dimension}
+                  score={score}
+                  summary={feedback?.dica || feedback?.tip}
+                  onClick={() => router.push(`/report/${id}/${dimension}`)}
+                />
               );
             })}
           </div>
-        </div>
-      )}
 
-      {/* Plano de 12 Semanas */}
-      {plano.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-blue-700">
-            Seu Plano de 12 Semanas
-          </h2>
-          <p className="text-xs text-gray-500">
-            Uma habilidade por semana. Grave, revise, ajuste.
-          </p>
-          <div className="space-y-2">
-            {plano.map((item: any, i: number) => (
-              <div
-                key={i}
-                className="flex gap-4 rounded-xl bg-blue-50 p-4 ring-1 ring-blue-200"
-              >
-                <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-blue-200 text-xs font-bold text-blue-800">
-                  Sem {item.semana}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-blue-800">
-                    {item.foco}
-                  </p>
-                  <p className="mt-1 text-xs text-blue-700 line-clamp-2">
-                    {item.exercicio}
-                  </p>
-                  {item.meta && (
-                    <p className="mt-1 text-xs text-blue-500 italic">
-                      Meta: {item.meta}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
+          {/* Locked archetype */}
+          <div className="rounded-2xl bg-surface-container-low p-4 flex items-center gap-4 ghost-border opacity-70">
+            <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center ghost-border">
+              <span className="material-symbols-outlined text-tertiary">
+                lock
+              </span>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-on-surface">
+                Arquétipos Vocais
+              </p>
+              <p className="text-xs text-on-surface-variant">
+                Recurso avançado · em breve
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        </section>
 
-      {/* Dimensoes incompletas */}
-      {data.incomplete_dimensions?.length > 0 && (
-        <div className="rounded-lg bg-yellow-50 p-4 text-sm text-yellow-700">
-          Algumas dimensoes nao puderam ser analisadas:{" "}
-          {data.incomplete_dimensions
-            .map((d: string) => DIMENSION_LABELS[d] || d)
-            .join(", ")}
-        </div>
-      )}
+        {/* Melhorias 80/20 */}
+        {melhorias.length > 0 && (
+          <section className="space-y-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-tertiary text-2xl">
+                  target
+                </span>
+                <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight">
+                  Top Melhorias
+                </h2>
+              </div>
+              <p className="text-on-surface-variant text-sm mt-1">
+                Regra 80/20 · as mudanças que vão gerar o maior impacto.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {melhorias
+                .slice()
+                .sort(
+                  (a: any, b: any) => (a.prioridade || 0) - (b.prioridade || 0)
+                )
+                .map((melhoria: any, i: number) => (
+                  <details
+                    key={i}
+                    className="group rounded-2xl bg-surface-container-low ghost-border overflow-hidden"
+                  >
+                    <summary className="cursor-pointer list-none flex items-start gap-4 p-5 hover:bg-surface-container-high transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-ai-pulse text-on-primary font-headline font-bold flex items-center justify-center shrink-0 shadow-cta-glow">
+                        {i + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-headline text-lg font-bold text-on-surface">
+                          {melhoria.titulo}
+                        </p>
+                      </div>
+                      <span className="material-symbols-outlined text-on-surface-variant group-open:rotate-180 transition-transform">
+                        expand_more
+                      </span>
+                    </summary>
+                    <div className="px-5 pb-5 pl-20 space-y-3">
+                      <p className="text-sm text-on-surface-variant leading-relaxed">
+                        {melhoria.descricao}
+                      </p>
+                      {melhoria.exercicio && (
+                        <div className="rounded-xl bg-surface-container-high p-4 ghost-border">
+                          <p className="font-label text-[10px] uppercase tracking-[0.2em] text-tertiary">
+                            Exercício prático
+                          </p>
+                          <p className="mt-1 text-sm text-on-surface leading-relaxed">
+                            {melhoria.exercicio}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                ))}
+            </div>
+          </section>
+        )}
 
-      {/* Mensagem Final */}
-      {mensagemFinal && (
-        <div className="rounded-xl bg-gradient-to-r from-purple-50 to-blue-50 p-6 ring-1 ring-purple-200">
-          <p className="text-sm leading-relaxed text-gray-700 italic">
-            &ldquo;{mensagemFinal}&rdquo;
-          </p>
-        </div>
-      )}
+        {/* Congruência */}
+        {data.detailed_metrics?.congruence?.total_contradicoes > 0 && (
+          <section className="rounded-2xl bg-surface-container-low p-6 ghost-border space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-secondary text-2xl">
+                  balance
+                </span>
+                <h2 className="font-headline text-xl md:text-2xl font-bold tracking-tight">
+                  Congruência corpo-voz
+                </h2>
+              </div>
+              <span
+                className={`font-headline text-3xl md:text-4xl font-bold ${getCongruenceTone(
+                  data.detailed_metrics.congruence.score
+                )}`}
+              >
+                {data.detailed_metrics.congruence.score}
+              </span>
+            </div>
+            <div className="space-y-2">
+              {data.detailed_metrics.congruence.contradicoes.map(
+                (c: any, i: number) => (
+                  <p
+                    key={i}
+                    className="flex items-start gap-2 text-sm text-on-surface-variant"
+                  >
+                    <span className="material-symbols-outlined text-tertiary text-base mt-0.5">
+                      flash_on
+                    </span>
+                    <span>{c.descricao}</span>
+                  </p>
+                )
+              )}
+            </div>
+          </section>
+        )}
 
-      {/* CTAs pos-relatorio */}
-      <div className="space-y-3 border-t pt-6">
-        <button
-          onClick={() => router.push(`/report/${id}/replay`)}
-          className="w-full rounded-xl bg-indigo-50 p-4 text-sm font-medium text-indigo-700 hover:bg-indigo-100 transition-colors"
-        >
-          🪞 Ver replay com marcacoes
-        </button>
-        <button
-          onClick={() => router.push("/evolution")}
-          className="w-full rounded-xl bg-blue-50 p-4 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors"
-        >
-          📈 Ver minha evolucao
-        </button>
-        <button
-          onClick={() => router.push("/")}
-          className="w-full rounded-xl bg-green-50 p-4 text-sm font-medium text-green-700 hover:bg-green-100 transition-colors"
-        >
-          🎬 Gravar novamente e comparar
-        </button>
-        <button
-          onClick={async () => {
-            try {
-              const result = await createShare(id);
-              const shareUrl = `${window.location.origin}/report/${id}/shared?token=${result.share_token}`;
-              await navigator.clipboard.writeText(shareUrl);
-              alert("Link copiado! Compartilhe com seu mentor.");
-            } catch {
-              alert("Erro ao gerar link.");
-            }
-          }}
-          className="w-full rounded-xl bg-gray-50 p-4 text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-        >
-          🔗 Compartilhar relatorio
-        </button>
+        {/* Arco da Performance */}
+        {data.detailed_metrics?.temporal?.disponivel && (
+          <section className="space-y-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-secondary text-2xl">
+                  timeline
+                </span>
+                <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight">
+                  Arco da Performance
+                </h2>
+              </div>
+              <p className="text-on-surface-variant text-sm mt-1">
+                {data.detailed_metrics.temporal.padrao_descricao}
+              </p>
+            </div>
+            <div className="grid grid-cols-3 gap-3 md:gap-4">
+              {["abertura", "meio", "fechamento"].map((terco) => {
+                const t = data.detailed_metrics.temporal.por_terco?.[terco];
+                if (!t) return null;
+                return (
+                  <div
+                    key={terco}
+                    className="rounded-2xl bg-surface-container-low p-4 md:p-6 text-center ghost-border"
+                  >
+                    <p
+                      className={`font-headline text-3xl md:text-4xl font-bold ${getScoreTone(
+                        t.score
+                      )}`}
+                    >
+                      {t.score}
+                    </p>
+                    <p className="text-xs font-label uppercase tracking-[0.2em] text-on-surface-variant mt-2 capitalize">
+                      {terco}
+                    </p>
+                    {t.fillers > 0 && (
+                      <p className="text-xs text-on-surface-variant/70 mt-1">
+                        {t.fillers} vício{t.fillers > 1 ? "s" : ""}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Plano de 12 Semanas */}
+        {plano.length > 0 && (
+          <section className="space-y-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-secondary text-2xl">
+                  event_note
+                </span>
+                <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight">
+                  Plano de 12 Semanas
+                </h2>
+              </div>
+              <p className="text-on-surface-variant text-sm mt-1">
+                Uma habilidade por semana · grave, revise, ajuste.
+              </p>
+            </div>
+            <div className="grid md:grid-cols-2 gap-3">
+              {plano.map((item: any, i: number) => (
+                <div
+                  key={i}
+                  className="flex gap-4 rounded-2xl bg-surface-container-low p-4 md:p-5 ghost-border"
+                >
+                  <div className="flex flex-col items-center justify-center min-w-[56px] rounded-xl bg-surface-container-high px-2 py-2 text-xs font-bold text-secondary ghost-border">
+                    <span className="font-label uppercase tracking-[0.15em] text-[9px] text-on-surface-variant">
+                      Sem
+                    </span>
+                    <span className="font-headline text-lg">
+                      {item.semana}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-on-surface">
+                      {item.foco}
+                    </p>
+                    <p className="mt-1 text-xs text-on-surface-variant leading-relaxed">
+                      {item.exercicio}
+                    </p>
+                    {item.meta && (
+                      <p className="mt-2 text-xs text-tertiary italic">
+                        Meta: {item.meta}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Dimensoes incompletas */}
+        {data.incomplete_dimensions?.length > 0 && (
+          <div className="rounded-2xl bg-tertiary/10 p-4 text-sm text-tertiary ghost-border flex items-start gap-3">
+            <span className="material-symbols-outlined">warning</span>
+            <span>
+              Algumas dimensões não puderam ser analisadas:{" "}
+              <strong>
+                {data.incomplete_dimensions
+                  .map((d: string) => DIMENSION_LABELS[d] || d)
+                  .join(", ")}
+              </strong>
+            </span>
+          </div>
+        )}
+
+        {/* Mensagem Final */}
+        {mensagemFinal && (
+          <section className="rounded-3xl bg-surface-container-high p-6 md:p-8 ghost-border relative overflow-hidden">
+            <span className="material-symbols-outlined text-tertiary text-4xl mb-3 opacity-50">
+              format_quote
+            </span>
+            <p className="font-headline text-lg md:text-xl leading-relaxed text-on-surface italic">
+              &ldquo;{mensagemFinal}&rdquo;
+            </p>
+            <span className="material-symbols-outlined absolute -bottom-4 -right-4 text-[120px] text-tertiary opacity-5">
+              record_voice_over
+            </span>
+          </section>
+        )}
+
+        {/* CTAs */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button
+            onClick={() => router.push(`/report/${id}/replay`)}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-surface-container-low p-5 ghost-border hover:bg-surface-container-high transition active:scale-95 text-center"
+          >
+            <span className="material-symbols-outlined text-secondary text-2xl">
+              movie
+            </span>
+            <span className="text-xs md:text-sm font-semibold text-on-surface">
+              Replay marcado
+            </span>
+          </button>
+          <button
+            onClick={() => router.push("/evolution")}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-surface-container-low p-5 ghost-border hover:bg-surface-container-high transition active:scale-95 text-center"
+          >
+            <span className="material-symbols-outlined text-secondary text-2xl">
+              insights
+            </span>
+            <span className="text-xs md:text-sm font-semibold text-on-surface">
+              Ver evolução
+            </span>
+          </button>
+          <button
+            onClick={() => router.push("/")}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-surface-container-low p-5 ghost-border hover:bg-surface-container-high transition active:scale-95 text-center"
+          >
+            <span className="material-symbols-outlined text-tertiary text-2xl">
+              videocam
+            </span>
+            <span className="text-xs md:text-sm font-semibold text-on-surface">
+              Gravar novamente
+            </span>
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex flex-col items-center gap-2 rounded-2xl bg-surface-container-low p-5 ghost-border hover:bg-surface-container-high transition active:scale-95 text-center relative"
+          >
+            <span className="material-symbols-outlined text-on-surface-variant text-2xl">
+              share
+            </span>
+            <span className="text-xs md:text-sm font-semibold text-on-surface">
+              {shareStatus || "Compartilhar"}
+            </span>
+          </button>
+        </section>
+
+        {/* Rating */}
+        <section>
+          <StarRating
+            onSubmit={(rating, comment) => submitRating(id, rating, comment)}
+          />
+        </section>
       </div>
-
-      {/* Rating */}
-      <div className="border-t pt-6">
-        <StarRating
-          onSubmit={(rating, comment) => submitRating(id, rating, comment)}
-        />
-      </div>
-    </main>
+    </AppShell>
   );
 }

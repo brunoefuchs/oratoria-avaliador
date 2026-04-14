@@ -2,62 +2,91 @@
 
 import { useState } from "react";
 
+type Dimension = { icon: string; label: string };
+
+const DIMENSIONS: Dimension[] = [
+  { icon: "graphic_eq", label: "Variedade Vocal" },
+  { icon: "mic", label: "Voz e Dicção" },
+  { icon: "visibility", label: "Presença Visual" },
+  { icon: "accessibility", label: "Postura" },
+  { icon: "chat_bubble", label: "Clareza Verbal" },
+];
+
 const SLIDES = [
   {
-    title: "O que vamos analisar",
+    kicker: "O que você vai ganhar",
+    title: "Cinco dimensões iluminadas",
     content: (
       <div className="grid grid-cols-2 gap-3 text-sm">
-        <div className="rounded-lg bg-gray-50 p-3 text-center">
-          <span className="text-2xl">🎹</span>
-          <p className="mt-1 font-medium">Variedade Vocal</p>
-        </div>
-        <div className="rounded-lg bg-gray-50 p-3 text-center">
-          <span className="text-2xl">🎙️</span>
-          <p className="mt-1 font-medium">Voz e Diccao</p>
-        </div>
-        <div className="rounded-lg bg-gray-50 p-3 text-center">
-          <span className="text-2xl">👁️</span>
-          <p className="mt-1 font-medium">Presenca Visual</p>
-        </div>
-        <div className="rounded-lg bg-gray-50 p-3 text-center">
-          <span className="text-2xl">🧍</span>
-          <p className="mt-1 font-medium">Postura</p>
-        </div>
-        <div className="col-span-2 rounded-lg bg-gray-50 p-3 text-center">
-          <span className="text-2xl">💬</span>
-          <p className="mt-1 font-medium">Clareza Verbal</p>
+        {DIMENSIONS.slice(0, 4).map((d) => (
+          <div
+            key={d.label}
+            className="rounded-2xl bg-surface-container-high p-4 text-center ghost-border"
+          >
+            <span className="material-symbols-outlined text-secondary text-2xl mb-1 block">
+              {d.icon}
+            </span>
+            <p className="font-medium text-on-surface">{d.label}</p>
+          </div>
+        ))}
+        <div className="col-span-2 rounded-2xl bg-surface-container-high p-4 text-center ghost-border">
+          <span className="material-symbols-outlined text-secondary text-2xl mb-1 block">
+            {DIMENSIONS[4].icon}
+          </span>
+          <p className="font-medium text-on-surface">{DIMENSIONS[4].label}</p>
         </div>
       </div>
     ),
   },
   {
-    title: "Como funciona",
+    kicker: "Como funciona",
+    title: "Três passos simples",
     content: (
-      <div className="space-y-4 text-sm">
-        <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold">1</span>
-          <p>Envie um video de ate 5 minutos</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold">2</span>
-          <p>Nossa IA analisa em ~2 minutos</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-700 font-bold">3</span>
-          <p>Receba um relatorio completo com coaching personalizado + plano de 12 semanas</p>
-        </div>
+      <div className="space-y-3 text-sm">
+        {[
+          { n: "1", label: "Envie um vídeo de até 5 minutos" },
+          { n: "2", label: "Nossa IA analisa em ~2 minutos" },
+          {
+            n: "3",
+            label:
+              "Receba relatório completo com coaching + plano de 12 semanas",
+          },
+        ].map((s) => (
+          <div
+            key={s.n}
+            className="flex items-center gap-4 rounded-2xl bg-surface-container-high p-4 ghost-border"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ai-pulse text-on-primary font-headline font-bold shadow-cta-glow">
+              {s.n}
+            </span>
+            <p className="text-on-surface">{s.label}</p>
+          </div>
+        ))}
       </div>
     ),
   },
   {
-    title: "Dica para melhor resultado",
+    kicker: "Dicas de captura",
+    title: "Para a melhor leitura da IA",
     content: (
-      <div className="space-y-3 text-sm text-gray-600">
-        <p>📹 Grave olhando para a camera</p>
-        <p>🔇 Ambiente silencioso (sem musica/ruido)</p>
-        <p>💡 Boa iluminacao no rosto</p>
-        <p>🧍 Corpo visivel (pelo menos da cintura pra cima)</p>
-        <p>⏱️ Fale por pelo menos 1 minuto</p>
+      <div className="space-y-2 text-sm">
+        {[
+          { icon: "videocam", label: "Grave olhando para a câmera" },
+          { icon: "volume_off", label: "Ambiente silencioso (sem música/ruído)" },
+          { icon: "wb_sunny", label: "Boa iluminação no rosto" },
+          { icon: "accessibility", label: "Corpo visível (ao menos cintura pra cima)" },
+          { icon: "schedule", label: "Fale por pelo menos 1 minuto" },
+        ].map((t) => (
+          <div
+            key={t.icon}
+            className="flex items-center gap-3 rounded-xl bg-surface-container-high p-3 ghost-border"
+          >
+            <span className="material-symbols-outlined text-secondary">
+              {t.icon}
+            </span>
+            <p className="text-on-surface-variant">{t.label}</p>
+          </div>
+        ))}
       </div>
     ),
   },
@@ -87,35 +116,41 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const slide = SLIDES[step];
 
   return (
-    <div className="w-full max-w-md space-y-6 text-center">
-      {/* Progress */}
-      <div className="flex gap-1">
+    <div className="w-full max-w-md space-y-7">
+      <div className="flex gap-1.5">
         {SLIDES.map((_, i) => (
           <div
             key={i}
             className={`h-1 flex-1 rounded-full transition-colors ${
-              i <= step ? "bg-blue-500" : "bg-gray-200"
+              i <= step ? "bg-secondary" : "bg-surface-container-high"
             }`}
           />
         ))}
       </div>
 
-      <h2 className="text-xl font-bold">{slide.title}</h2>
-
-      <div className="min-h-[200px]">{slide.content}</div>
-
       <div className="space-y-2">
+        <span className="font-label text-xs uppercase tracking-[0.3em] text-secondary">
+          {slide.kicker}
+        </span>
+        <h2 className="font-headline text-3xl md:text-4xl font-extrabold tracking-tight leading-tight">
+          {slide.title}
+        </h2>
+      </div>
+
+      <div className="min-h-[260px]">{slide.content}</div>
+
+      <div className="space-y-3">
         <button
           onClick={handleNext}
-          className="w-full rounded-xl bg-blue-500 py-3 text-white font-medium hover:bg-blue-600"
+          className="w-full bg-ai-pulse text-on-primary font-bold px-6 py-3.5 rounded-full shadow-cta-glow active:scale-[0.98] transition-all"
         >
-          {step < SLIDES.length - 1 ? "Proximo" : "Comecar!"}
+          {step < SLIDES.length - 1 ? "Próximo" : "Começar!"}
         </button>
         <button
           onClick={handleSkip}
-          className="w-full text-sm text-gray-400 hover:text-gray-600"
+          className="w-full text-center text-sm text-on-surface-variant hover:text-on-surface transition py-2"
         >
-          Pular
+          Pular introdução
         </button>
       </div>
     </div>

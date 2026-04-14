@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Resonant Stage - New Practice Session</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-variant": "#2d3449",
+              "on-background": "#dae2fd",
+              "surface-container-high": "#222a3d",
+              "surface": "#0b1326",
+              "error-container": "#93000a",
+              "on-primary-fixed": "#001c38",
+              "on-tertiary": "#452b00",
+              "secondary": "#45d8ed",
+              "secondary-fixed-dim": "#45d8ed",
+              "on-primary": "#00315b",
+              "tertiary": "#ffb954",
+              "inverse-primary": "#0060a8",
+              "on-tertiary-container": "#f6af46",
+              "surface-container-lowest": "#060e20",
+              "on-surface-variant": "#c3c6d4",
+              "outline-variant": "#434652",
+              "inverse-on-surface": "#283044",
+              "on-secondary-fixed": "#001f24",
+              "on-primary-container": "#8ebfff",
+              "primary": "#a2c9ff",
+              "inverse-surface": "#dae2fd",
+              "primary-fixed-dim": "#a2c9ff",
+              "on-error-container": "#ffdad6",
+              "on-secondary": "#00363d",
+              "primary-container": "#004d89",
+              "surface-tint": "#a2c9ff",
+              "on-secondary-fixed-variant": "#004f58",
+              "on-secondary-container": "#00444d",
+              "surface-container": "#171f33",
+              "secondary-fixed": "#98f0ff",
+              "on-tertiary-fixed-variant": "#633f00",
+              "surface-dim": "#0b1326",
+              "secondary-container": "#004bacd",
+              "surface-container-highest": "#2d3449",
+              "surface-container-low": "#131b2e",
+              "error": "#ffb4ab",
+              "on-primary-fixed-variant": "#004881",
+              "outline": "#8d909d",
+              "primary-fixed": "#d3e4ff",
+              "tertiary-fixed-dim": "#ffb954",
+              "on-tertiary-fixed": "#291800",
+              "on-surface": "#dae2fd",
+              "on-error": "#690005",
+              "tertiary-fixed": "#ffddb4",
+              "surface-bright": "#31394d",
+              "tertiary-container": "#6a4400",
+              "background": "#0b1326"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .viewfinder-guide {
+            border: 2px dashed rgba(69, 216, 237, 0.3);
+        }
+        .glass-panel {
+            background: rgba(45, 52, 73, 0.6);
+            backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-secondary/30">
+<!-- Top Navigation Anchor -->
+<header class="bg-[#0b1326] w-full top-0 sticky z-50 shadow-[0_40px_40px_rgba(218,226,253,0.08)]">
+<nav class="flex justify-between items-center px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#45d8ed] text-2xl hover:bg-[#222a3d] transition-colors p-2 rounded-full cursor-pointer active:scale-95 duration-200">arrow_back</span>
+<h1 class="font-headline font-bold tracking-tight text-[#45d8ed] text-lg">Nova Sessão de Prática</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="hidden md:flex items-center gap-6 mr-6">
+<span class="text-[#c3c6d4] hover:text-[#45d8ed] transition-colors cursor-pointer text-sm font-medium">Início</span>
+<span class="text-[#45d8ed] text-sm font-medium border-b-2 border-[#45d8ed] pb-1">Praticar</span>
+<span class="text-[#c3c6d4] hover:text-[#45d8ed] transition-colors cursor-pointer text-sm font-medium">Cursos</span>
+</div>
+<span class="material-symbols-outlined text-[#45d8ed] hover:bg-[#222a3d] transition-colors p-2 rounded-full cursor-pointer">notifications</span>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-[#45d8ed]/20">
+<img class="w-full h-full object-cover" data-alt="professional headshot of a smiling male public speaking coach in a dark studio setting with soft blue rim lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWMrSs8CesYomLvZPagUCtmTR-j_gc04vy2PFZWEQyImFhNpitlS6TlH-1O6NqudPutxSLH-3jxAFOaWLuseJwZW_6iuLVGN9zhlx5KPfGF7dylZIU4XqEHx5WMkQtnVBR97xZA1_T01u4uXrUaMHwmE-m_y7K8EYNLrFeSHOabPgEQ4o6Gq3KrZpqc9FUIiUgUGT_34DUho-UluCkz3wrH3aqx3f3oPjOwDv-8vSwgrmY6FpC3Y7YtCJihubSm1d7AWFaEkfltA"/>
+</div>
+</div>
+</nav>
+</header>
+<main class="max-w-7xl mx-auto px-6 pt-8 pb-32">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left Column: Instructional Checklist & Tabs -->
+<div class="lg:col-span-4 space-y-8">
+<section class="bg-surface-container-low rounded-[2rem] p-8 shadow-sm">
+<h2 class="font-headline text-2xl font-extrabold text-on-background mb-2">Pronto para Brilhar?</h2>
+<p class="text-on-surface-variant text-sm mb-8 leading-relaxed">Siga estes padrões cinematográficos para obter o feedback de IA mais preciso sobre seu desempenho.</p>
+<div class="space-y-6">
+<div class="flex gap-4 items-start">
+<div class="mt-1 w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary text-sm">light_mode</span>
+</div>
+<div>
+<h3 class="font-semibold text-on-background text-base">Garanta uma boa iluminação</h3>
+<p class="text-on-surface-variant text-xs mt-1">Ilumine seu rosto de frente para ajudar a IA a rastrear microexpressões.</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<div class="mt-1 w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary text-sm">person_pin</span>
+</div>
+<div>
+<h3 class="font-semibold text-on-background text-base">Enquadre da cintura para cima</h3>
+<p class="text-on-surface-variant text-xs mt-1">Isso nos permite analisar seus gestos com as mãos e sua postura de forma eficaz.</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<div class="mt-1 w-6 h-6 rounded-full bg-secondary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-secondary text-sm">mic</span>
+</div>
+<div>
+<h3 class="font-semibold text-on-background text-base">Fale com clareza</h3>
+<p class="text-on-surface-variant text-xs mt-1">Minimize o ruído de fundo para uma análise precisa de tom e cadência.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Toggle Options -->
+<div class="bg-surface-container-high p-2 rounded-full flex">
+<button class="flex-1 py-3 px-6 rounded-full bg-primary-container text-secondary font-semibold text-sm flex items-center justify-center gap-2"><span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">videocam</span> Gravar Agora</button>
+<button class="flex-1 py-3 px-6 rounded-full text-on-surface-variant font-semibold text-sm flex items-center justify-center gap-2 hover:bg-surface-container-highest transition-colors"><span class="material-symbols-outlined text-lg">upload_file</span> Carregar Vídeo</button>
+</div>
+</div>
+<!-- Right Column: Viewfinder / Upload Zone -->
+<div class="lg:col-span-8">
+<div class="relative aspect-video w-full rounded-[2.5rem] overflow-hidden bg-surface-container-lowest group shadow-2xl">
+<!-- Placeholder Camera Background -->
+<img class="w-full h-full object-cover opacity-40 brightness-50" data-alt="blurred office environment with warm indoor lighting and modern furniture, serving as a background for a camera preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANzpLhuD-W17k8nzU1G7jFQ6eLpRj27aK79Y26iAhWjsBohbrxG8IVYiXL16QMc-0uuEoL4E_VTCZkcRbVZpfsk-GFKe4I4tuYKU_CJNQGsoRqdcYXpgfWbUj27LBqy2zdm8V_Q6wnQqZRmF4X42_w55mh7-OXhJHR84GJwLn_N9hM5OmvQ0bWy3XW3FgL771aBIKwlTkiCkKmY2vlybL7xdr2Q5VxIzwiUEznFJSJSmiP-DR5jCehkkuEbrfFhHDV2mU6kfuyRQ"/>
+<!-- Viewfinder Overlays -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="w-3/4 h-3/4 viewfinder-guide rounded-3xl flex items-center justify-center">
+<div class="absolute top-8 left-8 border-t-4 border-l-4 border-secondary w-12 h-12 rounded-tl-xl opacity-60"></div>
+<div class="absolute top-8 right-8 border-t-4 border-r-4 border-secondary w-12 h-12 rounded-tr-xl opacity-60"></div>
+<div class="absolute bottom-8 left-8 border-b-4 border-l-4 border-secondary w-12 h-12 rounded-bl-xl opacity-60"></div>
+<div class="absolute bottom-8 right-8 border-b-4 border-r-4 border-secondary w-12 h-12 rounded-br-xl opacity-60"></div>
+<!-- Framing Guide Circle -->
+<div class="w-32 h-32 border-2 border-secondary/20 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary/30 text-4xl">face</span>
+</div>
+</div>
+</div>
+<!-- Top Controls Overlay -->
+<div class="absolute top-6 left-6 right-6 flex justify-between items-center">
+<div class="glass-panel px-4 py-2 rounded-full flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-error animate-pulse"></div>
+<span class="text-[10px] font-bold tracking-widest uppercase text-on-surface">Prévia ao Vivo</span>
+</div>
+<div class="glass-panel px-4 py-2 rounded-full flex items-center gap-4 text-on-surface-variant">
+<span class="material-symbols-outlined text-sm cursor-pointer hover:text-secondary">settings</span>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<span class="text-xs font-mono">1080p • 60fps</span>
+</div>
+</div>
+<!-- Record Button Pulsing Interaction -->
+<div class="absolute bottom-10 left-0 right-0 flex flex-col items-center gap-4">
+<button class="relative group active:scale-90 duration-300">
+<!-- Pulse Rings -->
+<div class="absolute inset-0 bg-secondary/20 rounded-full animate-ping scale-150"></div>
+<div class="absolute inset-0 bg-secondary/10 rounded-full animate-ping scale-125"></div>
+<!-- Main Button -->
+<div class="relative w-20 h-20 rounded-full bg-gradient-to-tr from-[#45d8ed] to-[#004d89] flex items-center justify-center shadow-[0_0_30px_rgba(69,216,237,0.4)]">
+<div class="w-16 h-16 rounded-full border-4 border-white/20 flex items-center justify-center">
+<div class="w-6 h-6 bg-white rounded-sm"></div>
+</div>
+</div>
+</button>
+<p class="font-headline font-bold text-white drop-shadow-md">Iniciar Sessão de Prática</p>
+</div>
+<!-- Fluency Wave Aesthetic Component -->
+<div class="absolute bottom-0 left-0 w-full h-1.5 bg-surface-container-high overflow-hidden">
+<div class="h-full w-2/3 bg-gradient-to-r from-secondary to-primary-container rounded-r-full"></div>
+</div>
+</div>
+<!-- Secondary Option: Upload Zone (Asymmetric Placement) -->
+<div class="mt-12 flex justify-end">
+<div class="w-full md:w-2/3 bg-surface-container-low p-10 rounded-[2.5rem] border-2 border-dashed border-outline-variant/20 hover:border-secondary/40 transition-all group cursor-pointer flex flex-col items-center justify-center gap-4">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:text-secondary group-hover:scale-110 transition-all duration-300">
+<span class="material-symbols-outlined text-3xl">cloud_upload</span>
+</div>
+<div class="text-center">
+<h4 class="font-bold text-on-background">Prefere carregar um arquivo?</h4>
+<p class="text-on-surface-variant text-sm mt-1">Arraste e solte seus arquivos MP4, MOV ou AVI aqui.</p>
+</div>
+<button class="mt-2 text-xs font-bold text-secondary uppercase tracking-widest border border-secondary/20 px-6 py-2 rounded-full hover:bg-secondary/5">Selecionar Arquivo</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Relevance Check: Visible as it's a top-level action) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#131b2e]/60 backdrop-blur-xl border-t border-[#434652]/15 md:hidden">
+<div class="flex flex-col items-center justify-center text-[#c3c6d4] p-3 hover:text-[#45d8ed] transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium mt-1">Início</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-[#004d89] text-[#45d8ed] rounded-full p-3 active:scale-90 duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">mic</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium mt-1">Praticar</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#c3c6d4] p-3 hover:text-[#45d8ed] transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">school</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium mt-1">Cursos</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#c3c6d4] p-3 hover:text-[#45d8ed] transition-all active:scale-90 duration-300">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-medium mt-1">Perfil</span>
+</div>
+</nav>
+</body></html>

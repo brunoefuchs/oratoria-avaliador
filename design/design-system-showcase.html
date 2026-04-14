@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Neural Architect - Design System Showcase</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#81ecff",
+        "primary-dim": "#00d4ec",
+        "primary-container": "#00e3fd",
+        "on-primary": "#005762",
+        "on-primary-container": "#004d57",
+        "secondary": "#a68cff",
+        "secondary-dim": "#7e51ff",
+        "secondary-container": "#591adc",
+        "on-secondary": "#25006b",
+        "tertiary": "#669dff",
+        "tertiary-dim": "#0070ea",
+        "tertiary-container": "#007afd",
+        "error": "#ff716c",
+        "error-dim": "#d7383b",
+        "error-container": "#9f0519",
+        "background": "#0a0e14",
+        "surface": "#0a0e14",
+        "surface-dim": "#0a0e14",
+        "surface-container-lowest": "#000000",
+        "surface-container-low": "#0f141a",
+        "surface-container": "#151a21",
+        "surface-container-high": "#1b2028",
+        "surface-container-highest": "#20262f",
+        "surface-variant": "#20262f",
+        "surface-bright": "#262c36",
+        "surface-tint": "#81ecff",
+        "on-surface": "#f1f3fc",
+        "on-background": "#f1f3fc",
+        "on-surface-variant": "#a8abb3",
+        "outline": "#72757d",
+        "outline-variant": "#44484f",
+        "inverse-surface": "#f8f9ff",
+        "inverse-primary": "#006976",
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk", "sans-serif"],
+        "body": ["Inter", "sans-serif"],
+        "label": ["Space Grotesk", "sans-serif"],
+      },
+      borderRadius: {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "2xl": "1rem",
+        "full": "9999px"
+      },
+    },
+  },
+}
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass-panel {
+    background: rgba(32, 38, 47, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .glass-panel-strong {
+    background: rgba(15, 20, 26, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .neural-grid {
+    background-image: radial-gradient(circle, rgba(129, 236, 255, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .neural-bg {
+    background-image: radial-gradient(circle at 50% 50%, rgba(129, 236, 255, 0.05) 0%, transparent 70%);
+  }
+  html { scroll-behavior: smooth; }
+  body { scrollbar-width: thin; scrollbar-color: #1b2028 #0a0e14; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #0a0e14; }
+  ::-webkit-scrollbar-thumb { background: #1b2028; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #262c36; }
+
+  /* Tab system */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .tab-btn.active { color: #81ecff; border-bottom-color: #81ecff; }
+
+  @keyframes pulse-glow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .animate-float { animation: float 3s ease-in-out infinite; }
+</style>
+</head>
+
+<body class="bg-background text-on-surface font-body selection:bg-primary/30">
+
+<!-- ============================================================ -->
+<!-- STICKY NAVIGATION -->
+<!-- ============================================================ -->
+<nav class="sticky top-0 z-50 bg-surface/90 backdrop-blur-xl border-b border-outline-variant/10">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-primary text-2xl">hub</span>
+      <span class="font-headline text-lg font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-primary to-tertiary">Neural Architect</span>
+      <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/50 ml-2">Design System v1.0</span>
+    </div>
+    <div class="hidden md:flex items-center gap-1">
+      <button onclick="switchTab('ds')" class="tab-btn active px-4 py-2 text-sm font-label uppercase tracking-wider border-b-2 border-transparent hover:text-primary transition-colors" data-tab="ds">Design System</button>
+      <button onclick="switchTab('login')" class="tab-btn px-4 py-2 text-sm font-label uppercase tracking-wider border-b-2 border-transparent hover:text-primary transition-colors" data-tab="login">Login</button>
+      <button onclick="switchTab('dashboard')" class="tab-btn px-4 py-2 text-sm font-label uppercase tracking-wider border-b-2 border-transparent hover:text-primary transition-colors" data-tab="dashboard">Dashboard</button>
+      <button onclick="switchTab('catalog')" class="tab-btn px-4 py-2 text-sm font-label uppercase tracking-wider border-b-2 border-transparent hover:text-primary transition-colors" data-tab="catalog">Catalogo</button>
+      <button onclick="switchTab('ranking')" class="tab-btn px-4 py-2 text-sm font-label uppercase tracking-wider border-b-2 border-transparent hover:text-primary transition-colors" data-tab="ranking">Ranking</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- TAB 1: DESIGN SYSTEM -->
+<!-- ============================================================ -->
+<div id="tab-ds" class="tab-content active">
+<div class="max-w-7xl mx-auto px-6 py-16 space-y-24">
+
+  <!-- HERO -->
+  <header class="text-center space-y-6">
+    <span class="font-label text-xs uppercase tracking-[0.4em] text-primary/80">The Luminescent Blueprint</span>
+    <h1 class="font-headline text-6xl md:text-8xl font-bold tracking-tighter leading-none">
+      <span class="bg-clip-text text-transparent bg-gradient-to-br from-on-surface to-on-surface-variant">Design</span><br/>
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-tertiary">System</span>
+    </h1>
+    <p class="text-on-surface-variant text-lg max-w-2xl mx-auto leading-relaxed">
+      Sistema de design completo para a plataforma Neural Architect. Tokens, componentes, padroes e telas prontas para implementacao.
+    </p>
+  </header>
+
+  <!-- SECTION: COLORS -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-primary text-3xl">palette</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Paleta de Cores</h2>
+        <p class="text-on-surface-variant text-sm">Tokens de cor do sistema</p>
+      </div>
+    </div>
+
+    <!-- Primary Colors -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-4">Primarias</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-10">
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-primary flex items-end p-3"><span class="text-on-primary text-xs font-bold font-label">primary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#81ecff</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-primary-dim flex items-end p-3"><span class="text-white text-xs font-bold font-label">primary-dim</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#00d4ec</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-primary-container flex items-end p-3"><span class="text-on-primary-container text-xs font-bold font-label">primary-container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#00e3fd</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-on-primary flex items-end p-3"><span class="text-primary text-xs font-bold font-label">on-primary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#005762</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-secondary flex items-end p-3"><span class="text-on-secondary text-xs font-bold font-label">secondary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#a68cff</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-tertiary flex items-end p-3"><span class="text-white text-xs font-bold font-label">tertiary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#669dff</span>
+      </div>
+    </div>
+
+    <!-- Surface Colors -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-4">Superficies (Tonal Layering)</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-10">
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-lowest border border-outline-variant/20 flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">lowest</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#000000</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface border border-outline-variant/20 flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">surface</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#0a0e14</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-low border border-outline-variant/20 flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">low</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#0f141a</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container border border-outline-variant/20 flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#151a21</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-high border border-outline-variant/20 flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">high</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#1b2028</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-highest border border-outline-variant/20 flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">highest</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#20262f</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-bright border border-outline-variant/20 flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">bright</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#262c36</span>
+      </div>
+    </div>
+
+    <!-- Utility Colors -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-tertiary mb-4">Utilitarias e Feedback</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-error flex items-end p-3"><span class="text-white text-xs font-bold font-label">error</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#ff716c</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-outline flex items-end p-3"><span class="text-white text-xs font-bold font-label">outline</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#72757d</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-outline-variant flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">outline-var</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#44484f</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-on-surface flex items-end p-3"><span class="text-surface text-xs font-bold font-label">on-surface</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#f1f3fc</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-on-surface-variant flex items-end p-3"><span class="text-surface text-xs font-bold font-label">on-surface-var</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#a8abb3</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-gradient-to-br from-primary to-tertiary flex items-end p-3"><span class="text-on-primary text-xs font-bold font-label">gradient</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">135deg signature</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: TYPOGRAPHY -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-primary text-3xl">text_fields</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Tipografia</h2>
+        <p class="text-on-surface-variant text-sm">Space Grotesk (headlines) + Inter (body)</p>
+      </div>
+    </div>
+
+    <div class="space-y-8 bg-surface-container-high/50 rounded-2xl p-8 border border-outline-variant/10">
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-primary uppercase tracking-widest w-24 shrink-0">display-lg</span>
+        <span class="font-headline text-6xl font-bold tracking-tighter">Neural Architect</span>
+      </div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-primary uppercase tracking-widest w-24 shrink-0">display-md</span>
+        <span class="font-headline text-5xl font-bold tracking-tight">Engineering Dashboard</span>
+      </div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-primary uppercase tracking-widest w-24 shrink-0">headline-lg</span>
+        <span class="font-headline text-3xl font-bold">Deep Learning Masterclass</span>
+      </div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-primary uppercase tracking-widest w-24 shrink-0">headline-md</span>
+        <span class="font-headline text-2xl font-medium">Course Layers Overview</span>
+      </div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-primary uppercase tracking-widest w-24 shrink-0">headline-sm</span>
+        <span class="font-headline text-xl font-bold">Project: RetinaScan AI</span>
+      </div>
+      <div class="h-px bg-outline-variant/20 my-4"></div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-secondary uppercase tracking-widest w-24 shrink-0">body-lg</span>
+        <span class="font-body text-base">Master asynchronous programming, decorators, and high-performance data structures for model orchestration.</span>
+      </div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-secondary uppercase tracking-widest w-24 shrink-0">body-md</span>
+        <span class="font-body text-sm text-on-surface-variant">Real-time object detection and segmentation for medical imaging datasets.</span>
+      </div>
+      <div class="h-px bg-outline-variant/20 my-4"></div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-tertiary uppercase tracking-widest w-24 shrink-0">label-md</span>
+        <span class="font-label text-xs font-semibold uppercase tracking-widest">ACTIVE PROGRAM</span>
+      </div>
+      <div class="flex items-baseline gap-6 flex-wrap">
+        <span class="font-label text-[10px] text-tertiary uppercase tracking-widest w-24 shrink-0">label-sm</span>
+        <span class="font-label text-[10px] font-bold uppercase tracking-[0.3em]">SYSTEM CORE V2.0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: COMPONENTS -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-primary text-3xl">widgets</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Componentes</h2>
+        <p class="text-on-surface-variant text-sm">Atoms e molecules do design system</p>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-6">Botoes</h3>
+    <div class="flex flex-wrap gap-4 mb-12">
+      <button class="px-8 py-4 bg-primary text-on-primary font-headline font-bold rounded-xl shadow-[0_0_20px_rgba(129,236,255,0.2)] hover:shadow-[0_0_30px_rgba(129,236,255,0.4)] active:scale-[0.98] transition-all flex items-center gap-2">
+        INITIALIZE SYSTEM
+        <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">bolt</span>
+      </button>
+      <button class="px-8 py-4 bg-gradient-to-r from-primary to-tertiary text-on-primary-container font-headline font-bold rounded-xl hover:brightness-110 active:scale-95 transition-all">
+        New Project
+      </button>
+      <button class="px-8 py-4 glass-panel rounded-xl border border-white/5 text-on-surface font-headline font-bold hover:bg-surface-bright transition-all">
+        Glass Button
+      </button>
+      <button class="px-8 py-4 bg-surface-container-high rounded-xl border border-white/5 text-on-surface-variant hover:bg-surface-bright hover:text-on-surface transition-all flex items-center gap-2">
+        <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"></path><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"></path></svg>
+        Google
+      </button>
+    </div>
+
+    <!-- Inputs -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-6">Inputs</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+      <div class="space-y-2">
+        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Username</label>
+        <div class="relative group">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">alternate_email</span>
+          <input class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface pl-12 py-4 rounded-t-lg transition-all duration-300 placeholder:text-on-surface-variant/30" placeholder="architect_01" type="text"/>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Password</label>
+        <div class="relative group">
+          <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">lock</span>
+          <input class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface pl-12 py-4 rounded-t-lg transition-all duration-300 placeholder:text-on-surface-variant/30" placeholder="••••••••" type="password"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Badges -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-6">Badges</h3>
+    <div class="flex flex-wrap gap-3 mb-12">
+      <span class="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full border border-primary/20 uppercase tracking-wider">Fundamental</span>
+      <span class="bg-secondary/10 text-secondary text-[10px] font-bold px-3 py-1 rounded-full border border-secondary/20 uppercase tracking-wider">Intermediate</span>
+      <span class="bg-tertiary/10 text-tertiary text-[10px] font-bold px-3 py-1 rounded-full border border-tertiary/20 uppercase tracking-wider">Advanced</span>
+      <span class="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full border border-primary/20 uppercase tracking-wider">Completed</span>
+      <span class="bg-error/10 text-error text-[10px] font-bold px-3 py-1 rounded-full border border-error/20 uppercase tracking-wider">Locked</span>
+      <span class="bg-surface-container-highest text-on-surface-variant text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tomorrow</span>
+      <span class="bg-primary/20 backdrop-blur-md px-2 py-1 rounded-md border border-primary/30 text-[10px] font-bold text-primary tracking-widest uppercase">Today</span>
+    </div>
+
+    <!-- Progress Bars -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-6">Neural Link Progress</h3>
+    <div class="space-y-6 mb-12">
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="font-label text-xs text-on-surface-variant uppercase">Deep Learning Masterclass</span>
+          <span class="font-headline text-sm font-bold text-primary">75%</span>
+        </div>
+        <div class="relative h-3 w-full bg-surface-container-lowest rounded-full overflow-hidden">
+          <div class="absolute top-0 left-0 h-full w-3/4 bg-gradient-to-r from-secondary to-primary rounded-full">
+            <div class="absolute top-0 right-0 w-8 h-full bg-white/30 blur-md animate-pulse-glow"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="font-label text-xs text-on-surface-variant uppercase">Machine Learning</span>
+          <span class="font-headline text-sm font-bold text-secondary">45%</span>
+        </div>
+        <div class="relative h-3 w-full bg-surface-container-lowest rounded-full overflow-hidden">
+          <div class="absolute top-0 left-0 h-full w-[45%] bg-secondary rounded-full"></div>
+        </div>
+      </div>
+      <div>
+        <div class="flex justify-between mb-2">
+          <span class="font-label text-xs text-on-surface-variant uppercase">Fundamentos</span>
+          <span class="font-headline text-sm font-bold text-primary">100%</span>
+        </div>
+        <div class="relative h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="h-full bg-primary w-full shadow-[0_0_10px_rgba(129,236,255,0.5)]"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-6">Cards</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <!-- Glass Card -->
+      <div class="glass-panel rounded-xl border border-white/5 p-6">
+        <span class="font-label text-xs tracking-widest text-primary uppercase">Glass Card</span>
+        <h4 class="font-headline text-xl font-bold mt-2 mb-3">Glassmorphism Panel</h4>
+        <p class="text-sm text-on-surface-variant">Painel com backdrop-blur e background semi-transparente.</p>
+      </div>
+      <!-- Surface Card -->
+      <div class="bg-surface-container-high rounded-2xl border border-white/5 p-6 hover:border-primary/30 transition-all group">
+        <span class="font-label text-[10px] uppercase text-secondary tracking-widest">Surface Card</span>
+        <h4 class="font-headline text-xl font-bold mt-2 mb-3 group-hover:text-primary transition-colors">Tonal Surface</h4>
+        <p class="text-sm text-on-surface-variant">Card com background surface-container-high e hover effect.</p>
+      </div>
+      <!-- Neural Grid Card -->
+      <div class="glass-panel rounded-xl border border-white/5 p-6 neural-grid relative overflow-hidden">
+        <div class="h-20 bg-gradient-to-t from-primary/5 to-transparent absolute bottom-0 left-0 right-0 pointer-events-none"></div>
+        <span class="font-label text-xs tracking-widest text-primary uppercase">Neural Grid</span>
+        <h4 class="font-headline text-xl font-bold mt-2 mb-3">Data Vessel</h4>
+        <p class="text-sm text-on-surface-variant relative z-10">Card com textura de grid neural para visualizacao de dados.</p>
+      </div>
+    </div>
+
+    <!-- Navigation Items -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-6">Navegacao (Sidebar)</h3>
+    <div class="bg-slate-950 rounded-2xl p-2 max-w-xs mb-12">
+      <a class="bg-slate-900 text-cyan-400 border-r-4 border-cyan-400 shadow-[0_0_20px_rgba(129,236,255,0.1)] px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest rounded-l-lg" href="#">
+        <span class="material-symbols-outlined">dashboard</span>
+        <span>Dashboard</span>
+      </a>
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all duration-200 group" href="#">
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">layers</span>
+        <span>Catalog</span>
+      </a>
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all duration-200 group" href="#">
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">leaderboard</span>
+        <span>Leaderboard</span>
+      </a>
+    </div>
+
+    <!-- Elevation Demo -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-6">Elevacao e Sombras</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="p-8 bg-surface-container-high rounded-2xl shadow-[0_20px_40px_rgba(129,236,255,0.05)] border border-outline-variant/10 text-center">
+        <span class="font-label text-[10px] text-primary uppercase tracking-widest">Ambient Cyan Glow</span>
+        <p class="text-sm text-on-surface-variant mt-2">box-shadow com tint cyan a 5% opacity</p>
+      </div>
+      <div class="p-8 bg-primary rounded-2xl shadow-[0_0_30px_rgba(129,236,255,0.4)] text-center">
+        <span class="font-label text-[10px] text-on-primary uppercase tracking-widest">Neon Glow</span>
+        <p class="text-sm text-on-primary mt-2">Para CTAs e botoes hover</p>
+      </div>
+      <div class="p-8 glass-panel-strong rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-outline-variant/20 text-center">
+        <span class="font-label text-[10px] text-primary uppercase tracking-widest">Glass Deep Shadow</span>
+        <p class="text-sm text-on-surface-variant mt-2">Para paineis flutuantes (modais, login)</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: ICONS -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-primary text-3xl">emoji_symbols</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Iconografia</h2>
+        <p class="text-on-surface-variant text-sm">Material Symbols Outlined</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-4 md:grid-cols-8 gap-6">
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl">dashboard</span>
+        <span class="text-[10px] text-on-surface-variant">dashboard</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl">layers</span>
+        <span class="text-[10px] text-on-surface-variant">layers</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl">leaderboard</span>
+        <span class="text-[10px] text-on-surface-variant">leaderboard</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl">terminal</span>
+        <span class="text-[10px] text-on-surface-variant">terminal</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl">hub</span>
+        <span class="text-[10px] text-on-surface-variant">hub</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl">schedule</span>
+        <span class="text-[10px] text-on-surface-variant">schedule</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+        <span class="text-[10px] text-on-surface-variant">check (fill)</span>
+      </div>
+      <div class="flex flex-col items-center gap-2 p-4 bg-surface-container-high/50 rounded-xl">
+        <span class="material-symbols-outlined text-primary text-3xl">lock</span>
+        <span class="text-[10px] text-on-surface-variant">lock</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 2: TELA LOGIN -->
+<!-- ============================================================ -->
+<div id="tab-login" class="tab-content">
+<div class="relative min-h-screen overflow-hidden flex items-center justify-center">
+  <!-- Background -->
+  <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 bg-surface"></div>
+    <div class="absolute inset-0 neural-bg"></div>
+    <div class="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-primary/10 rounded-full blur-[120px]"></div>
+    <div class="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-secondary/10 rounded-full blur-[120px]"></div>
+  </div>
+
+  <main class="relative z-10 w-full max-w-6xl px-6 grid lg:grid-cols-2 gap-12 items-center py-12">
+    <!-- Brand Side -->
+    <div class="hidden lg:flex flex-col space-y-8">
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-primary text-4xl">hub</span>
+          <span class="font-label text-sm uppercase tracking-[0.4em] text-primary/80">System Core V2.0</span>
+        </div>
+        <h1 class="font-headline text-7xl font-bold tracking-tighter leading-none bg-clip-text text-transparent bg-gradient-to-br from-on-surface to-on-surface-variant">
+          NEURAL<br/>ARCHITECT
+        </h1>
+        <p class="font-label text-xl text-primary font-medium tracking-widest">Engenharia de IA</p>
+      </div>
+      <div class="flex flex-col space-y-6 max-w-md">
+        <div class="p-6 bg-surface-container-low/40 rounded-xl border-l-2 border-primary/30">
+          <p class="text-on-surface-variant leading-relaxed">
+            Inicializando o ambiente para engenharia de modelos de alta precisao. Acesse seus blueprints neurais e orquestre inteligencia.
+          </p>
+        </div>
+        <div class="flex gap-8">
+          <div class="flex flex-col">
+            <span class="font-label text-xs text-primary/60 uppercase">Uptime</span>
+            <span class="font-headline text-xl">99.99%</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-label text-xs text-primary/60 uppercase">Nodes</span>
+            <span class="font-headline text-xl">1.2k+</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-label text-xs text-primary/60 uppercase">Latencia</span>
+            <span class="font-headline text-xl">14ms</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Form -->
+    <div class="flex justify-center lg:justify-end">
+      <div class="w-full max-w-md glass-panel-strong p-8 md:p-10 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-outline-variant/20 relative">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -z-10"></div>
+        <header class="mb-10 lg:hidden">
+          <h2 class="font-headline text-3xl font-bold tracking-tighter text-on-surface">NEURAL ARCHITECT</h2>
+          <p class="font-label text-xs text-primary tracking-widest">Engenharia de IA</p>
+        </header>
+        <div class="mb-10">
+          <h3 class="text-2xl font-headline font-medium text-on-surface mb-2">Credenciais de Acesso</h3>
+          <p class="text-on-surface-variant text-sm">Insira seus identificadores para iniciar a sessao.</p>
+        </div>
+        <form class="space-y-6" onsubmit="return false;">
+          <div class="space-y-2">
+            <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Username</label>
+            <div class="relative group">
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">alternate_email</span>
+              <input class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface pl-12 py-4 rounded-t-lg transition-all placeholder:text-on-surface-variant/30" placeholder="architect_01" type="text"/>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant ml-1">Password</label>
+            <div class="relative group">
+              <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">lock</span>
+              <input class="w-full bg-surface-container-lowest border-0 border-b-2 border-outline-variant/30 focus:border-primary focus:ring-0 text-on-surface pl-12 py-4 rounded-t-lg transition-all placeholder:text-on-surface-variant/30" placeholder="••••••••" type="password"/>
+            </div>
+          </div>
+          <div class="flex items-center justify-between py-2">
+            <label class="flex items-center gap-3 cursor-pointer group">
+              <input class="appearance-none w-5 h-5 rounded border border-outline-variant bg-transparent checked:bg-primary checked:border-primary transition-all cursor-pointer" type="checkbox"/>
+              <span class="text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">Lembrar-me</span>
+            </label>
+            <a class="text-sm text-primary hover:text-primary-container transition-colors font-medium" href="#">Esqueceu a senha?</a>
+          </div>
+          <button class="w-full py-4 bg-primary text-on-primary font-headline font-bold rounded-xl shadow-[0_0_20px_rgba(129,236,255,0.2)] hover:shadow-[0_0_30px_rgba(129,236,255,0.4)] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group" type="submit">
+            INICIALIZAR SISTEMA
+            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" style="font-variation-settings: 'FILL' 1;">bolt</span>
+          </button>
+        </form>
+        <div class="mt-10 flex flex-col items-center gap-6">
+          <div class="relative w-full flex items-center">
+            <div class="flex-grow border-t border-outline-variant/20"></div>
+            <span class="mx-4 text-xs font-label uppercase text-on-surface-variant/50 tracking-widest">Conectar via Node Externo</span>
+            <div class="flex-grow border-t border-outline-variant/20"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 w-full">
+            <button class="flex items-center justify-center gap-3 py-3 bg-surface-container-high rounded-lg hover:bg-surface-bright transition-colors border border-outline-variant/10">
+              <svg class="w-5 h-5 opacity-70" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="currentColor"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="currentColor"/></svg>
+              <span class="text-sm font-medium">Google</span>
+            </button>
+            <button class="flex items-center justify-center gap-3 py-3 bg-surface-container-high rounded-lg hover:bg-surface-bright transition-colors border border-outline-variant/10">
+              <svg class="w-5 h-5 opacity-70" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" fill="currentColor"/></svg>
+              <span class="text-sm font-medium">GitHub</span>
+            </button>
+          </div>
+        </div>
+        <footer class="mt-8 text-center">
+          <p class="text-on-surface-variant text-sm">Acesso nao autorizado e proibido.<br/><a class="text-secondary hover:underline" href="#">Solicitar credenciais</a></p>
+        </footer>
+      </div>
+    </div>
+  </main>
+
+  <!-- UI Accents -->
+  <div class="fixed bottom-8 left-8 z-20 flex gap-4">
+    <div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+    <div class="w-1.5 h-1.5 rounded-full bg-secondary opacity-50"></div>
+    <div class="w-1.5 h-1.5 rounded-full bg-primary opacity-20"></div>
+  </div>
+  <div class="fixed bottom-8 right-8 z-20">
+    <span class="font-label text-[10px] uppercase tracking-[0.5em] text-on-surface-variant/30">Protocol: Auth_v4.2</span>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 3: DASHBOARD -->
+<!-- ============================================================ -->
+<div id="tab-dashboard" class="tab-content">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-16 z-40 bg-slate-950 py-8">
+    <div class="px-6 mb-12">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+          <span class="material-symbols-outlined text-on-primary-container text-sm">terminal</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-black text-cyan-400 font-headline leading-none">Neural Architect</h2>
+          <span class="text-[10px] text-slate-500 font-headline tracking-[0.2em] uppercase">AI Engineering</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 space-y-1">
+      <a class="bg-slate-900 text-cyan-400 border-r-4 border-cyan-400 shadow-[0_0_20px_rgba(129,236,255,0.1)] px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest" href="#">
+        <span class="material-symbols-outlined">dashboard</span><span>Dashboard</span>
+      </a>
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all group" href="#">
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">layers</span><span>Catalog</span>
+      </a>
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all group" href="#">
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">leaderboard</span><span>Leaderboard</span>
+      </a>
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all group" href="#">
+        <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">terminal</span><span>Knowledge Base</span>
+      </a>
+    </div>
+    <div class="px-6 mb-8">
+      <button class="w-full py-3 bg-primary text-on-primary-container font-headline font-bold rounded-xl flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(129,236,255,0.3)] transition-all active:scale-95">
+        <span class="material-symbols-outlined text-sm">add</span> Novo Projeto
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 md:ml-64 p-6 md:p-10 space-y-10">
+    <!-- Hero Header -->
+    <header class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div>
+        <h1 class="font-headline text-5xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-on-background to-on-surface-variant max-w-2xl leading-tight">
+          Painel de Inteligencia Operacional
+        </h1>
+        <p class="mt-4 text-on-surface-variant font-body text-lg">Sincronizando caminhos neurais de aprendizagem.</p>
+      </div>
+      <div class="glass-panel p-6 rounded-xl border border-white/5 flex flex-col items-end">
+        <span class="font-label text-xs tracking-widest text-secondary uppercase mb-1">Nivel Atual</span>
+        <span class="font-headline text-2xl font-bold text-primary">Intermediario</span>
+        <div class="flex gap-1 mt-2">
+          <div class="h-1 w-8 bg-primary rounded-full"></div>
+          <div class="h-1 w-8 bg-primary rounded-full"></div>
+          <div class="h-1 w-8 bg-surface-variant rounded-full"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Bento Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <!-- Progress Card -->
+      <section class="md:col-span-8 glass-panel rounded-xl border border-white/5 overflow-hidden neural-grid relative">
+        <div class="p-8">
+          <div class="flex justify-between items-start mb-8">
+            <div>
+              <span class="font-label text-xs tracking-widest text-primary uppercase">Programa Ativo</span>
+              <h2 class="font-headline text-3xl font-bold mt-1">Deep Learning Masterclass</h2>
+            </div>
+            <span class="text-4xl font-headline font-bold text-primary">75%</span>
+          </div>
+          <div class="relative h-4 w-full bg-surface-container-lowest rounded-full overflow-hidden mb-6">
+            <div class="absolute top-0 left-0 h-full w-3/4 bg-gradient-to-r from-secondary to-primary rounded-full">
+              <div class="absolute top-0 right-0 w-8 h-full bg-white/30 blur-md animate-pulse-glow"></div>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-4">
+            <div class="bg-surface-container-lowest/50 px-4 py-2 rounded-lg border border-white/5">
+              <span class="text-xs text-on-surface-variant block uppercase font-label">Modulo 04</span>
+              <span class="text-sm font-medium">Redes Neurais Recorrentes</span>
+            </div>
+            <div class="bg-surface-container-lowest/50 px-4 py-2 rounded-lg border border-white/5">
+              <span class="text-xs text-on-surface-variant block uppercase font-label">Status</span>
+              <span class="text-sm font-medium text-primary">Operacional</span>
+            </div>
+          </div>
+        </div>
+        <div class="h-32 bg-gradient-to-t from-primary/5 to-transparent absolute bottom-0 w-full pointer-events-none"></div>
+      </section>
+
+      <!-- Course Layers -->
+      <section class="md:col-span-4 glass-panel rounded-xl border border-white/5 p-8 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-2 mb-6">
+            <span class="material-symbols-outlined text-secondary">database</span>
+            <h3 class="font-headline font-bold text-lg uppercase tracking-wider">Camadas do Curso</h3>
+          </div>
+          <div class="space-y-4">
+            <div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest/30 border-l-2 border-primary">
+              <span class="text-sm font-medium">Fundamentos</span>
+              <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-high border-l-2 border-secondary">
+              <span class="text-sm font-medium">Logica Core</span>
+              <span class="text-xs font-label text-secondary uppercase">Ativo</span>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-lowest/30 border-l-2 border-outline-variant">
+              <span class="text-sm text-on-surface-variant">Sintese Avancada</span>
+              <span class="material-symbols-outlined text-outline-variant text-sm">lock</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Activity Graph -->
+      <section class="md:col-span-7 glass-panel rounded-xl border border-white/5 p-8">
+        <div class="flex justify-between items-center mb-10">
+          <h3 class="font-headline font-bold text-xl uppercase tracking-wider">Grafico de Atividade Neural</h3>
+          <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-primary"></div>
+            <span class="text-[10px] font-label text-on-surface-variant uppercase">Horas de Estudo</span>
+          </div>
+        </div>
+        <div class="h-48 flex items-end justify-between gap-2 px-2">
+          <div class="w-full rounded-t-sm relative h-[40%] transition-all duration-500 hover:h-[45%]">
+            <div class="absolute bottom-0 w-full h-full bg-primary/20 rounded-t-sm"></div>
+            <div class="absolute bottom-0 w-full h-[20%] bg-primary rounded-t-sm"></div>
+          </div>
+          <div class="w-full rounded-t-sm relative h-[60%] transition-all duration-500 hover:h-[65%]">
+            <div class="absolute bottom-0 w-full h-full bg-primary/20 rounded-t-sm"></div>
+            <div class="absolute bottom-0 w-full h-[20%] bg-primary rounded-t-sm"></div>
+          </div>
+          <div class="w-full rounded-t-sm relative h-[85%] transition-all duration-500 hover:h-[90%]">
+            <div class="absolute bottom-0 w-full h-full bg-primary/20 rounded-t-sm"></div>
+            <div class="absolute bottom-0 w-full h-[20%] bg-primary rounded-t-sm"></div>
+          </div>
+          <div class="w-full rounded-t-sm relative h-[50%] transition-all duration-500 hover:h-[55%]">
+            <div class="absolute bottom-0 w-full h-full bg-primary/20 rounded-t-sm"></div>
+            <div class="absolute bottom-0 w-full h-[20%] bg-primary rounded-t-sm"></div>
+          </div>
+          <div class="w-full rounded-t-sm relative h-[95%] transition-all duration-500 hover:h-[100%]">
+            <div class="absolute bottom-0 w-full h-full bg-primary/20 rounded-t-sm"></div>
+            <div class="absolute bottom-0 w-full h-[20%] bg-primary shadow-[0_0_15px_rgba(129,236,255,0.5)] rounded-t-sm"></div>
+          </div>
+          <div class="w-full rounded-t-sm relative h-[70%] transition-all duration-500 hover:h-[75%]">
+            <div class="absolute bottom-0 w-full h-full bg-primary/20 rounded-t-sm"></div>
+            <div class="absolute bottom-0 w-full h-[20%] bg-primary rounded-t-sm"></div>
+          </div>
+          <div class="w-full rounded-t-sm relative h-[30%] transition-all duration-500 hover:h-[35%]">
+            <div class="absolute bottom-0 w-full h-full bg-primary/20 rounded-t-sm"></div>
+            <div class="absolute bottom-0 w-full h-[20%] bg-primary rounded-t-sm"></div>
+          </div>
+        </div>
+        <div class="flex justify-between mt-4 px-2 text-[10px] font-label text-on-surface-variant uppercase tracking-tighter">
+          <span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sab</span><span>Dom</span>
+        </div>
+      </section>
+
+      <!-- Upcoming Lessons -->
+      <section class="md:col-span-5 glass-panel rounded-xl border border-white/5 p-6">
+        <h3 class="font-headline font-bold text-lg mb-4 flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-sm">schedule</span>
+          Proximas Aulas
+        </h3>
+        <div class="space-y-4">
+          <div class="group cursor-pointer hover:bg-white/5 p-3 rounded-lg transition-colors">
+            <p class="text-sm font-semibold">Otimizacao de Hiperparametros</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded uppercase font-label">Hoje</span>
+              <span class="text-xs text-on-surface-variant">14:00 - 15:30</span>
+            </div>
+          </div>
+          <div class="group cursor-pointer hover:bg-white/5 p-3 rounded-lg transition-colors">
+            <p class="text-sm font-semibold">Transformers e Mecanismos de Atencao</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded uppercase font-label">Amanha</span>
+              <span class="text-xs text-on-surface-variant">10:00 - 12:00</span>
+            </div>
+          </div>
+          <div class="group cursor-pointer hover:bg-white/5 p-3 rounded-lg transition-colors">
+            <p class="text-sm font-semibold">GANs e Redes Generativas</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-[10px] bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded uppercase font-label">Quinta</span>
+              <span class="text-xs text-on-surface-variant">09:00 - 11:00</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Projects -->
+      <section class="md:col-span-12">
+        <h3 class="font-headline font-bold text-2xl mb-6 flex items-center gap-3">
+          Projetos Recentes
+          <div class="h-px flex-1 bg-gradient-to-r from-primary/30 to-transparent"></div>
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="group relative bg-surface-container-high rounded-xl overflow-hidden border border-white/5 hover:border-primary/30 transition-all duration-300">
+            <div class="h-40 bg-gradient-to-br from-primary/10 to-secondary/5 flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary/30 text-7xl">visibility</span>
+            </div>
+            <div class="p-5">
+              <span class="text-[10px] font-label uppercase text-secondary tracking-widest">Visao Computacional</span>
+              <h4 class="font-headline font-bold text-lg mt-1 group-hover:text-primary transition-colors">Projeto: RetinaScan AI</h4>
+              <p class="text-sm text-on-surface-variant mt-2 line-clamp-2">Deteccao e segmentacao de objetos em tempo real para datasets de imagens medicas.</p>
+              <div class="mt-4 flex items-center justify-between">
+                <span class="text-xs font-mono text-primary-dim">v2.4.0_STABLE</span>
+                <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+              </div>
+            </div>
+          </div>
+          <div class="group relative bg-surface-container-high rounded-xl overflow-hidden border border-white/5 hover:border-primary/30 transition-all duration-300">
+            <div class="h-40 bg-gradient-to-br from-secondary/10 to-tertiary/5 flex items-center justify-center">
+              <span class="material-symbols-outlined text-secondary/30 text-7xl">chat</span>
+            </div>
+            <div class="p-5">
+              <span class="text-[10px] font-label uppercase text-secondary tracking-widest">Integracao NLP</span>
+              <h4 class="font-headline font-bold text-lg mt-1 group-hover:text-primary transition-colors">Projeto: LexiSynth</h4>
+              <p class="text-sm text-on-surface-variant mt-2 line-clamp-2">Pipeline de analise de sentimentos usando arquiteturas transformer customizadas.</p>
+              <div class="mt-4 flex items-center justify-between">
+                <span class="text-xs font-mono text-primary-dim">v0.8.1_BETA</span>
+                <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+              </div>
+            </div>
+          </div>
+          <div class="group relative bg-surface-container-high rounded-xl overflow-hidden border border-white/5 hover:border-primary/30 transition-all duration-300">
+            <div class="h-40 bg-gradient-to-br from-tertiary/10 to-primary/5 flex items-center justify-center">
+              <span class="material-symbols-outlined text-tertiary/30 text-7xl">route</span>
+            </div>
+            <div class="p-5">
+              <span class="text-[10px] font-label uppercase text-secondary tracking-widest">Reinforcement Learning</span>
+              <h4 class="font-headline font-bold text-lg mt-1 group-hover:text-primary transition-colors">Projeto: AgentX Maze</h4>
+              <p class="text-sm text-on-surface-variant mt-2 line-clamp-2">Treinamento de agentes autonomos em ambientes dinamicos de alta entropia.</p>
+              <div class="mt-4 flex items-center justify-between">
+                <span class="text-xs font-mono text-primary-dim">v1.0.0_PRODUCTION</span>
+                <span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">arrow_forward</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 4: CATALOGO -->
+<!-- ============================================================ -->
+<div id="tab-catalog" class="tab-content">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-16 z-40 bg-slate-950 py-8">
+    <div class="flex-1 space-y-1">
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all group" href="#"><span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">dashboard</span> Dashboard</a>
+      <a class="bg-slate-900 text-cyan-400 border-r-4 border-cyan-400 shadow-[0_0_20px_rgba(129,236,255,0.1)] px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest" href="#"><span class="material-symbols-outlined">layers</span> Catalogo</a>
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all group" href="#"><span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">leaderboard</span> Leaderboard</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 md:ml-64 p-8 lg:p-12">
+    <!-- Hero -->
+    <section class="mb-16">
+      <div class="max-w-4xl">
+        <span class="font-label text-primary uppercase tracking-[0.3em] text-xs font-semibold mb-4 block">Curricula Projetado</span>
+        <h1 class="font-headline text-5xl md:text-6xl font-bold tracking-tight mb-6 leading-[1.1]">A Stack Arquitetural<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-secondary to-tertiary">dos Cursos Neurais</span></h1>
+        <p class="text-on-surface-variant text-lg max-w-2xl leading-relaxed">
+          Domine os fundamentos e estruturas avancadas de inteligencia artificial atraves do nosso caminho de engenharia multi-camadas.
+        </p>
+      </div>
+    </section>
+
+    <!-- Layer Navigation -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-12">
+      <div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-primary">
+        <div class="flex justify-between items-center mb-4">
+          <span class="font-label text-xs font-bold text-primary">CAMADA 01</span>
+          <span class="text-xs text-on-surface-variant">100% Completo</span>
+        </div>
+        <h3 class="font-headline text-lg font-medium mb-4">Fundamentos</h3>
+        <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="h-full bg-primary w-full shadow-[0_0_10px_rgba(129,236,255,0.5)]"></div>
+        </div>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-secondary/50">
+        <div class="flex justify-between items-center mb-4">
+          <span class="font-label text-xs font-bold text-secondary">CAMADA 02</span>
+          <span class="text-xs text-on-surface-variant">45% Progresso</span>
+        </div>
+        <h3 class="font-headline text-lg font-medium mb-4">Machine Learning</h3>
+        <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="h-full bg-secondary w-[45%]"></div>
+        </div>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-slate-700 opacity-60">
+        <div class="flex justify-between items-center mb-4">
+          <span class="font-label text-xs font-bold text-slate-500">CAMADA 03</span>
+          <span class="material-symbols-outlined text-xs text-slate-500">lock</span>
+        </div>
+        <h3 class="font-headline text-lg font-medium mb-4 text-slate-400">Redes Neurais</h3>
+        <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-slate-700 w-0"></div></div>
+      </div>
+      <div class="bg-surface-container-low p-6 rounded-xl border-l-4 border-slate-700 opacity-60">
+        <div class="flex justify-between items-center mb-4">
+          <span class="font-label text-xs font-bold text-slate-500">CAMADA 04</span>
+          <span class="material-symbols-outlined text-xs text-slate-500">lock</span>
+        </div>
+        <h3 class="font-headline text-lg font-medium mb-4 text-slate-400">IA Avancada</h3>
+        <div class="h-1 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-slate-700 w-0"></div></div>
+      </div>
+    </div>
+
+    <!-- Layer 1 Courses -->
+    <div class="space-y-24">
+      <section>
+        <div class="flex items-center gap-4 mb-8">
+          <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
+            <span class="material-symbols-outlined text-primary">data_object</span>
+          </div>
+          <div>
+            <h2 class="font-headline text-2xl font-bold">Camada 1: Fundamentos</h2>
+            <p class="text-on-surface-variant text-sm">A Sintaxe da Inteligencia: Python e Matematica Essencial</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="group relative bg-surface-container-high rounded-2xl overflow-hidden hover:shadow-[0_0_40px_rgba(129,236,255,0.1)] transition-all duration-300">
+            <div class="aspect-video relative overflow-hidden bg-gradient-to-br from-primary/20 to-surface-container-high flex items-center justify-center">
+              <span class="material-symbols-outlined text-primary/30 text-7xl group-hover:scale-110 transition-transform duration-500">code</span>
+              <div class="absolute top-3 right-3 bg-primary/20 backdrop-blur-md px-2 py-1 rounded-md border border-primary/30 text-[10px] font-bold text-primary tracking-widest uppercase">Fundamental</div>
+            </div>
+            <div class="p-6">
+              <h4 class="font-headline text-xl font-bold mb-2">Python Avancado para IA</h4>
+              <p class="text-on-surface-variant text-sm mb-6 line-clamp-2">Domine programacao assincrona, decoradores e estruturas de dados de alto desempenho para orquestracao de modelos.</p>
+              <div class="flex items-center justify-between text-xs font-label text-slate-500">
+                <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">schedule</span><span>12 HORAS</span></div>
+                <div class="flex items-center gap-2 text-primary"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>COMPLETO</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="group relative bg-surface-container-high rounded-2xl overflow-hidden hover:shadow-[0_0_40px_rgba(129,236,255,0.1)] transition-all duration-300">
+            <div class="aspect-video relative overflow-hidden bg-gradient-to-br from-secondary/20 to-surface-container-high flex items-center justify-center">
+              <span class="material-symbols-outlined text-secondary/30 text-7xl group-hover:scale-110 transition-transform duration-500">functions</span>
+              <div class="absolute top-3 right-3 bg-primary/20 backdrop-blur-md px-2 py-1 rounded-md border border-primary/30 text-[10px] font-bold text-primary tracking-widest uppercase">Fundamental</div>
+            </div>
+            <div class="p-6">
+              <h4 class="font-headline text-xl font-bold mb-2">Algebra Linear e Calculo</h4>
+              <p class="text-on-surface-variant text-sm mb-6 line-clamp-2">A geometria de matrizes de pesos e a mecanica de otimizacao por gradiente descendente.</p>
+              <div class="flex items-center justify-between text-xs font-label text-slate-500">
+                <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">schedule</span><span>18 HORAS</span></div>
+                <div class="flex items-center gap-2 text-primary"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>COMPLETO</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="group relative bg-surface-container-high rounded-2xl overflow-hidden hover:shadow-[0_0_40px_rgba(129,236,255,0.1)] transition-all duration-300">
+            <div class="aspect-video relative overflow-hidden bg-gradient-to-br from-tertiary/20 to-surface-container-high flex items-center justify-center">
+              <span class="material-symbols-outlined text-tertiary/30 text-7xl group-hover:scale-110 transition-transform duration-500">bar_chart</span>
+              <div class="absolute top-3 right-3 bg-primary/20 backdrop-blur-md px-2 py-1 rounded-md border border-primary/30 text-[10px] font-bold text-primary tracking-widest uppercase">Fundamental</div>
+            </div>
+            <div class="p-6">
+              <h4 class="font-headline text-xl font-bold mb-2">Estatistica e Probabilidade</h4>
+              <p class="text-on-surface-variant text-sm mb-6 line-clamp-2">Distribuicoes, inferencia bayesiana e testes de hipotese aplicados ao aprendizado de maquina.</p>
+              <div class="flex items-center justify-between text-xs font-label text-slate-500">
+                <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">schedule</span><span>15 HORAS</span></div>
+                <div class="flex items-center gap-2 text-primary"><span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span><span>COMPLETO</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Layer 2 -->
+      <section>
+        <div class="flex items-center gap-4 mb-8">
+          <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center border border-secondary/20">
+            <span class="material-symbols-outlined text-secondary">analytics</span>
+          </div>
+          <div>
+            <h2 class="font-headline text-2xl font-bold">Camada 2: Machine Learning</h2>
+            <p class="text-on-surface-variant text-sm">Reconhecimento de Padroes e Arquiteturas Estatisticas</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="group bg-surface-container-high rounded-2xl overflow-hidden hover:shadow-[0_0_40px_rgba(166,140,255,0.1)] transition-all p-8 border border-white/5">
+            <div class="bg-secondary/20 backdrop-blur-md px-2 py-1 rounded-md border border-secondary/30 text-[10px] font-bold text-secondary tracking-widest uppercase w-fit mb-4">Intermediario</div>
+            <h4 class="font-headline text-2xl font-bold mb-3">Arquiteturas de Regressao</h4>
+            <p class="text-on-surface-variant text-sm mb-6">Analise multivariada e feature engineering para modelagem preditiva.</p>
+            <div class="flex items-center gap-6 text-xs font-label text-slate-500 mb-6">
+              <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">schedule</span><span>24 HORAS</span></div>
+              <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">equalizer</span><span>MODERADO</span></div>
+            </div>
+            <button class="bg-surface-bright text-on-surface border border-white/5 px-6 py-3 rounded-xl font-bold text-sm group-hover:bg-secondary group-hover:text-on-secondary transition-all">Continuar Engenharia</button>
+          </div>
+          <div class="group bg-surface-container-high rounded-2xl overflow-hidden hover:shadow-[0_0_40px_rgba(166,140,255,0.1)] transition-all p-8 border border-white/5">
+            <div class="bg-surface-container-highest/50 px-2 py-1 rounded-md text-[10px] font-bold text-slate-500 tracking-widest uppercase w-fit mb-4">Nao Iniciado</div>
+            <h4 class="font-headline text-2xl font-bold mb-3">Sistemas de Classificacao</h4>
+            <p class="text-on-surface-variant text-sm mb-6">Algoritmos de classificacao supervisionada e nao-supervisionada.</p>
+            <div class="flex items-center gap-6 text-xs font-label text-slate-500 mb-6">
+              <div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">schedule</span><span>16 HORAS</span></div>
+            </div>
+            <div class="w-full bg-surface-container-lowest h-1 rounded-full"><div class="bg-secondary h-full w-0"></div></div>
+            <span class="text-[10px] text-slate-600 font-bold tracking-wider mt-2 block">0% PROGRESSO</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Layer 3 Locked -->
+      <section class="opacity-50 grayscale pointer-events-none">
+        <div class="flex items-center gap-4 mb-8">
+          <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-white/5">
+            <span class="material-symbols-outlined text-slate-500">psychology</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-headline text-2xl font-bold text-slate-400">Camada 3: Redes Neurais</h2>
+              <span class="material-symbols-outlined text-slate-600 text-sm">lock</span>
+            </div>
+            <p class="text-slate-600 text-sm">Computacao Bio-inspirada e Arquiteturas Profundas</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="bg-surface-container p-8 rounded-2xl border border-dashed border-white/10">
+            <h4 class="font-headline text-xl font-bold text-slate-600 mb-2">Redes Neurais Convolucionais (CNN)</h4>
+            <p class="text-slate-700 text-sm">Desbloqueia apos completar Camada 2.</p>
+          </div>
+          <div class="bg-surface-container p-8 rounded-2xl border border-dashed border-white/10">
+            <h4 class="font-headline text-xl font-bold text-slate-600 mb-2">Estruturas Recorrentes (RNN/LSTM)</h4>
+            <p class="text-slate-700 text-sm">Processamento de dados sequenciais e padroes temporais.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 5: RANKING -->
+<!-- ============================================================ -->
+<div id="tab-ranking" class="tab-content">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-16 z-40 bg-slate-950 py-8">
+    <div class="px-6 mb-8">
+      <h1 class="text-lg font-black text-cyan-400 font-headline tracking-widest uppercase">Neural Architect</h1>
+      <p class="text-[10px] text-slate-500 font-headline tracking-[0.2em] mt-1">AI Engineering</p>
+    </div>
+    <div class="flex-1 space-y-1">
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all group" href="#"><span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">dashboard</span> Dashboard</a>
+      <a class="text-slate-500 hover:text-slate-300 px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest hover:bg-slate-900/50 transition-all group" href="#"><span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">layers</span> Catalogo</a>
+      <a class="bg-slate-900 text-cyan-400 border-r-4 border-cyan-400 shadow-[0_0_20px_rgba(129,236,255,0.1)] px-6 py-4 flex items-center gap-3 font-label text-sm uppercase tracking-widest" href="#"><span class="material-symbols-outlined">leaderboard</span> Leaderboard</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 md:ml-64 min-h-screen neural-grid pb-32">
+    <section class="max-w-6xl mx-auto px-6 py-12">
+      <!-- Header -->
+      <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+        <div class="space-y-2">
+          <span class="text-primary font-label text-xs tracking-[0.3em] uppercase">Metricas de Performance</span>
+          <h2 class="text-5xl font-bold font-headline tracking-tighter leading-none">Ranking de<br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Engenharia</span></h2>
+        </div>
+        <div class="bg-surface-container-high p-4 rounded-xl flex items-center gap-6 border border-outline-variant/10">
+          <div class="text-center">
+            <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label">Nodes Ativos</p>
+            <p class="text-2xl font-bold font-headline text-primary">1,284</p>
+          </div>
+          <div class="w-[1px] h-10 bg-outline-variant/20"></div>
+          <div class="text-center">
+            <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label">Latencia Media</p>
+            <p class="text-2xl font-bold font-headline text-secondary">42ms</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Leader Card -->
+      <div class="relative overflow-hidden mb-12 group">
+        <div class="absolute inset-0 bg-gradient-to-r from-primary/10 via-secondary/5 to-transparent opacity-50"></div>
+        <div class="relative glass-panel rounded-2xl p-8 border border-primary/20 flex flex-col md:flex-row items-center gap-8">
+          <div class="relative">
+            <div class="absolute inset-0 bg-primary blur-2xl opacity-20 scale-125"></div>
+            <div class="w-32 h-32 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center relative z-10 border-2 border-primary text-5xl font-bold font-headline text-on-primary">AR</div>
+            <div class="absolute -bottom-3 -right-3 bg-primary text-slate-950 px-3 py-1 rounded-full text-xs font-bold font-label z-20 shadow-lg">#1</div>
+          </div>
+          <div class="flex-1 text-center md:text-left">
+            <div class="flex items-center justify-center md:justify-start gap-3 mb-2">
+              <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+              <span class="text-primary font-label text-xs uppercase tracking-widest font-bold">Lider da Semana</span>
+            </div>
+            <h3 class="text-3xl font-bold font-headline mb-2">Alex Rivera</h3>
+            <p class="text-on-surface-variant text-sm max-w-md mb-4">Otimizou a arquitetura transformer Neural-X reduzindo custos de treinamento em 34%.</p>
+            <div class="flex flex-wrap justify-center md:justify-start gap-2">
+              <span class="bg-primary/10 text-primary text-[10px] font-bold px-3 py-1 rounded-full border border-primary/20 uppercase tracking-tighter">Model Optimizer</span>
+              <span class="bg-secondary/10 text-secondary text-[10px] font-bold px-3 py-1 rounded-full border border-secondary/20 uppercase tracking-tighter">Code Guru</span>
+              <span class="bg-tertiary/10 text-tertiary text-[10px] font-bold px-3 py-1 rounded-full border border-tertiary/20 uppercase tracking-tighter">Tensor Wizard</span>
+            </div>
+          </div>
+          <div class="text-center md:text-right">
+            <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-label mb-1">Compute Score</p>
+            <p class="text-5xl font-bold font-headline text-primary tracking-tighter">48,920 <span class="text-lg">XP</span></p>
+            <div class="mt-4 inline-flex items-center gap-2 text-primary-dim text-xs font-label">
+              <span class="material-symbols-outlined text-sm">trending_up</span>
+              +12% do ultimo ciclo
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ranking Table -->
+      <div class="space-y-4">
+        <div class="grid grid-cols-12 px-8 py-2 text-[10px] font-label uppercase tracking-[0.2em] text-on-surface-variant opacity-60">
+          <div class="col-span-1">Rank</div>
+          <div class="col-span-5">Node Engenheiro</div>
+          <div class="col-span-2">Camada</div>
+          <div class="col-span-2">Conquistas</div>
+          <div class="col-span-2 text-right">XP Points</div>
+        </div>
+
+        <!-- Rank Items -->
+        <div class="grid grid-cols-12 items-center px-8 py-4 bg-surface-container-low rounded-xl border border-outline-variant/5 hover:border-primary/30 hover:bg-surface-container transition-all group cursor-default">
+          <div class="col-span-1 font-headline font-bold text-lg text-on-surface-variant group-hover:text-primary transition-colors">02</div>
+          <div class="col-span-5 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary to-primary flex items-center justify-center text-on-primary font-bold text-sm">SC</div>
+            <div><p class="font-bold">Sarah Chen</p><p class="text-xs text-on-surface-variant">Especialista em Arquitetura</p></div>
+          </div>
+          <div class="col-span-2"><span class="text-xs font-label text-secondary uppercase tracking-widest">Camada 08</span></div>
+          <div class="col-span-2 flex gap-2">
+            <span class="material-symbols-outlined text-lg text-tertiary" title="Execucao Rapida">bolt</span>
+            <span class="material-symbols-outlined text-lg text-primary" title="Mestre Arquiteto">architecture</span>
+          </div>
+          <div class="col-span-2 text-right font-headline font-bold">45,102</div>
+        </div>
+
+        <div class="grid grid-cols-12 items-center px-8 py-4 bg-surface-container-low rounded-xl border border-outline-variant/5 hover:border-primary/30 hover:bg-surface-container transition-all group cursor-default">
+          <div class="col-span-1 font-headline font-bold text-lg text-on-surface-variant group-hover:text-primary transition-colors">03</div>
+          <div class="col-span-5 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-tertiary to-secondary flex items-center justify-center text-white font-bold text-sm">MT</div>
+            <div><p class="font-bold">Marcus Thorne</p><p class="text-xs text-on-surface-variant">Analista de Dados Lider</p></div>
+          </div>
+          <div class="col-span-2"><span class="text-xs font-label text-secondary uppercase tracking-widest">Camada 07</span></div>
+          <div class="col-span-2 flex gap-2">
+            <span class="material-symbols-outlined text-lg text-primary" title="Code Guru">terminal</span>
+            <span class="material-symbols-outlined text-lg text-secondary" title="Mago da Matematica">functions</span>
+          </div>
+          <div class="col-span-2 text-right font-headline font-bold">42,880</div>
+        </div>
+
+        <div class="grid grid-cols-12 items-center px-8 py-4 bg-surface-container-low rounded-xl border border-outline-variant/5 hover:border-primary/30 hover:bg-surface-container transition-all group cursor-default">
+          <div class="col-span-1 font-headline font-bold text-lg text-on-surface-variant group-hover:text-primary transition-colors">04</div>
+          <div class="col-span-5 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-tertiary flex items-center justify-center text-on-primary font-bold text-sm">ER</div>
+            <div><p class="font-bold">Elena Rodriguez</p><p class="text-xs text-on-surface-variant">Pesquisadora NLP</p></div>
+          </div>
+          <div class="col-span-2"><span class="text-xs font-label text-secondary uppercase tracking-widest">Camada 07</span></div>
+          <div class="col-span-2 flex gap-2">
+            <span class="material-symbols-outlined text-lg text-tertiary" title="Especialista em Linguagem">translate</span>
+          </div>
+          <div class="col-span-2 text-right font-headline font-bold">39,450</div>
+        </div>
+
+        <div class="grid grid-cols-12 items-center px-8 py-4 bg-surface-container-low rounded-xl border border-outline-variant/5 hover:border-primary/30 hover:bg-surface-container transition-all group cursor-default">
+          <div class="col-span-1 font-headline font-bold text-lg text-on-surface-variant group-hover:text-primary transition-colors">05</div>
+          <div class="col-span-5 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-secondary to-tertiary flex items-center justify-center text-white font-bold text-sm">JS</div>
+            <div><p class="font-bold">Jordan Smyth</p><p class="text-xs text-on-surface-variant">Full Stack Engineer</p></div>
+          </div>
+          <div class="col-span-2"><span class="text-xs font-label text-secondary uppercase tracking-widest">Camada 06</span></div>
+          <div class="col-span-2 flex gap-2">
+            <span class="material-symbols-outlined text-lg text-primary">integration_instructions</span>
+          </div>
+          <div class="col-span-2 text-right font-headline font-bold">38,120</div>
+        </div>
+
+        <!-- Your Standing -->
+        <div class="mt-8 grid grid-cols-12 items-center px-8 py-6 glass-panel rounded-2xl border border-secondary/20">
+          <div class="col-span-1 font-headline font-bold text-lg text-secondary">15</div>
+          <div class="col-span-5 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-on-primary font-bold text-sm">VC</div>
+            <div>
+              <div class="flex items-center gap-2">
+                <p class="font-bold">Voce</p>
+                <span class="text-[10px] bg-secondary/20 text-secondary px-2 py-0.5 rounded-full font-label uppercase">Voce</span>
+              </div>
+              <p class="text-xs text-on-surface-variant">Camada 03 &middot; 12,800 XP</p>
+            </div>
+          </div>
+          <div class="col-span-3"><span class="text-xs text-on-surface-variant">Top 11.68% de 86,220</span></div>
+          <div class="col-span-3 text-right">
+            <button class="bg-secondary text-on-secondary px-4 py-2 rounded-xl text-xs font-bold font-headline hover:brightness-110 transition-all active:scale-95">Boost Performance</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FOOTER -->
+<!-- ============================================================ -->
+<footer class="bg-surface-container-lowest border-t border-white/5 p-8 flex flex-col md:flex-row justify-between items-center gap-6">
+  <div class="flex items-center gap-3">
+    <span class="material-symbols-outlined text-primary text-xl">hub</span>
+    <span class="font-headline text-sm font-bold text-on-surface-variant">Neural Architect Design System v1.0</span>
+  </div>
+  <div class="flex gap-6">
+    <span class="font-label text-[10px] text-slate-500 uppercase tracking-widest">Tokens: 68</span>
+    <span class="font-label text-[10px] text-slate-500 uppercase tracking-widest">Componentes: 14</span>
+    <span class="font-label text-[10px] text-slate-500 uppercase tracking-widest">Telas: 4</span>
+  </div>
+</footer>
+
+<script>
+function switchTab(tabId) {
+  // Hide all tabs
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+  // Show selected tab
+  document.getElementById('tab-' + tabId).classList.add('active');
+
+  // Activate button
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    if (btn.getAttribute('data-tab') === tabId) {
+      btn.classList.add('active');
+    }
+  });
+
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

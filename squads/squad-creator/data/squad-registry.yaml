@@ -1,0 +1,1338 @@
+metadata:
+  version: 1.3.0
+  last_updated: '2026-02-18'
+  total_squads: 17
+  maintainer: squad-creator
+  generated_by: "scripts/refresh-registry.py --write (100% deterministic)"
+squads:
+  advisory-board:
+    path: squads/advisory-board/
+    version: 1.0.0
+    score: 8.4
+    maturity: DEVELOPING
+    validated: false
+    description: Board of elite business minds for strategic advisory and decision-making
+    slashPrefix: ''
+    counts:
+      agents: 11
+      tasks: 7
+      workflows: 2
+      templates: 3
+      checklists: 3
+      data_files: 2
+    agent_names:
+    - ray-dalio
+    - charlie-munger
+    - yvon-chouinard
+    - patrick-lencioni
+    - reid-hoffman
+    - brene-brown
+    - board-chair
+    - derek-sivers
+    - peter-thiel
+    - simon-sinek
+    - naval-ravikant
+    has_readme: true
+    has_changelog: false
+    domain: business_strategy
+    keywords:
+    - advisory
+    - board
+    - strategy
+    - decision-making
+    - investment
+    - leadership
+    - mental-models
+    - ray-dalio
+    - charlie-munger
+    - naval-ravikant
+    - peter-thiel
+    - simon-sinek
+    - brene-brown
+    highlights:
+    - 11 elite business minds (Dalio, Munger, Thiel, Naval, Sinek)
+    - Strategic advisory with documented frameworks
+    - 2 workflows for board consultation sessions
+    example_use: Consult the advisory board for strategic business decisions and investment analysis
+  brand:
+    path: squads/brand/
+    version: 1.1.0
+    score: 7.8
+    maturity: DEVELOPING
+    validated: false
+    description: SNP (Igor) + E/F/F (Ana) com 11 especialistas globais para fundamentos, posicionamento e ativação
+    slashPrefix: ''
+    counts:
+      agents: 15
+      tasks: 5
+      workflows: 6
+      templates: 0
+      checklists: 0
+      data_files: 1
+    agent_names:
+    - brand-strategist
+    - miller-sticky-brand
+    - sharp-brand-science
+    - ries-positioning
+    - heyward-dtc-brand
+    - storybrand-narrator
+    - keller-brand-equity
+    - yohn-brand-culture
+    - domain-scout
+    - aaker-brand-identity
+    - wheeler-brand-design
+    - archetype-consultant
+    - naming-strategist
+    - neumeier-differentiation
+    - brand-chief
+    has_readme: true
+    has_changelog: false
+    domain: brand
+    keywords:
+    - brand
+    - snp
+    - igor
+    - ana
+    - especialistas
+    - globais
+    - fundamentos
+    - posicionamento
+    - ativa
+    - strategist
+    - miller
+    - sticky
+    highlights:
+    - 15 agents, 5 tasks
+    - 5 workflows available
+    - README documented
+    example_use: Use brand for brand tasks.
+  c-level:
+    path: squads/c-level/
+    version: 1.0.0
+    score: 7.4
+    maturity: DEVELOPING
+    validated: false
+    description: C-Suite executive agents for organizational leadership and strategy
+    slashPrefix: ''
+    counts:
+      agents: 6
+      tasks: 11
+      workflows: 1
+      templates: 0
+      checklists: 1
+      data_files: 0
+    agent_names:
+    - cio-engineer
+    - coo-orchestrator
+    - cmo-architect
+    - cto-architect
+    - caio-architect
+    - vision-chief
+    has_readme: true
+    has_changelog: false
+    domain: business_ops
+    keywords:
+    - c-level
+    - cto
+    - cio
+    - cmo
+    - coo
+    - caio
+    - executive
+    - leadership
+    - strategy
+    - vision
+    highlights:
+    - 6 C-Suite roles (CTO, CIO, CMO, COO, CAIO, Vision Chief)
+    - Cross-functional executive decision-making
+    - Organizational strategy and technology leadership
+    example_use: Activate C-Level agents for executive-level technology and business strategy decisions
+  copy:
+    path: squads/copy/
+    version: 4.0.0
+    score: 10.0
+    maturity: OPERATIONAL
+    validated: true
+    description: Elite copywriting squad with legends of direct response and persuasion
+    slashPrefix: ''
+    counts:
+      agents: 24
+      tasks: 59
+      workflows: 14
+      templates: 23
+      checklists: 32
+      data_files: 4
+    agent_names:
+    - gary-bencivenga
+    - andre-chaperon
+    - john-carlton
+    - david-deutsch
+    - clayton-makepeace
+    - david-ogilvy
+    - claude-hopkins
+    - todd-brown
+    - jim-rutz
+    - stefan-georgi
+    - gary-halbert
+    - frank-kern
+    - copy-chief
+    - joe-sugarman
+    - dan-koe
+    - ben-settle
+    - eugene-schwartz
+    - russell-brunson
+    - dan-kennedy
+    - parris-lampropoulos
+    - jeff-walker
+    - jon-benson
+    - robert-collier
+    - ry-schwartz
+    has_readme: true
+    has_changelog: false
+    domain: content_marketing
+    keywords:
+    - copywriting
+    - direct-response
+    - persuasion
+    - sales-copy
+    - email
+    - headlines
+    - gary-halbert
+    - eugene-schwartz
+    - david-ogilvy
+    - dan-kennedy
+    - claude-hopkins
+    - frank-kern
+    highlights:
+    - 24 copywriting legends (largest squad in ecosystem)
+    - 59 tasks + 14 workflows covering all copy disciplines
+    - "Direct response masters: Halbert, Schwartz, Ogilvy, Kennedy, Hopkins"
+    - 32 checklists for quality validation
+    example_use: Write high-converting sales pages, emails, and ads using frameworks from copywriting masters
+  cybersecurity:
+    path: squads/cybersecurity/
+    version: 2.0.0
+    score: 10.0
+    maturity: DEVELOPING
+    validated: false
+    description: Offensive and defensive cybersecurity squad for penetration testing and security auditing
+    slashPrefix: ''
+    counts:
+      agents: 15
+      tasks: 25
+      workflows: 4
+      templates: 1
+      checklists: 6
+      data_files: 5
+    agent_names:
+    - fuzzer
+    - peter-kim
+    - command-generator
+    - jim-manico
+    - cyber-chief
+    - chris-sanders
+    - marcus-carey
+    - rogue
+    - georgia-weidman
+    - busterer
+    - omar-santos
+    - cartographer
+    - ripper
+    - shannon-runner
+    - dirber
+    has_readme: true
+    has_changelog: false
+    domain: technical
+    keywords:
+    - cybersecurity
+    - pentest
+    - security
+    - offensive
+    - defensive
+    - vulnerability
+    - fuzzing
+    - recon
+    - exploit
+    - peter-kim
+    - georgia-weidman
+    - omar-santos
+    highlights:
+    - "15 agents: 6 expert minds + 9 functional tools (fuzzer, ripper, dirber)"
+    - 4 workflows for full pentesting lifecycle
+    - Mix of real experts (Kim, Weidman, Santos) and utility agents
+    example_use: Run security assessments, penetration tests, and vulnerability analysis on applications
+  data:
+    path: squads/data/
+    version: 2.0.0
+    score: 10.0
+    maturity: OPERATIONAL
+    validated: true
+    description: Data analytics, growth metrics, and community-led growth squad
+    slashPrefix: ''
+    counts:
+      agents: 7
+      tasks: 12
+      workflows: 6
+      templates: 10
+      checklists: 7
+      data_files: 0
+    agent_names:
+    - avinash-kaushik
+    - nick-mehta
+    - wes-kao
+    - data-chief
+    - peter-fader
+    - david-spinks
+    - sean-ellis
+    has_readme: true
+    has_changelog: false
+    domain: business_ops
+    keywords:
+    - data
+    - analytics
+    - growth
+    - metrics
+    - community
+    - retention
+    - product-led-growth
+    - avinash-kaushik
+    - sean-ellis
+    - peter-fader
+    highlights:
+    - 7 data/growth experts (Kaushik, Ellis, Fader, Mehta)
+    - 6 workflows + 10 templates for data analysis
+    - Covers analytics, growth, community, and customer success
+    example_use: Analyze growth metrics, customer data, and community engagement with expert frameworks
+  db-sage:
+    path: squads/db-sage/
+    version: 1.1.0
+    score: 8.5
+    maturity: OPERATIONAL
+    validated: true
+    description: Expert database agent for PostgreSQL and Supabase - schema design, migrations, RLS policies, performance
+      tuning
+    slashPrefix: db-sage
+    counts:
+      agents: 2
+      tasks: 28
+      workflows: 7
+      templates: 9
+      checklists: 8
+      data_files: 7
+    agent_names:
+    - db-sage-activation-protocol
+    - db-sage
+    has_readme: true
+    has_changelog: false
+    domain: technical
+    keywords:
+    - database
+    - postgresql
+    - supabase
+    - schema
+    - migrations
+    - rls
+    - performance
+    - sql
+    - indexes
+    - security
+    highlights:
+    - 28 tasks + 7 workflows for comprehensive database management
+    - PostgreSQL + Supabase specialist with RLS expertise
+    - Schema design, migrations, performance tuning
+    - Command prefix /db-sage
+    example_use: Use /db-sage for PostgreSQL schema design, Supabase RLS policies, and database performance optimization
+  deep-research:
+    path: squads/deep-research/
+    version: 0.0.0
+    score: 3.5
+    maturity: DRAFT
+    validated: false
+    description: Systematic research squad based on evidence-based methodology experts
+    slashPrefix: ''
+    counts:
+      agents: 11
+      tasks: 0
+      workflows: 0
+      templates: 0
+      checklists: 0
+      data_files: 0
+    agent_names:
+    - forsgren
+    - ioannidis
+    - sackett
+    - klein
+    - higgins
+    - creswell
+    - gilad
+    - cochrane
+    - dr-orchestrator
+    - booth
+    - kahneman
+    has_readme: false
+    has_changelog: false
+    domain: meta_frameworks
+    keywords:
+    - research
+    - systematic-review
+    - evidence-based
+    - methodology
+    - meta-analysis
+    - cognitive-science
+    - kahneman
+    - cochrane
+    - ioannidis
+    highlights:
+    - 11 research methodology experts (Kahneman, Cochrane, Ioannidis)
+    - Agents only - no tasks/workflows yet (needs extension)
+    - Systematic review and evidence-based decision making
+    example_use: Conduct rigorous systematic research using evidence-based methodology frameworks
+  design:
+    path: squads/design/
+    version: 2.0.0
+    score: 10.0
+    maturity: DEVELOPING
+    validated: false
+    description: Squad focado exclusivamente em Design System. Especializado em tokens, componentes, acessibilidade, registry
+    slashPrefix: ''
+    counts:
+      agents: 5
+      tasks: 72
+      workflows: 8
+      templates: 14
+      checklists: 12
+      data_files: 22
+    agent_names:
+    - dave-malouf
+    - design-chief
+    - brad-frost
+    - nano-banana-generator
+    - dan-mall
+    has_readme: true
+    has_changelog: false
+    domain: technical
+    keywords:
+    - design-system
+    - tokens
+    - components
+    - accessibility
+    - atomic-design
+    - figma
+    - brad-frost
+    - dan-mall
+    - dave-malouf
+    highlights:
+    - 67 tasks + 7 workflows (most tasks of any squad)
+    - "Design System experts: Brad Frost (Atomic Design), Dan Mall, Dave Malouf"
+    - 19 data files for design tokens, registry, standards
+    - Command prefix /DS
+    example_use: Use /DS for design system creation, token management, component governance, and accessibility audits
+  etl-ops:
+    path: squads/etl-ops/
+    version: 1.0.0
+    score: 3.8
+    maturity: DRAFT
+    validated: false
+    description: ETL operations squad for data extraction, transformation, and loading pipelines
+    slashPrefix: ''
+    counts:
+      agents: 3
+      tasks: 1
+      workflows: 0
+      templates: 0
+      checklists: 0
+      data_files: 3
+    agent_names:
+    - etl-chief
+    - etl-transformer
+    - etl-extractor
+    has_readme: true
+    has_changelog: false
+    domain: technical
+    keywords:
+    - etl
+    - extraction
+    - transformation
+    - loading
+    - data-pipeline
+    - ingestion
+    highlights:
+    - 3 specialized ETL agents (chief, transformer, extractor)
+    - Early stage - needs tasks and workflows (extension candidate)
+    example_use: Execute data extraction, transformation, and loading operations
+  franchise:
+    path: squads/franchise/
+    version: 1.2.0
+    score: 10.0
+    maturity: DEVELOPING
+    validated: false
+    description: ''
+    slashPrefix: ''
+    counts:
+      agents: 6
+      tasks: 17
+      workflows: 5
+      templates: 7
+      checklists: 9
+      data_files: 8
+    agent_names:
+    - michael-gerber
+    - claudia-bittencourt
+    - mark-siebert
+    - franchise-chief
+    - greg-nathan
+    - joe-mathews
+    has_readme: true
+    has_changelog: true
+    domain: franchise
+    keywords:
+    - franchise
+    highlights:
+    - 6 agents, 17 tasks
+    - 5 workflows, 7 templates, 9 checklists
+    - COF legal baseline aligned to Lei 13.966/2019
+    example_use: Use franchise for franchise tasks.
+  hormozi:
+    path: squads/hormozi/
+    version: 1.0.0
+    score: 10.0
+    maturity: DEVELOPING
+    validated: false
+    description: Alex Hormozi business methodology squad - offers, leads, scaling, pricing, retention
+    slashPrefix: ''
+    counts:
+      agents: 16
+      tasks: 55
+      workflows: 9
+      templates: 4
+      checklists: 45
+      data_files: 4
+    agent_names:
+    - hormozi-copy
+    - hormozi-launch
+    - hormozi-closer
+    - hormozi-advisor
+    - hormozi-ads
+    - hormozi-hooks
+    - hormozi-workshop
+    - hormozi-audit
+    - hormozi-scale
+    - hormozi-models
+    - hormozi-pricing
+    - hormozi-retention
+    - hormozi-leads
+    - hormozi-chief
+    - hormozi-offers
+    - hormozi-content
+    has_readme: true
+    has_changelog: false
+    domain: business_ops
+    keywords:
+    - hormozi
+    - offers
+    - leads
+    - scaling
+    - pricing
+    - retention
+    - ads
+    - launch
+    - content
+    - business
+    - grand-slam-offer
+    - value-equation
+    highlights:
+    - 16 Hormozi-method agents covering full business lifecycle
+    - 55 tasks + 45 checklists (most checklists in ecosystem)
+    - "Covers: offers, leads, pricing, retention, scaling, ads, launch"
+    - 9 workflows for end-to-end business operations
+    example_use: Apply Alex Hormozi's frameworks for offer creation, lead generation, pricing, and business scaling
+  movimento:
+    path: squads/movimento/
+    version: 1.0.0
+    score: 9.1
+    maturity: DEVELOPING
+    validated: false
+    description: Squad multiagente para Marketing Ideologico (N1..N8)
+    slashPrefix: ''
+    counts:
+      agents: 7
+      tasks: 38
+      workflows: 3
+      templates: 17
+      checklists: 3
+      data_files: 6
+    agent_names:
+    - analista-de-impacto
+    - estrategista-de-ciclo
+    - arquiteto-do-movimento
+    - movimento-chief
+    - identitario
+    - manifestador
+    - fenomenologo
+    has_readme: true
+    has_changelog: false
+    domain: movimento
+    keywords:
+    - movimento
+    - multiagente
+    - marketing
+    - ideologico
+    - analista
+    - impacto
+    - estrategista
+    - ciclo
+    - arquiteto
+    - chief
+    - identitario
+    - manifestador
+    highlights:
+    - 7 agents, 38 tasks
+    - 3 workflows available
+    - README documented
+    example_use: Use movimento for movimento tasks.
+  spy:
+    path: squads/spy/
+    version: 3.0.0
+    score: 6.8
+    maturity: DEVELOPING
+    validated: false
+    description: "Competitive intelligence: content analysis (YouTube/Instagram) + framework benchmarking (AIOS vs competitors)"
+    slashPrefix: ''
+    counts:
+      agents: 3
+      tasks: 22
+      workflows: 1
+      templates: 13
+      checklists: 2
+      data_files: 7
+    agent_names:
+    - research-head
+    - bench-analyst
+    - spy
+    has_readme: true
+    has_changelog: false
+    domain: business_ops
+    keywords:
+    - competitive-intelligence
+    - benchmarking
+    - content-analysis
+    - youtube
+    - instagram
+    - competitor
+    - framework-comparison
+    highlights:
+    - "3 agents: spy orchestrator, research head, bench analyst"
+    - Content analysis + framework benchmarking capabilities
+    - v2.0 with new benchmarking features
+    example_use: Analyze competitor content and benchmark frameworks against industry standards
+  squad-creator:
+    path: squads/squad-creator/
+    version: 3.1.0
+    score: 9.5
+    maturity: OPERATIONAL
+    validated: true
+    description: "Meta-squad para criar squads de agentes baseados em elite minds reais. Orchestrator: @squad-chief. Trio:\
+      \ @oalanicolas (Extraction), @pedro-valerio (Structure), @thiago_finch (Business)."
+    slashPrefix: squadCreator
+    counts:
+      agents: 4
+      tasks: 53
+      workflows: 15
+      templates: 18
+      checklists: 15
+      data_files: 32
+    agent_names:
+    - pedro-valerio
+    - oalanicolas
+    - squad-chief
+    - thiago_finch
+    has_readme: true
+    has_changelog: true
+    domain: meta_frameworks
+    keywords:
+    - squad-creator
+    - meta-squad
+    - mind-cloning
+    - agent-creation
+    - dna-extraction
+    - voice-dna
+    - thinking-dna
+    - elite-minds
+    - squad-chief
+    - oalanicolas
+    - pedro-valerio
+    - thiago-finch
+    highlights:
+    - "Meta-squad: creates other squads from elite minds"
+    - 51 tasks + 15 workflows (most workflows in ecosystem)
+    - "Trio: Alan (extraction), Pedro (structure), Thiago (business)"
+    - 31 data files for schemas, registries, validation
+    - Command prefix /squadCreator
+    example_use: "Use *create-squad-smart to create domain-specific squads with mind-cloned agents"
+  storytelling:
+    path: squads/storytelling/
+    version: 1.0.0
+    score: 7.4
+    maturity: DEVELOPING
+    validated: false
+    description: Storytelling masters for narrative structure, presentation, and persuasive communication
+    slashPrefix: ''
+    counts:
+      agents: 13
+      tasks: 13
+      workflows: 1
+      templates: 0
+      checklists: 1
+      data_files: 0
+    agent_names:
+    - kindra-hall
+    - keith-johnstone
+    - matthew-dicks
+    - park-howell
+    - marshall-ganz
+    - blake-snyder
+    - nancy-duarte
+    - joseph-campbell
+    - shawn-coyne
+    - donald-miller
+    - story-chief
+    - dan-harmon
+    - oren-klaff
+    has_readme: true
+    has_changelog: true
+    domain: content_marketing
+    keywords:
+    - storytelling
+    - narrative
+    - presentation
+    - persuasion
+    - hero-journey
+    - story-structure
+    - joseph-campbell
+    - donald-miller
+    - nancy-duarte
+    - oren-klaff
+    highlights:
+    - 13 storytelling masters (Campbell, Miller, Duarte, Klaff, Harmon)
+    - Covers narrative structure, presentation, pitch, and story frameworks
+    - Hero's Journey to StoryBrand to Save the Cat
+    example_use: Craft compelling narratives using frameworks from storytelling masters
+  traffic-masters:
+    path: squads/traffic-masters/
+    version: 1.0.0
+    score: 8.0
+    maturity: DEVELOPING
+    validated: false
+    description: Paid traffic and media buying squad for ads optimization and scaling
+    slashPrefix: ''
+    counts:
+      agents: 16
+      tasks: 15
+      workflows: 0
+      templates: 6
+      checklists: 4
+      data_files: 9
+    agent_names:
+    - ralph-burns
+    - tom-breeze
+    - fiscal
+    - scale-optimizer
+    - creative-analyst
+    - depesh-mandalia
+    - performance-analyst
+    - ads-analyst
+    - molly-pittman
+    - ad-midas
+    - traffic-masters-chief
+    - pedro-sobral
+    - nicholas-kusmich
+    - kasim-aslam
+    - media-buyer
+    - pixel-specialist
+    has_readme: true
+    has_changelog: false
+    domain: content_marketing
+    keywords:
+    - traffic
+    - paid-ads
+    - media-buying
+    - facebook-ads
+    - google-ads
+    - youtube-ads
+    - scaling
+    - roas
+    - creative
+    - pedro-sobral
+    - kasim-aslam
+    - molly-pittman
+    highlights:
+    - "16 agents: 8 expert minds + 8 functional roles"
+    - "Paid traffic experts: Sobral, Aslam, Pittman, Burns, Mandalia"
+    - Covers Facebook, Google, YouTube ads + scaling strategies
+    - Needs workflows (extension candidate)
+    example_use: Optimize paid ad campaigns, media buying strategies, and traffic scaling
+domain_index:
+  business_strategy:
+  - advisory-board
+  business_ops:
+  - c-level
+  - data
+  - hormozi
+  - spy
+  content_marketing:
+  - copy
+  - storytelling
+  - traffic-masters
+  technical:
+  - cybersecurity
+  - db-sage
+  - design
+  - etl-ops
+  meta_frameworks:
+  - deep-research
+  - squad-creator
+  copywriting:
+  - copy
+  direct-response:
+  - copy
+  sales-copy:
+  - copy
+  storytelling:
+  - storytelling
+  narrative:
+  - storytelling
+  paid-ads:
+  - traffic-masters
+  media-buying:
+  - traffic-masters
+  facebook-ads:
+  - traffic-masters
+  google-ads:
+  - traffic-masters
+  database:
+  - db-sage
+  postgresql:
+  - db-sage
+  supabase:
+  - db-sage
+  design-system:
+  - design
+  tokens:
+  - design
+  accessibility:
+  - design
+  atomic-design:
+  - design
+  cybersecurity:
+  - cybersecurity
+  pentest:
+  - cybersecurity
+  security:
+  - cybersecurity
+  etl:
+  - etl-ops
+  data-pipeline:
+  - etl-ops
+  analytics:
+  - data
+  growth:
+  - data
+  community:
+  - data
+  hormozi:
+  - hormozi
+  offers:
+  - hormozi
+  leads:
+  - hormozi
+  pricing:
+  - hormozi
+  retention:
+  - hormozi
+  scaling:
+  - hormozi
+  advisory:
+  - advisory-board
+  executive:
+  - c-level
+  c-suite:
+  - c-level
+  competitive-intelligence:
+  - spy
+  benchmarking:
+  - spy
+  mind-cloning:
+  - squad-creator
+  agent-creation:
+  - squad-creator
+  dna-extraction:
+  - squad-creator
+  research:
+  - deep-research
+  systematic-review:
+  - deep-research
+  evidence-based:
+  - deep-research
+  advisory-board:
+  - advisory-board
+  board:
+  - advisory-board
+  ray:
+  - advisory-board
+  dalio:
+  - advisory-board
+  charlie:
+  - advisory-board
+  munger:
+  - advisory-board
+  yvon:
+  - advisory-board
+  chouinard:
+  - advisory-board
+  patrick:
+  - advisory-board
+  lencioni:
+  - advisory-board
+  reid:
+  - advisory-board
+  hoffman:
+  - advisory-board
+  c-level:
+  - c-level
+  level:
+  - c-level
+  cio:
+  - c-level
+  engineer:
+  - c-level
+  coo:
+  - c-level
+  orchestrator:
+  - c-level
+  - deep-research
+  - squad-creator
+  cmo:
+  - c-level
+  architect:
+  - c-level
+  cto:
+  - c-level
+  caio:
+  - c-level
+  vision:
+  - c-level
+  chief:
+  - c-level
+  - cybersecurity
+  - data
+  - design
+  - etl-ops
+  copy:
+  - copy
+  - hormozi
+  gary:
+  - copy
+  bencivenga:
+  - copy
+  andre:
+  - copy
+  chaperon:
+  - copy
+  john:
+  - copy
+  carlton:
+  - copy
+  david:
+  - copy
+  - data
+  deutsch:
+  - copy
+  clayton:
+  - copy
+  makepeace:
+  - copy
+  ogilvy:
+  - copy
+  fuzzer:
+  - cybersecurity
+  peter:
+  - cybersecurity
+  - data
+  kim:
+  - cybersecurity
+  command:
+  - cybersecurity
+  generator:
+  - cybersecurity
+  jim:
+  - cybersecurity
+  manico:
+  - cybersecurity
+  cyber:
+  - cybersecurity
+  chris:
+  - cybersecurity
+  sanders:
+  - cybersecurity
+  data:
+  - data
+  avinash:
+  - data
+  kaushik:
+  - data
+  nick:
+  - data
+  mehta:
+  - data
+  wes:
+  - data
+  kao:
+  - data
+  fader:
+  - data
+  spinks:
+  - data
+  sage:
+  - db-sage
+  expert:
+  - db-sage
+  for:
+  - db-sage
+  schema:
+  - db-sage
+  migrations:
+  - db-sage
+  rls:
+  - db-sage
+  policies:
+  - db-sage
+  performance:
+  - db-sage
+  tuning:
+  - db-sage
+  deep:
+  - deep-research
+  forsgren:
+  - deep-research
+  ioannidis:
+  - deep-research
+  sackett:
+  - deep-research
+  klein:
+  - deep-research
+  higgins:
+  - deep-research
+  creswell:
+  - deep-research
+  gilad:
+  - deep-research
+  cochrane:
+  - deep-research
+  booth:
+  - deep-research
+  focado:
+  - design
+  exclusivamente:
+  - design
+  system:
+  - design
+  componentes:
+  - design
+  acessibilidade:
+  - design
+  registry:
+  - design
+  dave:
+  - design
+  malouf:
+  - design
+  brad:
+  - design
+  frost:
+  - design
+  etl-ops:
+  - etl-ops
+  ops:
+  - etl-ops
+  transformer:
+  - etl-ops
+  extractor:
+  - etl-ops
+  launch:
+  - hormozi
+  closer:
+  - hormozi
+  advisor:
+  - hormozi
+  ads:
+  - hormozi
+  hooks:
+  - hormozi
+  workshop:
+  - hormozi
+  audit:
+  - hormozi
+  scale:
+  - hormozi
+  - traffic-masters
+  models:
+  - hormozi
+  content-visual:
+  - spy
+  spy:
+  - spy
+  competitive:
+  - spy
+  intelligence:
+  - spy
+  universal:
+  - spy
+  codebase:
+  - spy
+  llm:
+  - spy
+  product:
+  - spy
+  company:
+  - spy
+  technology:
+  - spy
+  content:
+  - spy
+  - squad-creator
+  analysis:
+  - spy
+  creator:
+  - squad-creator
+  meta-squad:
+  - squad-creator
+  criar:
+  - squad-creator
+  squads:
+  - squad-creator
+  agentes:
+  - squad-creator
+  baseados:
+  - squad-creator
+  elite:
+  - squad-creator
+  minds:
+  - squad-creator
+  reais:
+  - squad-creator
+  squad-chief:
+  - squad-creator
+  triage:
+  - squad-creator
+  kindra:
+  - storytelling
+  hall:
+  - storytelling
+  keith:
+  - storytelling
+  johnstone:
+  - storytelling
+  matthew:
+  - storytelling
+  dicks:
+  - storytelling
+  park:
+  - storytelling
+  howell:
+  - storytelling
+  marshall:
+  - storytelling
+  ganz:
+  - storytelling
+  blake:
+  - storytelling
+  traffic-masters:
+  - traffic-masters
+  traffic:
+  - traffic-masters
+  masters:
+  - traffic-masters
+  ralph:
+  - traffic-masters
+  burns:
+  - traffic-masters
+  tom:
+  - traffic-masters
+  breeze:
+  - traffic-masters
+  fiscal:
+  - traffic-masters
+  optimizer:
+  - traffic-masters
+  creative:
+  - traffic-masters
+  analyst:
+  - traffic-masters
+  depesh:
+  - traffic-masters
+  brand:
+  - brand
+  snp:
+  - brand
+  igor:
+  - brand
+  ana:
+  - brand
+  especialistas:
+  - brand
+  globais:
+  - brand
+  fundamentos:
+  - brand
+  posicionamento:
+  - brand
+  ativa:
+  - brand
+  strategist:
+  - brand
+  miller:
+  - brand
+  sticky:
+  - brand
+  franchise:
+  - franchise
+  movimento:
+  - movimento
+  multiagente:
+  - movimento
+  marketing:
+  - movimento
+  ideologico:
+  - movimento
+  analista:
+  - movimento
+  impacto:
+  - movimento
+  estrategista:
+  - movimento
+  ciclo:
+  - movimento
+  arquiteto:
+  - movimento
+  identitario:
+  - movimento
+  manifestador:
+  - movimento
+  michael:
+  - franchise
+  gerber:
+  - franchise
+  claudia:
+  - franchise
+  bittencourt:
+  - franchise
+  mark:
+  - franchise
+  siebert:
+  - franchise
+  greg:
+  - franchise
+  nathan:
+  - franchise
+  joe:
+  - franchise
+  mathews:
+  - franchise
+  executivos:
+  - c-level
+  estrat:
+  - c-level
+  gicos:
+  - c-level
+  que:
+  - c-level
+  estruturam:
+  - c-level
+  workspace:
+  - c-level
+  empresa:
+  - c-level
+  respons:
+  - c-level
+  vel:
+  - c-level
+  por:
+  - c-level
+  metadata:
+  - design
+  machine-readable:
+  - design
+  designops:
+  - design
+  metodologia:
+  - movimento
+  sistema:
+  - movimento
+  completo:
+  - movimento
+  construir:
+  - movimento
+  marcas:
+  - movimento
+  como:
+  - movimento
+  movimentos:
+  - movimento
+  culturais:
+  - movimento
+summary:
+  total_agents: 164
+  total_tasks: 433
+  total_workflows: 82
+  total_templates: 125
+  total_checklists: 148
+  total_data_files: 110
+maturity_summary:
+  DRAFT: 2
+  DEVELOPING: 11
+  OPERATIONAL: 4
+gaps:
+  removed_since_last_scan:
+  - alan
+  - books
+  - compound
+  - contabilidade
+  - content-visual
+  - creator-os
+  - etl
+  - finops
+  - hr
+  - hybrid-ops-squad
+  - icp-tester
+  - innerlens
+  - legal
+  - marketing
+  - mmos
+  - monitor
+  - multi-lens-framework
+  - ralph
+  - tools
+  - translate
+  potential_domains:
+  - finance
+  - health
+  - sales
+  - customer_success
+  - product_management
+  - real_estate
+  - education
+ecosystem_health:
+  extension_candidates:
+  - name: deep-research
+    reason: 11 agents but 0 tasks/workflows - needs operational artifacts
+  - name: etl-ops
+    reason: 3 agents but only 1 task, 0 workflows - needs extension
+  - name: traffic-masters
+    reason: 16 agents but 0 workflows - needs workflow creation
+  config_issues:
+  - name: cybersecurity
+    issue: config.yaml has YAML syntax error (line 422-423)
+  - name: c-level
+    issue: No config.yaml found
+  - name: deep-research
+    issue: No config.yaml, no README

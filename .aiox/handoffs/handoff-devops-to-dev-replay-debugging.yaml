@@ -1,0 +1,49 @@
+handoff:
+  from_agent: devops
+  to_agent: dev
+  timestamp: "2026-04-09T10:30:00Z"
+  consumed: false
+  last_command: testing-replay-feature
+  story_context:
+    story_id: "5.6"
+    story_path: "docs/stories/5.6.video-replay-timeline.story.md"
+    story_status: "InProgress (debugging)"
+    current_task: "Ajustar UX da timeline do replay para mostrar 5 tipos de eventos com 3 lanes"
+    branch: "main"
+  decisions:
+    - "Refatorada logica do replay endpoint: 5 tipos de eventos pontuais (cluster, filler isolado, pausa_hesitacao, pausa_estrategica) ao inves de janelas binarias"
+    - "Frontend tem 3 lanes separadas: vicios, pausas estrategicas, hesitacoes"
+    - "Adicionada funcao getStyle() defensiva no video-player.tsx para fallback em tipos desconhecidos"
+    - "Criada pagina /report/[id]/shared/page.tsx (estava faltando — user clicou em Compartilhar e dava 404)"
+    - "Bug ja corrigido: trechos_monotonos e dict de listas (velocidade/volume/pitch), nao lista"
+    - "Bug ja corrigido: callback_url 8001 → 8002 no dispatcher.py"
+    - "Modelos MediaPipe baixados em /tmp/mediapipe_models/ e dev.sh agora baixa auto"
+  files_modified:
+    - "apps/api/app/routes/evaluations.py — replay endpoint refatorado"
+    - "apps/web/src/components/video-player.tsx — 3 lanes + getStyle defensivo"
+    - "apps/web/src/app/report/[id]/replay/page.tsx — stats cards"
+    - "apps/web/src/app/report/[id]/shared/page.tsx — pagina nova (compartilhamento)"
+    - "ml-worker/workers/temporal_analyzer.py — fix dict→list flatten"
+    - "ml-worker/workers/filler_detector.py — classificacao contextual + remove import unused"
+    - "ml-worker/workers/gesture_analyzer.py — remove thumb_tip unused"
+    - "dev.sh — auto-download MediaPipe models + porta 8002"
+  blockers:
+    - "User reportou erro 'Cannot read properties of undefined (reading label)' no replay — codigo ja foi tornado defensivo, aguardando hard reload do user para confirmar"
+    - "Timeline do replay no video do user fica 86% amarelo porque ele tem 83.6% pct_monotono — solucao implementada: nova logica com 3 lanes + 5 tipos de eventos pontuais (nao mais classificacao binaria por janela)"
+  next_action: "Aguardar user testar o replay novo (apos hard reload). Se tiver outro erro, debugar. Se OK, considerar fechar Story 5.6 e seguir para Story 4.6 (spike voice/variety) ou validacao com mentor."
+  uncommitted_changes:
+    - "apps/api/app/routes/evaluations.py (replay endpoint refatorado)"
+    - "apps/web/src/components/video-player.tsx (3 lanes + defensivo)"
+    - "apps/web/src/app/report/[id]/replay/page.tsx (stats)"
+    - "apps/web/src/app/report/[id]/shared/page.tsx (novo)"
+  services_running:
+    - "ML Worker: localhost:7860 (PID 257175)"
+    - "API: localhost:8002 (--reload, ja pegou as mudancas)"
+    - "Frontend: localhost:3000 (cache .next limpo, reiniciado)"
+  context_essencial:
+    - "Epic 4 (mentor adjustments) e Epic 5 (raio-x mentor) ja pushados em commits c2a64ef, 57c53f9, 3aa5cf7, 6b77b76, 309f882, 3857cb0, 0a69310"
+    - "Todas as 16 stories implementadas em codigo, mas falta testes de regressao com video real"
+    - "Mentor enviou Raio-X completo identificando 10 fragilidades — 9 implementadas (expressao facial fora de escopo)"
+    - "Pipeline atual: 10 steps (postura, gesto, voz, fillers, variedade, arquetipos, contexto, aggregator, congruencia, temporal, LLM)"
+    - "Bruno prefere YOLO mode, respostas diretas, sem ceremonia"
+    - "Custo de deploy real: $10-30/mes — por enquanto roda local + cloudflared tunnel via ./dev.sh --share"

@@ -21,29 +21,28 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
     (file: File): Promise<string | null> => {
       return new Promise((resolve) => {
         if (!ALLOWED_TYPES.includes(file.type)) {
-          resolve("Formato nao suportado. Use MP4 ou WebM.");
+          resolve("Formato não suportado. Use MP4 ou WebM.");
           return;
         }
 
         if (file.size > MAX_SIZE) {
-          resolve("Video deve ter no maximo 500MB.");
+          resolve("Vídeo deve ter no máximo 500MB.");
           return;
         }
 
-        // Check duration
         const video = document.createElement("video");
         video.preload = "metadata";
         video.onloadedmetadata = () => {
           URL.revokeObjectURL(video.src);
           if (video.duration > MAX_DURATION) {
-            resolve("Video deve ter no maximo 10 minutos.");
+            resolve("Vídeo deve ter no máximo 10 minutos.");
           } else {
             resolve(null);
           }
         };
         video.onerror = () => {
           URL.revokeObjectURL(video.src);
-          resolve("Nao foi possivel ler o video.");
+          resolve("Não foi possível ler o vídeo.");
         };
         video.src = URL.createObjectURL(file);
       });
@@ -95,7 +94,7 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
   );
 
   return (
-    <div className="w-full max-w-xl mx-auto">
+    <div className="w-full">
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -104,15 +103,30 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`
-          relative cursor-pointer rounded-2xl border-2 border-dashed p-12
-          text-center transition-colors
-          ${isDragging
-            ? "border-blue-500 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            fileInputRef.current?.click();
           }
-          ${isUploading ? "pointer-events-none opacity-60" : ""}
+        }}
+        className={`
+          group relative cursor-pointer rounded-3xl p-8 md:p-12 text-center transition-all
+          ${
+            isDragging
+              ? "bg-surface-container-high shadow-cta-glow"
+              : "bg-surface-container-low hover:bg-surface-container"
+          }
+          ${isUploading ? "pointer-events-none opacity-70" : ""}
         `}
+        style={{
+          borderWidth: "2px",
+          borderStyle: "dashed",
+          borderColor: isDragging
+            ? "rgba(69, 216, 237, 0.5)"
+            : "rgba(67, 70, 82, 0.4)",
+        }}
       >
         <input
           ref={fileInputRef}
@@ -122,26 +136,48 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
           className="hidden"
         />
 
-        <div className="space-y-3">
-          <div className="text-4xl">🎬</div>
-          <p className="text-lg font-medium text-gray-700">
-            Arraste seu video aqui ou clique para selecionar
-          </p>
-          <p className="text-sm text-gray-500">
-            MP4 ou WebM, ate 500MB e 10 minutos
-          </p>
+        <div className="space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-full bg-surface-container-highest flex items-center justify-center ghost-border group-hover:scale-110 transition-transform">
+            <span className="material-symbols-outlined text-secondary text-3xl">
+              videocam
+            </span>
+          </div>
+          <div className="space-y-1">
+            <p className="font-headline text-lg font-bold text-on-surface">
+              Arraste seu vídeo aqui
+            </p>
+            <p className="text-sm text-on-surface-variant">
+              ou <span className="text-secondary font-semibold">clique para selecionar</span>
+            </p>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-xs text-on-surface-variant pt-2">
+            <span className="px-2.5 py-1 rounded-full bg-surface-container-highest ghost-border font-label uppercase tracking-wider">
+              MP4 / WebM
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-surface-container-highest ghost-border font-label uppercase tracking-wider">
+              Até 500MB
+            </span>
+            <span className="px-2.5 py-1 rounded-full bg-surface-container-highest ghost-border font-label uppercase tracking-wider">
+              10 min
+            </span>
+          </div>
         </div>
       </div>
 
       {progress !== null && (
-        <div className="mt-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Enviando...</span>
-            <span>{progress}%</span>
+        <div className="mt-5 rounded-2xl bg-surface-container-low p-5 ghost-border space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-on-surface-variant flex items-center gap-2">
+              <span className="material-symbols-outlined text-secondary text-base animate-glow-pulse">
+                cloud_upload
+              </span>
+              Enviando...
+            </span>
+            <span className="text-secondary font-semibold">{progress}%</span>
           </div>
-          <div className="h-2 rounded-full bg-gray-200">
+          <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
             <div
-              className="h-2 rounded-full bg-blue-500 transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-secondary to-primary-container transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -149,8 +185,9 @@ export function VideoUploader({ onUploadComplete }: VideoUploaderProps) {
       )}
 
       {error && (
-        <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-          {error}
+        <div className="mt-5 rounded-2xl bg-error-container/20 p-4 text-sm text-error ghost-border flex items-center gap-3">
+          <span className="material-symbols-outlined">error</span>
+          <span>{error}</span>
         </div>
       )}
     </div>

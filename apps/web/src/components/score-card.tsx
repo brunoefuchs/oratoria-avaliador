@@ -8,42 +8,85 @@ interface ScoreCardProps {
   onClick?: () => void;
 }
 
-function getScoreColor(score: number) {
-  if (score >= 70) return { bg: "bg-green-50", text: "text-green-700", ring: "ring-green-200" };
-  if (score >= 40) return { bg: "bg-yellow-50", text: "text-yellow-700", ring: "ring-yellow-200" };
-  return { bg: "bg-red-50", text: "text-red-700", ring: "ring-red-200" };
+function getScoreTone(score: number) {
+  if (score >= 70)
+    return {
+      accent: "text-secondary",
+      badge: "bg-secondary-container/20 text-secondary",
+      bar: "bg-secondary",
+    };
+  if (score >= 40)
+    return {
+      accent: "text-tertiary",
+      badge: "bg-tertiary/20 text-tertiary",
+      bar: "bg-tertiary",
+    };
+  return {
+    accent: "text-error",
+    badge: "bg-error-container/30 text-error",
+    bar: "bg-error",
+  };
 }
 
 const DIMENSION_ICONS: Record<string, string> = {
-  posture: "🧍",
-  gesture: "👁️",
-  voice: "🎙️",
-  fillers: "💬",
-  variety: "🎹",
-  archetypes: "🎭",
+  posture: "accessibility",
+  gesture: "visibility",
+  voice: "mic",
+  fillers: "chat_bubble",
+  variety: "graphic_eq",
+  archetypes: "theater_comedy",
 };
 
-export function ScoreCard({ title, score, dimensionKey, summary, onClick }: ScoreCardProps) {
-  const color = getScoreColor(score);
-  const icon = DIMENSION_ICONS[dimensionKey || ""] || "📊";
+export function ScoreCard({
+  title,
+  score,
+  dimensionKey,
+  summary,
+  onClick,
+}: ScoreCardProps) {
+  const tone = getScoreTone(score);
+  const icon = DIMENSION_ICONS[dimensionKey || ""] || "analytics";
+  const interactive = !!onClick;
 
   return (
     <button
       onClick={onClick}
-      className={`
-        w-full rounded-xl p-5 text-left ring-1 transition-shadow hover:shadow-md
-        ${color.bg} ${color.ring}
-      `}
+      disabled={!interactive}
+      className={`group relative w-full rounded-2xl bg-surface-container-low p-5 text-left ghost-border transition-all ${
+        interactive
+          ? "hover:bg-surface-container active:scale-[0.98] cursor-pointer"
+          : "cursor-default"
+      }`}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-2xl">{icon}</span>
-        <span className={`text-2xl font-bold ${color.text}`}>{score}</span>
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <span
+          className={`material-symbols-outlined text-2xl ${tone.accent}`}
+          aria-hidden
+        >
+          {icon}
+        </span>
+        <span className={`font-headline text-3xl font-bold ${tone.accent}`}>
+          {score}
+        </span>
       </div>
-      <p className="mt-2 text-sm font-medium capitalize text-gray-800">
+      <p className="text-sm font-semibold text-on-surface leading-tight">
         {title}
       </p>
+      <div className="mt-3 h-1 w-full rounded-full bg-surface-container-highest overflow-hidden">
+        <div
+          className={`h-full rounded-full ${tone.bar} transition-all`}
+          style={{ width: `${Math.min(100, Math.max(0, score))}%` }}
+        />
+      </div>
       {summary && (
-        <p className="mt-1 text-xs text-gray-500 line-clamp-2">{summary}</p>
+        <p className="mt-3 text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
+          {summary}
+        </p>
+      )}
+      {interactive && (
+        <span className="material-symbols-outlined absolute right-3 bottom-3 text-base text-on-surface-variant opacity-0 group-hover:opacity-60 transition-opacity">
+          arrow_forward
+        </span>
       )}
     </button>
   );

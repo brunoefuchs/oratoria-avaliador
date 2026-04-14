@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html class="dark" lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Resonant Stage — Design System Showcase</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#a2c9ff",
+        "primary-dim": "#8ebfff",
+        "primary-container": "#004d89",
+        "on-primary": "#00315b",
+        "on-primary-container": "#8ebfff",
+        "secondary": "#45d8ed",
+        "secondary-container": "#00bacd",
+        "on-secondary": "#00363d",
+        "on-secondary-container": "#00444d",
+        "tertiary": "#ffb954",
+        "tertiary-container": "#6a4400",
+        "on-tertiary": "#452b00",
+        "on-tertiary-container": "#f6af46",
+        "error": "#ffb4ab",
+        "error-container": "#93000a",
+        "on-error": "#690005",
+        "background": "#0b1326",
+        "surface": "#0b1326",
+        "surface-dim": "#0b1326",
+        "surface-bright": "#31394d",
+        "surface-container-lowest": "#060e20",
+        "surface-container-low": "#131b2e",
+        "surface-container": "#171f33",
+        "surface-container-high": "#222a3d",
+        "surface-container-highest": "#2d3449",
+        "surface-variant": "#2d3449",
+        "on-surface": "#dae2fd",
+        "on-background": "#dae2fd",
+        "on-surface-variant": "#c3c6d4",
+        "outline": "#8d909d",
+        "outline-variant": "#434652",
+        "inverse-surface": "#dae2fd",
+        "inverse-primary": "#0060a8",
+      },
+      fontFamily: {
+        "headline": ["Manrope", "sans-serif"],
+        "body": ["Plus Jakarta Sans", "sans-serif"],
+        "label": ["Plus Jakarta Sans", "sans-serif"],
+      },
+      borderRadius: {
+        "DEFAULT": "0.5rem",
+        "md": "0.75rem",
+        "lg": "1rem",
+        "xl": "1.5rem",
+        "2xl": "2rem",
+        "3xl": "2.5rem",
+        "full": "9999px"
+      },
+    },
+  },
+}
+</script>
+<style>
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+  .glass {
+    background: rgba(45, 52, 73, 0.6);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .glass-low {
+    background: rgba(19, 27, 46, 0.7);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  .ai-pulse {
+    background-image: linear-gradient(135deg, #45d8ed 0%, #004d89 100%);
+  }
+  .ghost-border {
+    box-shadow: inset 0 0 0 1px rgba(67, 70, 82, 0.15);
+  }
+  .fluency-wave {
+    background: linear-gradient(90deg, transparent, #45d8ed, transparent);
+    filter: blur(0.4px);
+    height: 2px;
+  }
+  .display-lg {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: clamp(3.5rem, 8vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #0b1326;
+    color: #dae2fd;
+    scrollbar-width: thin;
+    scrollbar-color: #222a3d #0b1326;
+  }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #0b1326; }
+  ::-webkit-scrollbar-thumb { background: #222a3d; border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2d3449; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .tab-btn.active {
+    color: #45d8ed;
+    border-bottom-color: #45d8ed;
+  }
+  @keyframes glow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+  }
+  .animate-glow { animation: glow 2.4s ease-in-out infinite; }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  .animate-float { animation: float 3.2s ease-in-out infinite; }
+  .cta-glow {
+    box-shadow: 0 20px 40px rgba(69, 216, 237, 0.25), 0 0 0 1px rgba(69, 216, 237, 0.1);
+  }
+  .focus-glow:focus-within {
+    box-shadow: 0 0 0 1px rgba(69, 216, 237, 0.4), 0 0 16px rgba(69, 216, 237, 0.25);
+  }
+</style>
+</head>
+
+<body class="bg-background text-on-surface font-body selection:bg-secondary/30">
+
+<!-- ============================================================ -->
+<!-- STICKY NAV -->
+<!-- ============================================================ -->
+<nav class="sticky top-0 z-50 glass-low border-b border-outline-variant/10">
+  <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-secondary text-2xl" style="font-variation-settings:'FILL' 1">graphic_eq</span>
+      <span class="font-headline text-lg font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-secondary to-primary">The Resonant Stage</span>
+      <span class="hidden md:inline font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant/60 ml-2">Design System v1.0</span>
+    </div>
+    <div class="hidden md:flex items-center gap-1">
+      <button onclick="switchTab('ds')" class="tab-btn active px-4 py-2 text-xs font-label uppercase tracking-[0.2em] border-b-2 border-transparent hover:text-secondary transition-colors" data-tab="ds">Design System</button>
+      <button onclick="switchTab('dashboard')" class="tab-btn px-4 py-2 text-xs font-label uppercase tracking-[0.2em] border-b-2 border-transparent hover:text-secondary transition-colors" data-tab="dashboard">Dashboard</button>
+      <button onclick="switchTab('record')" class="tab-btn px-4 py-2 text-xs font-label uppercase tracking-[0.2em] border-b-2 border-transparent hover:text-secondary transition-colors" data-tab="record">Record</button>
+      <button onclick="switchTab('analysis')" class="tab-btn px-4 py-2 text-xs font-label uppercase tracking-[0.2em] border-b-2 border-transparent hover:text-secondary transition-colors" data-tab="analysis">Análise IA</button>
+      <button onclick="switchTab('feedback')" class="tab-btn px-4 py-2 text-xs font-label uppercase tracking-[0.2em] border-b-2 border-transparent hover:text-secondary transition-colors" data-tab="feedback">Feedback</button>
+      <button onclick="switchTab('library')" class="tab-btn px-4 py-2 text-xs font-label uppercase tracking-[0.2em] border-b-2 border-transparent hover:text-secondary transition-colors" data-tab="library">Biblioteca</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- TAB 1 — DESIGN SYSTEM -->
+<!-- ============================================================ -->
+<div id="tab-ds" class="tab-content active">
+<div class="max-w-7xl mx-auto px-6 py-16 space-y-28">
+
+  <!-- HERO -->
+  <header class="space-y-6 max-w-4xl">
+    <span class="font-label text-xs uppercase tracking-[0.4em] text-secondary/80">The Luminescent Mentor</span>
+    <h1 class="display-lg">
+      <span class="bg-clip-text text-transparent bg-gradient-to-br from-on-surface to-on-surface-variant">Design</span>
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-secondary via-primary to-tertiary">System</span>
+    </h1>
+    <p class="text-on-surface-variant text-lg max-w-2xl leading-relaxed">
+      Sistema de design do Oratória Avaliador. Um palco noturno de precisão IA com calor humano — tokens, componentes e padrões prontos para implementação.
+    </p>
+    <div class="flex flex-wrap gap-3 pt-2">
+      <span class="px-3 py-1.5 rounded-full text-xs font-label uppercase tracking-[0.2em] bg-secondary-container/20 text-secondary ghost-border">Manrope · Plus Jakarta</span>
+      <span class="px-3 py-1.5 rounded-full text-xs font-label uppercase tracking-[0.2em] bg-tertiary/10 text-tertiary ghost-border">Tonal Layering</span>
+      <span class="px-3 py-1.5 rounded-full text-xs font-label uppercase tracking-[0.2em] bg-primary/10 text-primary ghost-border">No-Line Rule</span>
+    </div>
+  </header>
+
+  <!-- SECTION: COLORS -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-secondary text-3xl">palette</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Paleta de Cores</h2>
+        <p class="text-on-surface-variant text-sm">Nocturnal "Deep Sea" + Bioluminescent Teal + Golden Hour</p>
+      </div>
+    </div>
+
+    <!-- Primary -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-4">Primárias · Trust Layer</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-primary flex items-end p-3"><span class="text-on-primary text-xs font-bold font-label">primary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#a2c9ff</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-primary-container flex items-end p-3"><span class="text-on-primary-container text-xs font-bold font-label">primary-container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#004d89</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-on-primary flex items-end p-3"><span class="text-primary text-xs font-bold font-label">on-primary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#00315b</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-on-primary-container flex items-end p-3"><span class="text-primary-container text-xs font-bold font-label">on-primary-container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#8ebfff</span>
+      </div>
+    </div>
+
+    <!-- Secondary -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-4">Secundárias · Bioluminescent / AI Pulse</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-secondary flex items-end p-3"><span class="text-on-secondary text-xs font-bold font-label">secondary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#45d8ed</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-secondary-container flex items-end p-3"><span class="text-on-secondary-container text-xs font-bold font-label">secondary-container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#00bacd</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-on-secondary flex items-end p-3"><span class="text-secondary text-xs font-bold font-label">on-secondary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#00363d</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl ai-pulse flex items-end p-3"><span class="text-on-primary text-xs font-bold font-label">ai-pulse (grad)</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">secondary → primary-container · 135°</span>
+      </div>
+    </div>
+
+    <!-- Tertiary + Error -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-tertiary mb-4">Terciária · Golden Hour (Reward, uso parcimonioso)</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-tertiary flex items-end p-3"><span class="text-on-tertiary text-xs font-bold font-label">tertiary</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#ffb954</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-tertiary-container flex items-end p-3"><span class="text-on-tertiary-container text-xs font-bold font-label">tertiary-container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#6a4400</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-error flex items-end p-3"><span class="text-on-error text-xs font-bold font-label">error</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#ffb4ab</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-24 rounded-xl bg-error-container flex items-end p-3"><span class="text-on-surface text-xs font-bold font-label">error-container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#93000a</span>
+      </div>
+    </div>
+
+    <!-- Surfaces -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-on-surface-variant mb-4">Superfícies · Tonal Layering (No-Line Rule)</h3>
+    <p class="text-on-surface-variant/70 text-sm mb-6 max-w-3xl">Profundidade construída por empilhamento de tons, como folhas de vidro fosco. Bordas de 1px são proibidas para seccionar — use mudança de fundo.</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-lowest ghost-border flex items-end p-3"><span class="text-on-surface text-[10px] font-bold font-label">lowest</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#060e20</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface flex items-end p-3"><span class="text-on-surface text-[10px] font-bold font-label">surface</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#0b1326</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-low flex items-end p-3"><span class="text-on-surface text-[10px] font-bold font-label">low</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#131b2e</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container flex items-end p-3"><span class="text-on-surface text-[10px] font-bold font-label">container</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#171f33</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-high flex items-end p-3"><span class="text-on-surface text-[10px] font-bold font-label">high</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#222a3d</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-container-highest flex items-end p-3"><span class="text-on-surface text-[10px] font-bold font-label">highest</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#2d3449</span>
+      </div>
+      <div class="space-y-2">
+        <div class="h-20 rounded-xl bg-surface-bright flex items-end p-3"><span class="text-on-surface text-[10px] font-bold font-label">bright</span></div>
+        <span class="text-[10px] text-on-surface-variant font-mono">#31394d</span>
+      </div>
+    </div>
+
+    <!-- Content + Outline -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-on-surface-variant mb-4">Texto & Outline</h3>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="rounded-xl bg-surface-container-high p-5 space-y-1">
+        <p class="font-headline text-2xl font-bold text-on-surface">Aa</p>
+        <span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface">on-surface</span>
+        <span class="block text-[10px] text-on-surface-variant font-mono">#dae2fd</span>
+      </div>
+      <div class="rounded-xl bg-surface-container-high p-5 space-y-1">
+        <p class="font-headline text-2xl font-bold text-on-surface-variant">Aa</p>
+        <span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">on-surface-variant</span>
+        <span class="block text-[10px] text-on-surface-variant font-mono">#c3c6d4</span>
+      </div>
+      <div class="rounded-xl bg-surface-container-high p-5 space-y-1">
+        <p class="font-headline text-2xl font-bold text-outline">Aa</p>
+        <span class="font-label text-xs uppercase tracking-[0.2em] text-outline">outline</span>
+        <span class="block text-[10px] text-on-surface-variant font-mono">#8d909d</span>
+      </div>
+      <div class="rounded-xl bg-surface-container-high p-5 space-y-1">
+        <p class="font-headline text-2xl font-bold text-outline-variant">Aa</p>
+        <span class="font-label text-xs uppercase tracking-[0.2em] text-outline-variant">outline-variant</span>
+        <span class="block text-[10px] text-on-surface-variant font-mono">#434652 (ghost @15%)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: TYPOGRAPHY -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-secondary text-3xl">format_size</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Tipografia</h2>
+        <p class="text-on-surface-variant text-sm">Authoritative Encouragement · Manrope (display/headline) + Plus Jakarta Sans (body/label)</p>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-10">
+      <div class="bg-surface-container-low rounded-2xl p-8 space-y-8">
+        <div>
+          <p class="display-lg">The Stage is Yours.</p>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">display-lg · Manrope 800 · -2% tracking</span>
+        </div>
+        <div>
+          <h1 class="font-headline text-5xl font-extrabold tracking-tight">Presence Refined</h1>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">display-sm · Manrope 800</span>
+        </div>
+        <div>
+          <h2 class="font-headline text-3xl font-bold">Recent Performances</h2>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">headline-lg · Manrope 700</span>
+        </div>
+        <div>
+          <h3 class="font-headline text-xl font-bold">Coaching Milestone</h3>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">headline-sm · Manrope 700</span>
+        </div>
+      </div>
+
+      <div class="bg-surface-container-low rounded-2xl p-8 space-y-8">
+        <div>
+          <p class="font-body text-xl leading-relaxed">Sua presença está sendo refinada por insights de IA — pausa, ritmo e variedade compõem um palco único.</p>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">title-md · Plus Jakarta 600</span>
+        </div>
+        <div>
+          <p class="font-body text-base leading-relaxed text-on-surface">A cadência do seu discurso é o primeiro sinal que o público lê. Mantenha variação de WPM entre 120 e 160 para engajamento sustentado.</p>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">body-lg · Plus Jakarta 400</span>
+        </div>
+        <div>
+          <p class="font-body text-sm text-on-surface-variant leading-relaxed">Confidence +5,2% esta semana · Top 10% speakers · Streak de 14 dias</p>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">body-sm · Plus Jakarta 400</span>
+        </div>
+        <div>
+          <span class="font-label text-xs uppercase tracking-[0.3em] text-on-surface-variant">Performance Metric</span>
+          <span class="font-label text-[10px] uppercase tracking-[0.3em] text-on-surface-variant mt-3 block">label-md · Plus Jakarta 500 · +20% tracking</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Power Gap -->
+    <div class="mt-8 bg-surface-container-high rounded-2xl p-10 relative overflow-hidden">
+      <span class="font-label text-[10px] uppercase tracking-[0.4em] text-secondary mb-4 block">The Power Gap</span>
+      <p class="display-lg mb-1">78<span class="text-2xl text-on-surface-variant align-top font-body font-normal ml-2">/100</span></p>
+      <p class="font-body text-sm text-on-surface-variant">Current Eloquence · acima da média da comunidade</p>
+      <div class="absolute -right-16 -top-10 w-56 h-56 bg-secondary/5 rounded-full blur-[80px]"></div>
+    </div>
+  </section>
+
+  <!-- SECTION: ELEVATION -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-secondary text-3xl">layers</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Elevação & Profundidade</h2>
+        <p class="text-on-surface-variant text-sm">Luz em vez de sombra · Stacking tonal + ambient glow</p>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="bg-surface-container-high rounded-2xl p-6 relative">
+        <div class="bg-surface-container-lowest rounded-xl p-8 text-center">
+          <p class="font-label text-xs uppercase tracking-[0.3em] text-on-surface-variant mb-2">Carved Layer</p>
+          <p class="font-headline text-lg font-bold">Lowest ⊂ High</p>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-4 leading-relaxed">Efeito "escavado": container-lowest dentro de container-high.</p>
+      </div>
+      <div class="bg-surface-container-low rounded-2xl p-6 relative overflow-hidden">
+        <div class="glass rounded-xl p-8 text-center ghost-border">
+          <p class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-2">Glass Panel</p>
+          <p class="font-headline text-lg font-bold">60% · blur 20</p>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-4 leading-relaxed">Glassmorphism para floaters — surface-variant @ 60%.</p>
+        <div class="absolute -right-10 -top-10 w-32 h-32 bg-secondary/10 rounded-full blur-3xl"></div>
+      </div>
+      <div class="bg-surface-container-low rounded-2xl p-6 relative">
+        <div class="bg-surface-container-highest rounded-xl p-8 text-center" style="box-shadow: 0 40px 40px rgba(218, 226, 253, 0.08)">
+          <p class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-2">Ambient Shadow</p>
+          <p class="font-headline text-lg font-bold">blur 40 · 8%</p>
+        </div>
+        <p class="text-xs text-on-surface-variant mt-4 leading-relaxed">Shadow suave derivado de on-background — glow, não smudge.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: COMPONENTS -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-secondary text-3xl">widgets</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Componentes</h2>
+        <p class="text-on-surface-variant text-sm">Interaction Points · Atomic Design</p>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-6">Botões</h3>
+    <div class="bg-surface-container-low rounded-2xl p-8 mb-10">
+      <div class="flex flex-wrap gap-4 items-center">
+        <button class="ai-pulse text-on-primary font-bold px-6 py-3 rounded-full cta-glow active:scale-95 transition-all">
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined text-xl">auto_awesome</span> Start Practice</span>
+        </button>
+        <button class="bg-surface-container-highest text-on-surface font-semibold px-6 py-3 rounded-full ghost-border hover:bg-surface-variant transition-all active:scale-95">Secondary Action</button>
+        <button class="bg-tertiary text-on-tertiary font-bold px-6 py-3 rounded-full hover:brightness-110 transition-all active:scale-95">
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined text-xl">celebration</span> Celebrate Milestone</span>
+        </button>
+        <button class="text-secondary font-semibold px-4 py-2 hover:underline flex items-center gap-2">
+          View Library <span class="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
+        <button class="bg-surface-container-high text-on-surface-variant p-3 rounded-full hover:text-secondary hover:bg-surface-container-highest transition-all active:scale-95">
+          <span class="material-symbols-outlined">notifications</span>
+        </button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6 text-[10px] font-label uppercase tracking-[0.2em] text-on-surface-variant/70">
+        <span>AI Pulse · primary CTA</span>
+        <span>Secondary · ghost</span>
+        <span>Tertiary · reward</span>
+        <span>Text · inline</span>
+        <span>Icon · tonal</span>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-6">Cards & Modules</h3>
+    <div class="grid md:grid-cols-3 gap-6 mb-10">
+      <!-- Metric Card -->
+      <div class="bg-surface-container-low rounded-3xl p-8 relative overflow-hidden">
+        <span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant mb-6 block">Performance Metric</span>
+        <div class="flex items-baseline gap-2 mb-4">
+          <span class="font-headline text-6xl font-bold text-secondary">78</span>
+          <span class="text-xl text-on-surface-variant">/100</span>
+        </div>
+        <div class="flex items-end gap-1 h-12 mb-5">
+          <div class="w-1.5 bg-primary/20 h-[30%] rounded-t"></div>
+          <div class="w-1.5 bg-primary/20 h-[45%] rounded-t"></div>
+          <div class="w-1.5 bg-primary/20 h-[35%] rounded-t"></div>
+          <div class="w-1.5 bg-secondary h-[78%] rounded-t shadow-[0_0_15px_rgba(69,216,237,0.4)]"></div>
+          <div class="w-1.5 bg-primary/20 h-[60%] rounded-t"></div>
+          <div class="w-1.5 bg-primary/20 h-[65%] rounded-t"></div>
+          <div class="w-1.5 bg-primary/20 h-[80%] rounded-t"></div>
+        </div>
+        <span class="bg-secondary-container/20 text-secondary px-3 py-1.5 rounded-lg text-xs font-medium ghost-border">+5,2% esta semana</span>
+        <div class="absolute -right-16 -top-16 w-56 h-56 bg-secondary/5 rounded-full blur-[80px]"></div>
+        <div class="absolute bottom-0 left-0 right-0 fluency-wave opacity-60"></div>
+      </div>
+
+      <!-- Quote Card -->
+      <div class="bg-surface-container-high rounded-3xl p-8 relative overflow-hidden flex flex-col justify-center">
+        <span class="material-symbols-outlined text-tertiary text-4xl mb-5 opacity-50">format_quote</span>
+        <blockquote class="font-headline text-xl font-bold leading-tight mb-3">"The way you speak is the way you lead."</blockquote>
+        <cite class="text-on-surface-variant not-italic text-sm">— Resonant Coaching Pillar</cite>
+        <span class="material-symbols-outlined absolute bottom-3 right-3 text-7xl opacity-5">record_voice_over</span>
+      </div>
+
+      <!-- Empty/Action Card -->
+      <div class="bg-surface-container-low rounded-3xl p-8 flex flex-col items-center justify-center text-center hover:bg-surface-container-high transition-colors cursor-pointer group">
+        <div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ghost-border">
+          <span class="material-symbols-outlined text-secondary">add</span>
+        </div>
+        <p class="font-medium text-on-surface">Upload Nova Sessão</p>
+        <p class="text-xs text-on-surface-variant mt-1">MP4, MOV até 500MB</p>
+      </div>
+    </div>
+
+    <!-- Inputs -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-6">Input Fields · Speech Capture</h3>
+    <div class="bg-surface-container-low rounded-2xl p-8 grid md:grid-cols-2 gap-6 mb-10">
+      <div class="space-y-2">
+        <label class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Título da Sessão</label>
+        <div class="bg-surface-container-highest rounded-xl p-4 focus-glow transition-all">
+          <input type="text" value="Pitch Institucional — Abril" class="bg-transparent outline-none w-full text-on-surface font-medium"/>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <label class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Contexto (opcional)</label>
+        <div class="bg-surface-container-highest rounded-xl p-4 focus-glow transition-all flex items-center gap-2">
+          <span class="material-symbols-outlined text-on-surface-variant">search</span>
+          <input type="text" placeholder="Ex.: investidores, keynote, reunião..." class="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"/>
+        </div>
+      </div>
+      <div class="space-y-2 md:col-span-2">
+        <label class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Objetivo do Coaching</label>
+        <div class="bg-surface-container-highest rounded-xl p-4 focus-glow transition-all">
+          <textarea rows="3" class="bg-transparent outline-none w-full text-on-surface resize-none" placeholder="Descreva o que quer evoluir nesta performance..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chips -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-6">AI Feedback Chips</h3>
+    <div class="bg-surface-container-low rounded-2xl p-8 flex flex-wrap gap-3 mb-10">
+      <span class="bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded text-xs font-semibold">WPM 142</span>
+      <span class="bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded text-xs font-semibold">Tone: Confident</span>
+      <span class="bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded text-xs font-semibold">Pausas: Estratégicas</span>
+      <span class="bg-tertiary/20 text-tertiary px-3 py-1.5 rounded text-xs font-semibold ghost-border">Top 10% Speakers</span>
+      <span class="bg-error-container/30 text-error px-3 py-1.5 rounded text-xs font-semibold ghost-border">Filler words ↑</span>
+      <span class="bg-primary/10 text-primary px-3 py-1.5 rounded text-xs font-semibold ghost-border">Eye contact 68%</span>
+    </div>
+
+    <!-- Fluency Wave -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-6">Fluency Wave (Custom)</h3>
+    <div class="bg-surface-container-high rounded-3xl p-10 relative overflow-hidden mb-10">
+      <div class="flex items-end justify-between mb-4">
+        <div>
+          <span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Ritmo da Fala · Últimos 60s</span>
+          <p class="font-headline text-2xl font-bold mt-1">Cadência estável</p>
+        </div>
+        <span class="bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded text-xs font-semibold">142 WPM</span>
+      </div>
+      <div class="h-20 flex items-center relative">
+        <svg viewBox="0 0 800 80" class="w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="fg" x1="0%" x2="100%">
+              <stop offset="0%" stop-color="#45d8ed" stop-opacity="0"/>
+              <stop offset="50%" stop-color="#45d8ed" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#45d8ed" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,40 Q100,20 200,40 T400,40 T600,40 T800,40" fill="none" stroke="url(#fg)" stroke-width="2.5" style="filter: drop-shadow(0 0 6px #45d8ed)"/>
+        </svg>
+      </div>
+      <div class="absolute -left-20 -bottom-10 w-64 h-64 bg-secondary/5 rounded-full blur-[100px]"></div>
+    </div>
+
+    <!-- FAB + BottomNav preview -->
+    <h3 class="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-6">Navegação · FAB + Bottom Nav</h3>
+    <div class="bg-surface-container-low rounded-2xl p-8 relative h-48">
+      <nav class="absolute bottom-6 left-6 right-6 flex justify-around items-center px-4 py-3 glass-low rounded-full ghost-border">
+        <a class="flex flex-col items-center bg-primary-container text-secondary rounded-full p-3" href="#">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">dashboard</span>
+        </a>
+        <a class="flex flex-col items-center text-on-surface-variant p-3 hover:text-secondary" href="#"><span class="material-symbols-outlined">mic</span></a>
+        <a class="flex flex-col items-center text-on-surface-variant p-3 hover:text-secondary" href="#"><span class="material-symbols-outlined">school</span></a>
+        <a class="flex flex-col items-center text-on-surface-variant p-3 hover:text-secondary" href="#"><span class="material-symbols-outlined">person</span></a>
+      </nav>
+      <button class="absolute bottom-24 right-6 ai-pulse p-4 rounded-full cta-glow active:scale-90 animate-float">
+        <span class="material-symbols-outlined text-on-primary text-2xl" style="font-variation-settings:'FILL' 1">mic</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- SECTION: ICONS -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-secondary text-3xl">apps</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Iconografia</h2>
+        <p class="text-on-surface-variant text-sm">Material Symbols Outlined · FILL 0, wght 400</p>
+      </div>
+    </div>
+    <div class="bg-surface-container-low rounded-2xl p-8 grid grid-cols-4 md:grid-cols-8 gap-6 text-center">
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">mic</span><span class="text-[10px] text-on-surface-variant font-mono">mic</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">graphic_eq</span><span class="text-[10px] text-on-surface-variant font-mono">graphic_eq</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">auto_awesome</span><span class="text-[10px] text-on-surface-variant font-mono">auto_awesome</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">dashboard</span><span class="text-[10px] text-on-surface-variant font-mono">dashboard</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">school</span><span class="text-[10px] text-on-surface-variant font-mono">school</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">play_arrow</span><span class="text-[10px] text-on-surface-variant font-mono">play_arrow</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">upload</span><span class="text-[10px] text-on-surface-variant font-mono">upload</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-secondary">videocam</span><span class="text-[10px] text-on-surface-variant font-mono">videocam</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-tertiary">celebration</span><span class="text-[10px] text-on-surface-variant font-mono">celebration</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-tertiary">emoji_events</span><span class="text-[10px] text-on-surface-variant font-mono">emoji_events</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-on-surface">record_voice_over</span><span class="text-[10px] text-on-surface-variant font-mono">record_voice_over</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-on-surface">spatial_audio</span><span class="text-[10px] text-on-surface-variant font-mono">spatial_audio</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-on-surface">insights</span><span class="text-[10px] text-on-surface-variant font-mono">insights</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-on-surface">notifications</span><span class="text-[10px] text-on-surface-variant font-mono">notifications</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-on-surface-variant">format_quote</span><span class="text-[10px] text-on-surface-variant font-mono">format_quote</span></div>
+      <div class="flex flex-col items-center gap-2"><span class="material-symbols-outlined text-3xl text-on-surface-variant">arrow_forward</span><span class="text-[10px] text-on-surface-variant font-mono">arrow_forward</span></div>
+    </div>
+  </section>
+
+  <!-- SECTION: DO / DON'T -->
+  <section>
+    <div class="flex items-center gap-4 mb-10">
+      <span class="material-symbols-outlined text-secondary text-3xl">rule</span>
+      <div>
+        <h2 class="font-headline text-3xl font-bold tracking-tight">Princípios</h2>
+        <p class="text-on-surface-variant text-sm">Do's & Don'ts do "Resonant Stage"</p>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-surface-container-high rounded-2xl p-8 space-y-4">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="material-symbols-outlined text-secondary">check_circle</span>
+          <h3 class="font-headline text-xl font-bold">Do</h3>
+        </div>
+        <ul class="space-y-3 text-on-surface-variant text-sm leading-relaxed">
+          <li>→ Margens assimétricas (left 4rem · right 6rem) para ritmo editorial.</li>
+          <li>→ Tertiary (#ffb954) raro — apenas em momentos de celebração.</li>
+          <li>→ Rounded-full em CTAs principais, 0.75rem (md) em módulos.</li>
+          <li>→ Gradiente AI Pulse em heros e ações primárias.</li>
+          <li>→ Espaçamento generoso (spacing 12+) ao redor de insights de IA.</li>
+        </ul>
+      </div>
+      <div class="bg-surface-container-low rounded-2xl p-8 space-y-4">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="material-symbols-outlined text-error">cancel</span>
+          <h3 class="font-headline text-xl font-bold">Don't</h3>
+        </div>
+        <ul class="space-y-3 text-on-surface-variant text-sm leading-relaxed">
+          <li>✕ Preto puro #000000 — sempre surface #0b1326.</li>
+          <li>✕ Bordas 1px opacas para seccionar — use tonal layering.</li>
+          <li>✕ Sombras escuras para elevação — use luz (ambient glow).</li>
+          <li>✕ Interface densa — 3rem+ entre módulos diferentes.</li>
+          <li>✕ Tertiary como cor de interface — só como recompensa.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 2 — DASHBOARD -->
+<!-- ============================================================ -->
+<div id="tab-dashboard" class="tab-content">
+<div class="max-w-7xl mx-auto px-6 py-12 pb-40">
+  <!-- Greeting -->
+  <section class="mb-12">
+    <span class="font-label text-xs uppercase tracking-[0.3em] text-secondary/80">Welcome back</span>
+    <h1 class="font-headline text-4xl md:text-6xl font-extrabold tracking-tight mt-3">
+      Olá, Bruno. <span class="text-secondary/80">Pronto para seu próximo palco?</span>
+    </h1>
+    <p class="text-on-surface-variant font-body text-lg mt-2">Sua presença está sendo refinada por insights de IA.</p>
+  </section>
+
+  <!-- Bento Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+    <!-- Score -->
+    <div class="md:col-span-2 bg-surface-container-low rounded-3xl p-10 relative overflow-hidden">
+      <span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant mb-8 block">Performance Metric</span>
+      <div class="flex items-end gap-8 mb-10">
+        <div>
+          <p class="text-sm text-on-surface-variant mb-1">Current Eloquence</p>
+          <div class="flex items-baseline gap-2">
+            <span class="font-headline text-7xl font-bold text-secondary">78</span>
+            <span class="text-2xl text-on-surface-variant">/100</span>
+          </div>
+        </div>
+        <div class="flex-grow pb-2">
+          <div class="h-[64px] flex items-end gap-1.5">
+            <div class="w-2 bg-primary/20 h-[30%] rounded-t"></div>
+            <div class="w-2 bg-primary/20 h-[45%] rounded-t"></div>
+            <div class="w-2 bg-primary/20 h-[35%] rounded-t"></div>
+            <div class="w-2 bg-secondary h-[78%] rounded-t shadow-[0_0_15px_rgba(69,216,237,0.4)]"></div>
+            <div class="w-2 bg-primary/20 h-[60%] rounded-t"></div>
+            <div class="w-2 bg-primary/20 h-[65%] rounded-t"></div>
+            <div class="w-2 bg-primary/20 h-[80%] rounded-t"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-3">
+        <span class="bg-secondary-container/20 text-secondary px-4 py-2 rounded-lg text-sm font-medium ghost-border">+5,2% esta semana</span>
+        <span class="bg-tertiary/10 text-tertiary px-4 py-2 rounded-lg text-sm font-medium ghost-border">Top 10% Speakers</span>
+      </div>
+      <div class="absolute -right-20 -top-20 w-72 h-72 bg-secondary/5 rounded-full blur-[90px]"></div>
+      <div class="absolute bottom-0 left-0 right-0 fluency-wave opacity-60"></div>
+    </div>
+
+    <!-- Quote -->
+    <div class="bg-surface-container-high rounded-3xl p-8 flex flex-col justify-center relative overflow-hidden">
+      <span class="material-symbols-outlined text-tertiary text-4xl mb-5 opacity-50">format_quote</span>
+      <blockquote class="font-headline text-2xl font-bold leading-tight mb-3">"The way you speak is the way you lead."</blockquote>
+      <cite class="text-on-surface-variant not-italic text-sm">— Resonant Coaching Pillar</cite>
+      <span class="material-symbols-outlined absolute bottom-2 right-3 text-8xl opacity-5">record_voice_over</span>
+    </div>
+  </div>
+
+  <!-- Recent Performances -->
+  <section class="mb-12">
+    <div class="flex justify-between items-end mb-8">
+      <div>
+        <h2 class="font-headline text-3xl font-bold">Performances Recentes</h2>
+        <p class="text-on-surface-variant">Reveja sua evolução no palco</p>
+      </div>
+      <button class="text-secondary font-semibold hover:underline flex items-center gap-2">
+        Ver Biblioteca <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div class="group cursor-pointer">
+        <div class="aspect-video rounded-2xl overflow-hidden mb-4 relative bg-surface-container-high">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary-container/40 to-surface"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="material-symbols-outlined text-7xl text-secondary/30 group-hover:text-secondary/60 transition-colors">spatial_audio</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+            <span class="glass-low px-2 py-1 rounded text-xs font-medium ghost-border">12:40</span>
+            <div class="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-on-secondary shadow-lg opacity-0 group-hover:opacity-100 transition">
+              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">play_arrow</span>
+            </div>
+          </div>
+        </div>
+        <h3 class="font-bold text-lg mb-1 group-hover:text-secondary transition-colors">Pitch Institucional — Q2</h3>
+        <p class="text-sm text-on-surface-variant">10 abr 2026 · Confiança 82%</p>
+      </div>
+      <div class="group cursor-pointer">
+        <div class="aspect-video rounded-2xl overflow-hidden mb-4 relative bg-surface-container-high">
+          <div class="absolute inset-0 bg-gradient-to-br from-secondary-container/30 to-surface"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="material-symbols-outlined text-7xl text-secondary/30 group-hover:text-secondary/60 transition-colors">record_voice_over</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent"></div>
+          <div class="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+            <span class="glass-low px-2 py-1 rounded text-xs font-medium ghost-border">05:15</span>
+            <div class="w-10 h-10 bg-secondary rounded-full flex items-center justify-center text-on-secondary shadow-lg opacity-0 group-hover:opacity-100 transition">
+              <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">play_arrow</span>
+            </div>
+          </div>
+        </div>
+        <h3 class="font-bold text-lg mb-1 group-hover:text-secondary transition-colors">Keynote Warm-up #4</h3>
+        <p class="text-sm text-on-surface-variant">9 abr 2026 · Pace estável</p>
+      </div>
+      <div class="rounded-2xl flex flex-col items-center justify-center p-8 bg-surface-container-low hover:bg-surface-container-high transition-colors cursor-pointer group" style="border-style: dashed; border-width: 2px; border-color: rgba(67,70,82,0.3)">
+        <div class="w-14 h-14 rounded-full bg-surface-container-highest flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <span class="material-symbols-outlined text-on-surface-variant">add</span>
+        </div>
+        <span class="font-medium text-on-surface-variant">Upload Nova Sessão</span>
+        <span class="text-xs text-outline mt-1">MP4, MOV até 500MB</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Coaching + Streak -->
+  <div class="grid md:grid-cols-3 gap-6 mb-12">
+    <div class="md:col-span-2 bg-surface-container-low rounded-3xl p-8 relative overflow-hidden">
+      <span class="font-label text-xs uppercase tracking-[0.2em] text-tertiary mb-4 block">Plano de Coaching · Abril</span>
+      <h3 class="font-headline text-2xl font-bold mb-6">3 marcos para esta semana</h3>
+      <ul class="space-y-4">
+        <li class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-secondary-container/20 text-secondary flex items-center justify-center"><span class="material-symbols-outlined">check</span></div>
+          <div class="flex-1"><p class="font-medium">Reduzir WPM médio para 140</p><p class="text-xs text-on-surface-variant">Concluído · 142 WPM</p></div>
+        </li>
+        <li class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center ghost-border"><span class="material-symbols-outlined">pace</span></div>
+          <div class="flex-1"><p class="font-medium">Inserir 2 pausas estratégicas por minuto</p><p class="text-xs text-on-surface-variant">Progresso: 1.4 / min</p></div>
+        </li>
+        <li class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center ghost-border"><span class="material-symbols-outlined">graphic_eq</span></div>
+          <div class="flex-1"><p class="font-medium">Aumentar variação tonal em 15%</p><p class="text-xs text-on-surface-variant">Aguardando próxima sessão</p></div>
+        </li>
+      </ul>
+    </div>
+    <div class="bg-surface-container-high rounded-3xl p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
+      <span class="font-label text-xs uppercase tracking-[0.2em] text-tertiary mb-2">Streak</span>
+      <p class="font-headline text-7xl font-extrabold text-tertiary">14</p>
+      <p class="text-on-surface-variant text-sm mt-1">dias praticando</p>
+      <span class="material-symbols-outlined text-tertiary text-8xl mt-6 opacity-20" style="font-variation-settings:'FILL' 1">local_fire_department</span>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 3 — RECORD / UPLOAD -->
+<!-- ============================================================ -->
+<div id="tab-record" class="tab-content">
+<div class="max-w-5xl mx-auto px-6 py-16">
+  <header class="mb-12 space-y-3">
+    <span class="font-label text-xs uppercase tracking-[0.3em] text-secondary/80">Capture the Stage</span>
+    <h1 class="font-headline text-4xl md:text-6xl font-extrabold tracking-tight">Gravar ou fazer upload</h1>
+    <p class="text-on-surface-variant text-lg max-w-2xl">Capture sua performance diretamente ou envie um vídeo existente. A IA fará a análise em minutos.</p>
+  </header>
+
+  <!-- Tabs record/upload -->
+  <div class="flex gap-2 mb-8">
+    <button class="bg-surface-container-highest text-secondary px-5 py-2.5 rounded-full font-label text-xs uppercase tracking-[0.2em] ghost-border">
+      <span class="flex items-center gap-2"><span class="material-symbols-outlined text-base" style="font-variation-settings:'FILL' 1">videocam</span> Gravar</span>
+    </button>
+    <button class="text-on-surface-variant hover:text-on-surface px-5 py-2.5 rounded-full font-label text-xs uppercase tracking-[0.2em]">
+      <span class="flex items-center gap-2"><span class="material-symbols-outlined text-base">upload</span> Upload</span>
+    </button>
+  </div>
+
+  <!-- Record area -->
+  <div class="bg-surface-container-low rounded-3xl p-8 mb-8 relative overflow-hidden">
+    <div class="aspect-video bg-surface-container-lowest rounded-2xl relative overflow-hidden flex items-center justify-center">
+      <div class="absolute inset-0 bg-gradient-to-br from-primary-container/20 via-surface to-surface-container-low"></div>
+      <!-- grid overlay -->
+      <svg class="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 120 68" preserveAspectRatio="none">
+        <line x1="40" y1="0" x2="40" y2="68" stroke="#45d8ed" stroke-width="0.1"/>
+        <line x1="80" y1="0" x2="80" y2="68" stroke="#45d8ed" stroke-width="0.1"/>
+        <line x1="0" y1="22.6" x2="120" y2="22.6" stroke="#45d8ed" stroke-width="0.1"/>
+        <line x1="0" y1="45.3" x2="120" y2="45.3" stroke="#45d8ed" stroke-width="0.1"/>
+      </svg>
+      <div class="relative z-10 text-center">
+        <div class="w-24 h-24 rounded-full ai-pulse flex items-center justify-center mx-auto mb-5 cta-glow animate-glow">
+          <span class="material-symbols-outlined text-on-primary text-5xl" style="font-variation-settings:'FILL' 1">videocam</span>
+        </div>
+        <p class="font-label text-xs uppercase tracking-[0.3em] text-secondary">Câmera · Microfone prontos</p>
+        <p class="font-headline text-xl font-bold text-on-surface mt-1">Quando estiver pronto, inicie</p>
+      </div>
+      <div class="absolute bottom-4 left-4 flex items-center gap-2 glass-low px-3 py-1.5 rounded-full ghost-border">
+        <span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+        <span class="text-xs font-medium">REC · 00:00</span>
+      </div>
+      <div class="absolute bottom-4 right-4 glass-low px-3 py-1.5 rounded-full ghost-border">
+        <span class="text-xs font-medium">1080p · 30fps</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="mt-8 flex items-center justify-center gap-6">
+      <button class="bg-surface-container-highest text-on-surface p-4 rounded-full ghost-border hover:bg-surface-variant transition active:scale-95">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+      <button class="ai-pulse text-on-primary px-10 py-5 rounded-full cta-glow active:scale-95 transition-all flex items-center gap-3">
+        <span class="material-symbols-outlined text-2xl" style="font-variation-settings:'FILL' 1">fiber_manual_record</span>
+        <span class="font-bold text-lg">Iniciar Gravação</span>
+      </button>
+      <button class="bg-surface-container-highest text-on-surface p-4 rounded-full ghost-border hover:bg-surface-variant transition active:scale-95">
+        <span class="material-symbols-outlined">cameraswitch</span>
+      </button>
+    </div>
+
+    <div class="absolute -left-20 -bottom-20 w-72 h-72 bg-secondary/5 rounded-full blur-[100px]"></div>
+  </div>
+
+  <!-- Context form -->
+  <div class="bg-surface-container-high rounded-3xl p-8 space-y-6">
+    <div>
+      <span class="font-label text-xs uppercase tracking-[0.2em] text-secondary">Contexto da Sessão</span>
+      <h3 class="font-headline text-xl font-bold mt-1">Ajude a IA a coachear com precisão</h3>
+    </div>
+    <div class="grid md:grid-cols-2 gap-5">
+      <div class="space-y-2">
+        <label class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Título</label>
+        <div class="bg-surface-container-highest rounded-xl p-4 focus-glow transition-all">
+          <input type="text" placeholder="Ex.: Pitch para investidores — série A" class="bg-transparent outline-none w-full text-on-surface placeholder:text-outline"/>
+        </div>
+      </div>
+      <div class="space-y-2">
+        <label class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Tipo</label>
+        <div class="bg-surface-container-highest rounded-xl p-4 focus-glow transition-all flex items-center justify-between">
+          <span class="text-on-surface">Apresentação corporativa</span>
+          <span class="material-symbols-outlined text-on-surface-variant">expand_more</span>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-2">
+      <label class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Objetivo de coaching</label>
+      <div class="bg-surface-container-highest rounded-xl p-4 focus-glow transition-all">
+        <textarea rows="3" class="bg-transparent outline-none w-full text-on-surface resize-none" placeholder="Quero reduzir filler words e ganhar cadência mais firme no fechamento."></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 4 — ANÁLISE IA -->
+<!-- ============================================================ -->
+<div id="tab-analysis" class="tab-content">
+<div class="max-w-7xl mx-auto px-6 py-16">
+  <header class="mb-12">
+    <span class="font-label text-xs uppercase tracking-[0.3em] text-secondary/80">Análise · Pitch Institucional Q2</span>
+    <h1 class="font-headline text-4xl md:text-5xl font-extrabold tracking-tight mt-3">Sua cadência contou uma história.</h1>
+    <p class="text-on-surface-variant text-lg mt-2 max-w-2xl">A IA identificou 4 padrões de presença. Veja em detalhe como cada um afetou o impacto.</p>
+  </header>
+
+  <!-- Player + score -->
+  <div class="grid md:grid-cols-3 gap-6 mb-10">
+    <div class="md:col-span-2 bg-surface-container-low rounded-3xl p-6 relative overflow-hidden">
+      <div class="aspect-video bg-surface-container-lowest rounded-2xl relative overflow-hidden flex items-center justify-center">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-container/40 via-surface to-surface-container-low"></div>
+        <div class="relative z-10 w-20 h-20 rounded-full ai-pulse flex items-center justify-center cta-glow">
+          <span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings:'FILL' 1">play_arrow</span>
+        </div>
+        <div class="absolute bottom-3 left-3 right-3 flex items-center gap-3 glass-low px-4 py-2 rounded-full ghost-border">
+          <span class="text-xs font-medium">02:14</span>
+          <div class="flex-1 h-1 bg-surface-container-highest rounded-full overflow-hidden">
+            <div class="w-1/3 h-full bg-gradient-to-r from-secondary to-primary-container"></div>
+          </div>
+          <span class="text-xs font-medium text-on-surface-variant">06:42</span>
+        </div>
+      </div>
+      <!-- Timeline markers -->
+      <div class="mt-5">
+        <div class="flex items-center justify-between mb-2">
+          <span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant">Marcadores de IA · 6 insights</span>
+          <span class="text-xs text-secondary">Ver todos</span>
+        </div>
+        <div class="relative h-16 bg-surface-container-high rounded-xl overflow-hidden">
+          <!-- fluency line -->
+          <svg viewBox="0 0 600 64" class="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+            <path d="M0,32 Q50,20 100,30 T200,25 T300,40 T400,18 T500,32 T600,28" fill="none" stroke="#45d8ed" stroke-width="1.5" opacity="0.6"/>
+          </svg>
+          <!-- markers -->
+          <div class="absolute top-2 bottom-2 w-1 bg-tertiary rounded-full" style="left: 16%"></div>
+          <div class="absolute top-2 bottom-2 w-1 bg-secondary rounded-full" style="left: 34%"></div>
+          <div class="absolute top-2 bottom-2 w-1 bg-error rounded-full" style="left: 52%"></div>
+          <div class="absolute top-2 bottom-2 w-1 bg-secondary rounded-full" style="left: 68%"></div>
+          <div class="absolute top-2 bottom-2 w-1 bg-tertiary rounded-full" style="left: 84%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-surface-container-high rounded-3xl p-8 relative overflow-hidden">
+      <span class="font-label text-xs uppercase tracking-[0.2em] text-on-surface-variant mb-2 block">Overall Score</span>
+      <p class="font-headline text-6xl font-bold text-secondary">78<span class="text-xl text-on-surface-variant">/100</span></p>
+      <p class="text-tertiary text-sm mt-1 font-semibold">+3 vs. sessão anterior</p>
+      <div class="space-y-3 mt-8">
+        <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant">Cadência</span><span class="text-secondary font-semibold">84</span></div>
+          <div class="h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: 84%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant">Variação tonal</span><span class="text-secondary font-semibold">72</span></div>
+          <div class="h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: 72%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant">Clareza</span><span class="text-secondary font-semibold">81</span></div>
+          <div class="h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-secondary rounded-full" style="width: 81%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-1"><span class="text-on-surface-variant">Filler words</span><span class="text-tertiary font-semibold">68</span></div>
+          <div class="h-1.5 bg-surface-container-highest rounded-full overflow-hidden"><div class="h-full bg-tertiary rounded-full" style="width: 68%"></div></div>
+        </div>
+      </div>
+      <div class="absolute -right-10 -top-10 w-40 h-40 bg-secondary/5 rounded-full blur-[60px]"></div>
+    </div>
+  </div>
+
+  <!-- Dimensions -->
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="bg-surface-container-low rounded-3xl p-7 relative overflow-hidden">
+      <span class="material-symbols-outlined text-secondary text-3xl mb-4">graphic_eq</span>
+      <h3 class="font-headline text-xl font-bold mb-2">Ritmo & Cadência</h3>
+      <p class="text-on-surface-variant text-sm leading-relaxed mb-5">WPM médio de 142, com variação saudável. O pico aos 3:18 coincidiu com o slide de resultados — boa sincronia.</p>
+      <div class="flex gap-2 flex-wrap">
+        <span class="bg-secondary-container text-on-secondary-container px-2.5 py-1 rounded text-xs font-semibold">142 WPM</span>
+        <span class="bg-secondary-container text-on-secondary-container px-2.5 py-1 rounded text-xs font-semibold">Variação ±18</span>
+      </div>
+      <div class="absolute bottom-0 left-0 right-0 fluency-wave opacity-50"></div>
+    </div>
+    <div class="bg-surface-container-low rounded-3xl p-7 relative overflow-hidden">
+      <span class="material-symbols-outlined text-secondary text-3xl mb-4">spatial_audio</span>
+      <h3 class="font-headline text-xl font-bold mb-2">Presença Tonal</h3>
+      <p class="text-on-surface-variant text-sm leading-relaxed mb-5">Variação tonal de 72% — próxima da zona "carismática". O fechamento perdeu energia nos últimos 40 segundos.</p>
+      <div class="flex gap-2 flex-wrap">
+        <span class="bg-secondary-container text-on-secondary-container px-2.5 py-1 rounded text-xs font-semibold">Confident</span>
+        <span class="bg-tertiary/20 text-tertiary px-2.5 py-1 rounded text-xs font-semibold ghost-border">Fechar com energia</span>
+      </div>
+    </div>
+    <div class="bg-surface-container-low rounded-3xl p-7 relative overflow-hidden">
+      <span class="material-symbols-outlined text-tertiary text-3xl mb-4">psychology</span>
+      <h3 class="font-headline text-xl font-bold mb-2">Clareza & Fillers</h3>
+      <p class="text-on-surface-variant text-sm leading-relaxed mb-5">14 fillers detectados ("tipo", "né"). Concentrados nas transições entre tópicos — área clara de evolução.</p>
+      <div class="flex gap-2 flex-wrap">
+        <span class="bg-error-container/30 text-error px-2.5 py-1 rounded text-xs font-semibold ghost-border">14 fillers</span>
+        <span class="bg-primary/10 text-primary px-2.5 py-1 rounded text-xs font-semibold ghost-border">3 transições</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 5 — FEEDBACK -->
+<!-- ============================================================ -->
+<div id="tab-feedback" class="tab-content">
+<div class="max-w-5xl mx-auto px-6 py-16">
+  <header class="mb-12">
+    <span class="font-label text-xs uppercase tracking-[0.3em] text-tertiary">Feedback & Recomendações</span>
+    <h1 class="font-headline text-4xl md:text-5xl font-extrabold tracking-tight mt-3">Três movimentos para sua próxima aparição.</h1>
+    <p class="text-on-surface-variant text-lg mt-2 max-w-2xl">Priorizados por impacto potencial. Você pode marcá-los como meta desta semana.</p>
+  </header>
+
+  <!-- Recommendations -->
+  <div class="space-y-5 mb-12">
+    <!-- Rec 1 -->
+    <article class="bg-surface-container-low rounded-3xl p-8 relative overflow-hidden">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-2xl ai-pulse flex items-center justify-center flex-shrink-0 cta-glow">
+          <span class="font-headline font-bold text-on-primary text-lg">1</span>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-secondary-container text-on-secondary-container px-2.5 py-1 rounded text-xs font-semibold">Alto impacto</span>
+            <span class="text-on-surface-variant text-xs">· Cadência</span>
+          </div>
+          <h3 class="font-headline text-2xl font-bold mb-2">Insira pausas de 1.5s antes de cada dado-chave</h3>
+          <p class="text-on-surface-variant leading-relaxed mb-4">Você apresentou três métricas importantes sem respiração. Quando a IA simula a percepção do público, 62% perdem o dado porque ele entra em meio à sentença anterior. Pausar cria expectativa — e transforma dado em manchete.</p>
+          <div class="flex items-center gap-3">
+            <button class="bg-surface-container-highest text-secondary font-semibold px-4 py-2 rounded-full ghost-border hover:bg-surface-variant transition text-sm">Marcar como meta</button>
+            <button class="text-on-surface-variant text-sm hover:text-secondary">Ver exemplos</button>
+          </div>
+        </div>
+      </div>
+      <div class="absolute -right-20 -top-20 w-56 h-56 bg-secondary/5 rounded-full blur-[80px]"></div>
+    </article>
+
+    <!-- Rec 2 -->
+    <article class="bg-surface-container-low rounded-3xl p-8 relative overflow-hidden">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center flex-shrink-0 ghost-border">
+          <span class="font-headline font-bold text-secondary text-lg">2</span>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-primary/10 text-primary px-2.5 py-1 rounded text-xs font-semibold ghost-border">Médio impacto</span>
+            <span class="text-on-surface-variant text-xs">· Presença tonal</span>
+          </div>
+          <h3 class="font-headline text-2xl font-bold mb-2">Retorne com 20% mais energia nos últimos 45 segundos</h3>
+          <p class="text-on-surface-variant leading-relaxed mb-4">Seu gráfico tonal cai nitidamente na reta final. Performances com picos de energia no fechamento têm 2,3x mais chance de conversão.</p>
+          <div class="flex items-center gap-3">
+            <button class="bg-surface-container-highest text-secondary font-semibold px-4 py-2 rounded-full ghost-border hover:bg-surface-variant transition text-sm">Marcar como meta</button>
+            <button class="text-on-surface-variant text-sm hover:text-secondary">Ver exemplos</button>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Rec 3 -->
+    <article class="bg-surface-container-low rounded-3xl p-8 relative overflow-hidden">
+      <div class="flex items-start gap-5">
+        <div class="w-12 h-12 rounded-2xl bg-surface-container-highest flex items-center justify-center flex-shrink-0 ghost-border">
+          <span class="font-headline font-bold text-secondary text-lg">3</span>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-tertiary/20 text-tertiary px-2.5 py-1 rounded text-xs font-semibold ghost-border">Evolução contínua</span>
+            <span class="text-on-surface-variant text-xs">· Filler words</span>
+          </div>
+          <h3 class="font-headline text-2xl font-bold mb-2">Substitua "tipo" por silêncio nas transições</h3>
+          <p class="text-on-surface-variant leading-relaxed mb-4">11 das 14 filler words ocorreram entre blocos de conteúdo. Um beat de pausa (0.8-1.2s) conduz a audiência em vez de interromper o fluxo interno.</p>
+          <div class="flex items-center gap-3">
+            <button class="bg-surface-container-highest text-secondary font-semibold px-4 py-2 rounded-full ghost-border hover:bg-surface-variant transition text-sm">Marcar como meta</button>
+            <button class="text-on-surface-variant text-sm hover:text-secondary">Ver exemplos</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <!-- Celebrate -->
+  <div class="bg-surface-container-high rounded-3xl p-10 relative overflow-hidden">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="material-symbols-outlined text-tertiary text-3xl">celebration</span>
+      <span class="font-label text-xs uppercase tracking-[0.3em] text-tertiary">Vitória desta sessão</span>
+    </div>
+    <h3 class="font-headline text-2xl md:text-3xl font-bold mb-3">Sua abertura foi mais curta e mais confiante que 82% das suas sessões anteriores.</h3>
+    <p class="text-on-surface-variant leading-relaxed mb-6">Os primeiros 18 segundos definiram um tom de autoridade — continue ensaiando aberturas assim.</p>
+    <button class="bg-tertiary text-on-tertiary font-bold px-6 py-3 rounded-full hover:brightness-110 transition active:scale-95 flex items-center gap-2">
+      <span class="material-symbols-outlined">emoji_events</span> Celebrar milestone
+    </button>
+    <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-[180px] text-tertiary opacity-5" style="font-variation-settings:'FILL' 1">emoji_events</span>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- TAB 6 — BIBLIOTECA -->
+<!-- ============================================================ -->
+<div id="tab-library" class="tab-content">
+<div class="max-w-7xl mx-auto px-6 py-16">
+  <header class="mb-12">
+    <span class="font-label text-xs uppercase tracking-[0.3em] text-secondary/80">Biblioteca de Cursos</span>
+    <h1 class="font-headline text-4xl md:text-6xl font-extrabold tracking-tight">
+      Treinamentos <span class="text-transparent bg-clip-text bg-gradient-to-r from-secondary to-primary">curados pela IA</span>
+    </h1>
+    <p class="text-on-surface-variant text-lg mt-3 max-w-2xl">Conteúdo que ataca exatamente as dimensões onde seu coaching apontou oportunidades.</p>
+  </header>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-2 mb-10">
+    <button class="bg-surface-container-highest text-secondary px-4 py-2 rounded-full text-xs font-label uppercase tracking-[0.2em] ghost-border">Todos</button>
+    <button class="text-on-surface-variant hover:text-secondary px-4 py-2 rounded-full text-xs font-label uppercase tracking-[0.2em]">Cadência</button>
+    <button class="text-on-surface-variant hover:text-secondary px-4 py-2 rounded-full text-xs font-label uppercase tracking-[0.2em]">Presença</button>
+    <button class="text-on-surface-variant hover:text-secondary px-4 py-2 rounded-full text-xs font-label uppercase tracking-[0.2em]">Estrutura</button>
+    <button class="text-on-surface-variant hover:text-secondary px-4 py-2 rounded-full text-xs font-label uppercase tracking-[0.2em]">Storytelling</button>
+  </div>
+
+  <!-- Featured course -->
+  <article class="bg-surface-container-low rounded-3xl p-10 mb-12 relative overflow-hidden">
+    <div class="grid md:grid-cols-5 gap-10 items-center relative z-10">
+      <div class="md:col-span-3 space-y-5">
+        <span class="inline-block bg-tertiary/10 text-tertiary px-3 py-1 rounded-full text-xs font-semibold ghost-border">Recomendado para você</span>
+        <h2 class="font-headline text-3xl md:text-5xl font-extrabold tracking-tight">A Anatomia da Pausa</h2>
+        <p class="text-on-surface-variant text-lg leading-relaxed">Treinamento de 4 módulos sobre o uso deliberado do silêncio. Direto ligado à sua recomendação #1 desta semana.</p>
+        <div class="flex flex-wrap gap-4 text-sm text-on-surface-variant">
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined text-base">schedule</span> 1h 40min</span>
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined text-base">layers</span> 4 módulos</span>
+          <span class="flex items-center gap-2"><span class="material-symbols-outlined text-base">star</span> 4.9</span>
+        </div>
+        <button class="ai-pulse text-on-primary font-bold px-6 py-3 rounded-full cta-glow active:scale-95 transition-all flex items-center gap-2 w-fit">
+          <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">play_arrow</span> Iniciar agora
+        </button>
+      </div>
+      <div class="md:col-span-2 aspect-video bg-surface-container-high rounded-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-container/40 to-surface"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="material-symbols-outlined text-7xl text-secondary/50 animate-float">spatial_audio</span>
+        </div>
+      </div>
+    </div>
+    <div class="absolute -right-20 -top-20 w-80 h-80 bg-secondary/5 rounded-full blur-[120px]"></div>
+  </article>
+
+  <!-- Course grid -->
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Card 1 -->
+    <article class="bg-surface-container-low rounded-2xl overflow-hidden group cursor-pointer">
+      <div class="aspect-video bg-surface-container-high relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-secondary-container/30 to-surface"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="material-symbols-outlined text-6xl text-secondary/40">graphic_eq</span>
+        </div>
+        <span class="absolute top-3 left-3 bg-primary/20 text-primary px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ghost-border">Cadência</span>
+      </div>
+      <div class="p-6 space-y-2">
+        <h3 class="font-headline text-lg font-bold group-hover:text-secondary transition-colors">Ritmo que respira</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed">Encontrando seu WPM ideal por contexto.</p>
+        <div class="flex items-center justify-between pt-3 text-xs text-on-surface-variant">
+          <span>6 módulos</span><span class="text-secondary font-semibold">Continuar ·</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 2 -->
+    <article class="bg-surface-container-low rounded-2xl overflow-hidden group cursor-pointer">
+      <div class="aspect-video bg-surface-container-high relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-container/40 to-surface"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="material-symbols-outlined text-6xl text-secondary/40">record_voice_over</span>
+        </div>
+        <span class="absolute top-3 left-3 bg-secondary-container text-on-secondary-container px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Presença</span>
+      </div>
+      <div class="p-6 space-y-2">
+        <h3 class="font-headline text-lg font-bold group-hover:text-secondary transition-colors">Voz que lidera</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed">Projeção, ressonância e intenção tonal.</p>
+        <div class="flex items-center justify-between pt-3 text-xs text-on-surface-variant">
+          <span>8 módulos</span><span class="text-on-surface-variant">Novo</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 3 -->
+    <article class="bg-surface-container-low rounded-2xl overflow-hidden group cursor-pointer">
+      <div class="aspect-video bg-surface-container-high relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-tertiary/20 to-surface"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="material-symbols-outlined text-6xl text-tertiary/40">menu_book</span>
+        </div>
+        <span class="absolute top-3 left-3 bg-tertiary/20 text-tertiary px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ghost-border">Estrutura</span>
+      </div>
+      <div class="p-6 space-y-2">
+        <h3 class="font-headline text-lg font-bold group-hover:text-secondary transition-colors">Aberturas magnéticas</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed">Frameworks para os primeiros 20 segundos.</p>
+        <div class="flex items-center justify-between pt-3 text-xs text-on-surface-variant">
+          <span>4 módulos</span><span class="text-secondary font-semibold">92% concluído ·</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 4 -->
+    <article class="bg-surface-container-low rounded-2xl overflow-hidden group cursor-pointer">
+      <div class="aspect-video bg-surface-container-high relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-secondary-container/30 to-surface"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="material-symbols-outlined text-6xl text-secondary/40">spatial_audio</span>
+        </div>
+        <span class="absolute top-3 left-3 bg-primary/20 text-primary px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ghost-border">Storytelling</span>
+      </div>
+      <div class="p-6 space-y-2">
+        <h3 class="font-headline text-lg font-bold group-hover:text-secondary transition-colors">Da métrica à manchete</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed">Transformar dado em narrativa inesquecível.</p>
+        <div class="flex items-center justify-between pt-3 text-xs text-on-surface-variant">
+          <span>5 módulos</span><span class="text-on-surface-variant">3h 10min</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 5 -->
+    <article class="bg-surface-container-low rounded-2xl overflow-hidden group cursor-pointer">
+      <div class="aspect-video bg-surface-container-high relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-primary-container/40 to-surface"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="material-symbols-outlined text-6xl text-secondary/40">psychology</span>
+        </div>
+        <span class="absolute top-3 left-3 bg-secondary-container text-on-secondary-container px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">Presença</span>
+      </div>
+      <div class="p-6 space-y-2">
+        <h3 class="font-headline text-lg font-bold group-hover:text-secondary transition-colors">Nervosismo como combustível</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed">Reenquadrando adrenalina em carisma.</p>
+        <div class="flex items-center justify-between pt-3 text-xs text-on-surface-variant">
+          <span>3 módulos</span><span class="text-on-surface-variant">1h 05min</span>
+        </div>
+      </div>
+    </article>
+
+    <!-- Card 6 (locked) -->
+    <article class="bg-surface-container-low rounded-2xl overflow-hidden group cursor-pointer relative">
+      <div class="aspect-video bg-surface-container-high relative overflow-hidden opacity-40">
+        <div class="absolute inset-0 bg-gradient-to-br from-outline/30 to-surface"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <span class="material-symbols-outlined text-6xl text-outline">lock</span>
+        </div>
+      </div>
+      <div class="p-6 space-y-2 opacity-60">
+        <h3 class="font-headline text-lg font-bold">Masterclass: Keynote de Stage</h3>
+        <p class="text-on-surface-variant text-sm leading-relaxed">Desbloqueie ao atingir 85+ em Eloquência.</p>
+        <div class="flex items-center justify-between pt-3 text-xs">
+          <span class="text-on-surface-variant">Pro</span>
+          <span class="text-tertiary font-semibold">Locked</span>
+        </div>
+      </div>
+    </article>
+  </div>
+</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- JS -->
+<!-- ============================================================ -->
+<script>
+  function switchTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    const content = document.getElementById('tab-' + name);
+    if (content) content.classList.add('active');
+    const btn = document.querySelector('.tab-btn[data-tab="' + name + '"]');
+    if (btn) btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

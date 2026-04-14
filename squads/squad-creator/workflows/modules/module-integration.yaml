@@ -1,0 +1,16 @@
+module:
+  id: module-integration
+  name: Integration Module
+  purpose: Shared integration and publish-ready steps
+
+  phases:
+    - id: integration-register
+      task: refresh-registry
+      outputs:
+        - squads/squad-creator/data/squad-registry.yaml
+
+    - id: integration-docs
+      task: create-documentation
+      outputs:
+        - squads/{squad_name}/README.md
+        - squads/{squad_name}/docs/

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#8ebfff",
+              "on-tertiary-fixed-variant": "#633f00",
+              "on-secondary-fixed": "#001f24",
+              "on-primary": "#00315b",
+              "outline-variant": "#434652",
+              "surface-variant": "#2d3449",
+              "surface-container-high": "#222a3d",
+              "primary-fixed-dim": "#a2c9ff",
+              "background": "#0b1326",
+              "secondary": "#45d8ed",
+              "on-tertiary-fixed": "#291800",
+              "primary": "#a2c9ff",
+              "surface-tint": "#a2c9ff",
+              "tertiary-fixed": "#ffddb4",
+              "tertiary": "#ffb954",
+              "on-secondary-container": "#00444d",
+              "tertiary-container": "#6a4400",
+              "on-error-container": "#ffdad6",
+              "surface-container-lowest": "#060e20",
+              "on-surface-variant": "#c3c6d4",
+              "on-primary-fixed-variant": "#004881",
+              "inverse-primary": "#0060a8",
+              "tertiary-fixed-dim": "#ffb954",
+              "secondary-container": "#00bacd",
+              "on-error": "#690005",
+              "on-surface": "#dae2fd",
+              "inverse-surface": "#dae2fd",
+              "surface-container-highest": "#2d3449",
+              "on-primary-fixed": "#001c38",
+              "outline": "#8d909d",
+              "error-container": "#93000a",
+              "surface-dim": "#0b1326",
+              "primary-fixed": "#d3e4ff",
+              "surface-container-low": "#131b2e",
+              "inverse-on-surface": "#283044",
+              "on-background": "#dae2fd",
+              "primary-container": "#004d89",
+              "on-secondary-fixed-variant": "#004f58",
+              "on-secondary": "#00363d",
+              "secondary-fixed": "#98f0ff",
+              "surface-bright": "#31394d",
+              "surface-container": "#171f33",
+              "secondary-fixed-dim": "#45d8ed",
+              "error": "#ffb4ab",
+              "surface": "#0b1326",
+              "on-tertiary": "#452b00",
+              "on-tertiary-container": "#f6af46"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .fluency-wave-bg {
+            background: linear-gradient(90deg, transparent, #45d8ed44, transparent);
+            height: 4px;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-secondary selection:text-on-secondary">
+<!-- TopAppBar -->
+<nav class="bg-[#0b1326] dark:bg-[#0b1326] flex items-center justify-between px-6 py-4 w-full docked full-width top-0 sticky z-50 shadow-[0_40px_40px_rgba(218,226,253,0.08)]">
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-secondary transition-colors duration-200">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex items-center gap-3">
+<span class="text-[#45d8ed] font-extrabold tracking-tighter text-xl">Eloquent AI</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#45d8ed] dark:text-[#45d8ed]">settings</span>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant/30">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a professional mentor with friendly expression, cinematic lighting, studio background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2yLlLRxBqPrKp_tofcIn3qwz0tVmi1pfHLYCyeRybsTcm2zvJwBDhRgW6t_MKRHfuRZRyHzPYvUaXgMFEFz3_lpnEdrF0taUkkh0U4KRrZd7mgRq-aXN9lRpxaaMKRv6RM8vG7cphDlUs6wl_OVGCXsYcAJ_4ogQYF9k0f9x1YTmQCjhnzkBMo8KvpvSG4H0OhCBQnL6ME0wggqtc48fyzq6i_WEi02SM3_jpt_3g_jU-XLf1FFXyZR4VcmX1FiFcWoR1YqNJBg"/>
+</div>
+</div>
+</nav>
+<main class="max-w-7xl mx-auto px-6 py-8 pb-32 grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Video Player Section (Left Column) -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Video Stage -->
+<section class="relative aspect-video rounded-[2rem] overflow-hidden bg-surface-container-lowest shadow-2xl group border border-outline-variant/10">
+<img alt="Video Placeholder" class="w-full h-full object-cover" data-alt="A futuristic digital interface showing sound wave visualizations and AI neural network connections in deep blue and teal tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMrW8j71-V34jRRRI1NullWAEM-lIQpshTt25MYiP_3UVWlal3teyLU1l_8j-vpJTVymgq84IsgDmJrJV1VRmUGrIsB6CqRuuQCYbrGFm_lxI1hY0HVp1r1ge0l4MvavG3jcLRFEw0OFmK6Y4BAaKNzmU4jvkzeTtQvvHv0VGtrhj4R4Xvm1XsZbrC15dvjfBtUyGQYcZqHZUln8SaCwokPJKkcLgnhvfgm1WTITXP9sDy8dwsZeh5UVsUIkBI_ouqEqVHesC1mw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent"></div>
+<!-- Custom Controls Overlay -->
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<button class="w-20 h-20 rounded-full bg-secondary/20 backdrop-blur-md flex items-center justify-center text-secondary border border-secondary/40 active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-5xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+</div>
+<!-- Fluency Wave Component -->
+<div class="absolute bottom-0 left-0 w-full h-1.5 bg-surface-container-high/40">
+<div class="h-full bg-gradient-to-r from-secondary to-primary-container w-2/3 relative">
+<div class="absolute inset-0 blur-sm bg-secondary/50"></div>
+</div>
+</div>
+</section>
+<!-- Lesson Content -->
+<section class="space-y-6">
+<div class="space-y-2">
+<div class="flex items-center gap-2 text-secondary text-sm font-semibold tracking-wider uppercase">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+                        Módulo 03 • Intermediário
+                    </div>
+<h1 class="font-headline font-bold text-3xl md:text-4xl text-on-surface tracking-tight">Articulação e Persuasão em Negociações</h1>
+</div>
+<p class="text-on-surface-variant leading-relaxed max-w-3xl">
+                    Nesta aula, exploramos as nuances da entonação vocal e como o ritmo da fala pode influenciar a percepção de autoridade durante uma negociação. Aprenda a utilizar pausas estratégicas para enfatizar pontos cruciais e manter o controle emocional do diálogo.
+                </p>
+<!-- Action Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Support Materials -->
+<div class="p-6 rounded-2xl bg-surface-container-low border border-outline-variant/10 flex items-start gap-4 hover:bg-surface-container-high transition-colors group">
+<div class="p-3 rounded-xl bg-primary-container/20 text-secondary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-on-surface text-lg">Guia de Exercícios.pdf</h3>
+<p class="text-sm text-on-surface-variant">2.4 MB • Prática de Dicção</p>
+<button class="mt-3 text-secondary text-sm font-semibold flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+                                Baixar material <span class="material-symbols-outlined text-xs">download</span>
+</button>
+</div>
+</div>
+<!-- AI Insights Chip -->
+<div class="p-6 rounded-2xl bg-surface-container-low border border-outline-variant/10 flex items-start gap-4">
+<div class="p-3 rounded-xl bg-tertiary-container/20 text-tertiary">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<div>
+<h3 class="font-bold text-on-surface text-lg">Insight da IA</h3>
+<p class="text-sm text-on-surface-variant">Pratique o "Power Pacing" para aumentar sua conversão em até 40%.</p>
+<div class="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container/20 text-secondary text-[10px] font-bold uppercase tracking-widest border border-secondary/20">
+                                Dica de Especialista
+                            </div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Progress & Curriculum -->
+<aside class="lg:col-span-4 space-y-6">
+<div class="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/5 shadow-lg">
+<div class="flex items-center justify-between mb-8">
+<h2 class="font-headline font-bold text-xl text-on-surface">Progresso do Curso</h2>
+<span class="text-secondary font-bold">64%</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full h-2 bg-surface-container-highest rounded-full mb-8 overflow-hidden">
+<div class="h-full bg-gradient-to-r from-secondary to-primary-container w-[64%] rounded-full shadow-[0_0_12px_#45d8ed66]"></div>
+</div>
+<!-- Playlist -->
+<div class="space-y-3">
+<!-- Item 1: Completed -->
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-highest/30 hover:bg-surface-container-highest transition-colors group cursor-pointer">
+<div class="relative w-12 h-12 flex-shrink-0 rounded-xl overflow-hidden bg-surface-container-low">
+<img alt="Lesson 1" class="w-full h-full object-cover opacity-60" data-alt="Abstract wave pattern in cool blue tones representing audio clarity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAabvz6xV6wyyelc3ggvwZQUD_T9gDAAWYLbcN27gnHmWSTebv7f0-cvjaV2YO477a5q14MFdiRlic6gTNYvg5kRp3Ld3xNguCg9XAu7ljByUXtjwaotNePseEkT43zDW5vT8VkN-nnLUYXk9t_acPPmQEy9hPDu7ZKTNsoy75kY9Kr0P0xAoDxvRhGCk1oVvLUnOIx64p9N0vTCN_r1fVlnrBQIIMK5C0y0KTuoPGshLkswRHgygYhbyIumxKRWhL3g69LdMw2yg"/>
+<div class="absolute inset-0 flex items-center justify-center bg-secondary/20">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="flex-1">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Aula 01</p>
+<h4 class="text-sm font-semibold text-on-surface-variant line-clamp-1">Fundamentos da Eloquência</h4>
+</div>
+<span class="text-[10px] text-on-surface-variant">12:04</span>
+</div>
+<!-- Item 2: Active -->
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-high border-l-4 border-secondary shadow-xl group cursor-default relative overflow-hidden">
+<div class="fluency-wave-bg"></div>
+<div class="w-12 h-12 flex-shrink-0 rounded-xl overflow-hidden bg-surface-container-low border border-secondary/30">
+<img alt="Lesson 2" class="w-full h-full object-cover" data-alt="Glowing digital sound bars and audio frequencies in a dark room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf4F3fz-VSWmde51tVg4DVQcrJ9l_4QKkAlPaUJRgIDNngjnBQ730_3-clnMsGYdprE8gQAqR9ygrkvKdGgbU3D1XujBBMvTv1hG-8Y6mgGy5S9iBhVgWKlHZviMHRVRFjdMvkipxQYkSwlFTT0wVevNv0raAcibLsoWPGatz3M-utquXes195LMKnvO4qED3HjFfvqyIxZoYthpmYBSaS18s_zwIEx77QyXRVhbAliF50Fy_ugnMWDJsGwfs2Ub6t4VuasVDJsg"/>
+<div class="absolute inset-0 flex items-center justify-center bg-background/40">
+<span class="material-symbols-outlined text-secondary">play_circle</span>
+</div>
+</div>
+<div class="flex-1">
+<p class="text-[10px] uppercase font-bold text-secondary tracking-widest">Aula 02 • Assistindo</p>
+<h4 class="text-sm font-bold text-on-surface line-clamp-1">Articulação e Persuasão</h4>
+</div>
+<span class="text-[10px] text-secondary font-bold">18:45</span>
+</div>
+<!-- Item 3: Upcoming -->
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-highest/30 hover:bg-surface-container-highest transition-colors group cursor-pointer">
+<div class="w-12 h-12 flex-shrink-0 rounded-xl overflow-hidden bg-surface-container-low">
+<img alt="Lesson 3" class="w-full h-full object-cover opacity-40" data-alt="Blurred silhouette of a speaker on a stage with soft golden spotlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaC_tTmG-yg8etHKgi6OZ3lnfBXRRfy1pv0-VW-W94GKJdjxy2jcpEJSJKvJh1F8fN8uZX-X_ROPj1nxDGkxP4czjni8rnVtDGM7WiyY7dE5j2ScedoTatCVgIuEOL9oIg7z5Tml8lKfS2Ep8zta02VvxbvMLGkmxHulM0Jj6NRgFOsB3dBfwj_ZoSNRrQemv9AlDj6lVWHEwcz9R3-0wOzMb6jekPZN03KX9lBXeI4CNCSZCkJPQ0Y32Vs6qP7i3pGQoYI1Cz5g"/>
+</div>
+<div class="flex-1">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Aula 03</p>
+<h4 class="text-sm font-semibold text-on-surface line-clamp-1">Linguagem Corporal Digital</h4>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">lock</span>
+</div>
+<!-- Item 4: Upcoming -->
+<div class="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-highest/30 hover:bg-surface-container-highest transition-colors group cursor-pointer">
+<div class="w-12 h-12 flex-shrink-0 rounded-xl overflow-hidden bg-surface-container-low">
+<img alt="Lesson 4" class="w-full h-full object-cover opacity-40" data-alt="Abstract light particles floating in a deep navy space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCImzYaslbE2v5snhMVYG4VK-8644tjd-QSYfe0whn8utl_mdMIl9ER6KKB70gDRmDq7uC2UUZGaS_TQTmRscOMqTYjTvpu2qYaVfUUXBMTFYAAp5CBRiS06lyEEqpFUuDK-YJeZCDEaQ8bMYKeNAxnJycZjYvjbYDXtD-pFTQ__4z-TgL9o7IwkOJYzjOLSpQBJ9sPQsjS-r4I8QqKHpsFRq-fwXyITlmtpZotf0mTJBnRdvu5Sw-cT0uhONTDzoiDWGAGV4sXgg"/>
+</div>
+<div class="flex-1">
+<p class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Aula 04</p>
+<h4 class="text-sm font-semibold text-on-surface line-clamp-1">Storytelling para Executivos</h4>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-sm">lock</span>
+</div>
+</div>
+<button class="w-full mt-8 py-4 rounded-full bg-surface-container-highest text-on-surface font-bold text-sm hover:bg-secondary/10 hover:text-secondary transition-all border border-outline-variant/10">
+                    Ver Plano de Estudos Completo
+                </button>
+</div>
+<!-- Gamification Widget -->
+<div class="bg-gradient-to-br from-primary-container/40 to-surface-container-high rounded-3xl p-6 border border-primary-container/20">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-full bg-tertiary flex items-center justify-center text-on-tertiary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div>
+<h4 class="font-bold text-on-surface">Próxima Conquista</h4>
+<p class="text-xs text-on-surface-variant">Conclua esta aula para liberar "Mestre do Ritmo"</p>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-[#131b2e]/60 backdrop-blur-xl dark:bg-[#131b2e]/60 fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-2 z-50 rounded-t-[2rem] border-t border-[#434652]/15 shadow-2xl">
+<!-- Courses Tab (Active) -->
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#45d8ed] to-[#004d89] text-white rounded-2xl px-5 py-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">school</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">Courses</span>
+</a>
+<!-- History Tab -->
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">History</span>
+</a>
+<!-- Speak Tab -->
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">mic_external_on</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">Speak</span>
+</a>
+<!-- Profile Tab -->
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 duration-150" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

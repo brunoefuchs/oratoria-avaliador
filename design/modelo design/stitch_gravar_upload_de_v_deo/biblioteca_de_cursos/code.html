@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Biblioteca de Cursos | Eloquent AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary-container": "#8ebfff",
+              "on-tertiary-fixed-variant": "#633f00",
+              "on-secondary-fixed": "#001f24",
+              "on-primary": "#00315b",
+              "outline-variant": "#434652",
+              "surface-variant": "#2d3449",
+              "surface-container-high": "#222a3d",
+              "primary-fixed-dim": "#a2c9ff",
+              "background": "#0b1326",
+              "secondary": "#45d8ed",
+              "on-tertiary-fixed": "#291800",
+              "primary": "#a2c9ff",
+              "surface-tint": "#a2c9ff",
+              "tertiary-fixed": "#ffddb4",
+              "tertiary": "#ffb954",
+              "on-secondary-container": "#00444d",
+              "tertiary-container": "#6a4400",
+              "on-error-container": "#ffdad6",
+              "surface-container-lowest": "#060e20",
+              "on-surface-variant": "#c3c6d4",
+              "on-primary-fixed-variant": "#004881",
+              "inverse-primary": "#0060a8",
+              "tertiary-fixed-dim": "#ffb954",
+              "secondary-container": "#00bacd",
+              "on-error": "#690005",
+              "on-surface": "#dae2fd",
+              "inverse-surface": "#dae2fd",
+              "surface-container-highest": "#2d3449",
+              "on-primary-fixed": "#001c38",
+              "outline": "#8d909d",
+              "error-container": "#93000a",
+              "surface-dim": "#0b1326",
+              "primary-fixed": "#d3e4ff",
+              "surface-container-low": "#131b2e",
+              "inverse-on-surface": "#283044",
+              "on-background": "#dae2fd",
+              "primary-container": "#004d89",
+              "on-secondary-fixed-variant": "#004f58",
+              "on-secondary": "#00363d",
+              "secondary-fixed": "#98f0ff",
+              "surface-bright": "#31394d",
+              "surface-container": "#171f33",
+              "secondary-fixed-dim": "#45d8ed",
+              "error": "#ffb4ab",
+              "surface": "#0b1326",
+              "on-tertiary": "#452b00",
+              "on-tertiary-container": "#f6af46"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Plus Jakarta Sans"],
+              "label": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-effect {
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .asymmetric-grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+      }
+      @media (max-width: 768px) {
+        .asymmetric-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-secondary selection:text-on-secondary min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-[#0b1326] dark:bg-[#0b1326] docked full-width top-0 sticky z-50 shadow-[0_40px_40px_rgba(218,226,253,0.08)]">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-3">
+<img alt="User" class="w-10 h-10 rounded-full border-2 border-secondary/20" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgziG4Tj1LtrYWdm2IaJ0accnV5g4FLleLNhS3mQIAQR7x8twWTOuUp_XFSfVSKHkte7J95Lb2Chva87G42y7yb-14tfRGFfX3QLmbr2_fhx0aR5kysenj4NV-qRlsA6KCCF0c1cDCf0qKDmkE-nsUq31TOLP4VZnDeWBuoHGJltsBPIp_GE9izQK5UKogQc94xQ0RdMjG5vvMgWxzpoaA2vRkfSUM12cR57kva4ne5rw9VWAsISZxls0NjqAvU6A62WavEEdDVA"/>
+<h1 class="text-[#45d8ed] font-extrabold tracking-tighter text-xl font-headline">Eloquent AI</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#c3c6d4] hover:bg-[#222a3d] transition-colors duration-200 p-2 rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 pt-12">
+<!-- Hero Section: Editorial Style -->
+<section class="mb-20">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-8">
+<div class="max-w-2xl">
+<span class="text-secondary font-label font-semibold tracking-widest uppercase text-xs mb-4 block">Catálogo Exclusivo</span>
+<h2 class="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter leading-none mb-6">Mestria em <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-secondary to-primary-container">Comunicação</span></h2>
+<p class="text-on-surface-variant text-lg max-w-md leading-relaxed">
+                        Explore nossa biblioteca curada de micro-cursos projetados para elevar sua oratória ao nível de um palestrante de elite.
+                    </p>
+</div>
+<div class="hidden lg:block">
+<div class="bg-surface-container-high p-8 rounded-[2rem] border border-outline-variant/10 relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-secondary/10 rounded-full blur-3xl group-hover:bg-secondary/20 transition-all"></div>
+<p class="text-3xl font-headline font-bold text-secondary mb-1">128</p>
+<p class="text-on-surface-variant text-sm font-medium">Lições Concluídas hoje</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: Postura (Bento Layout) -->
+<section class="mb-16">
+<div class="flex items-center gap-4 mb-8">
+<h3 class="text-2xl font-headline font-bold">Postura</h3>
+<div class="h-px flex-1 bg-gradient-to-r from-outline-variant/30 to-transparent"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Large Feature Card -->
+<div class="md:col-span-8 group relative overflow-hidden rounded-[2.5rem] bg-surface-container-low h-[400px]">
+<img class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="a confident professional speaker on a dark stage with soft dramatic spotlights and a blurred audience background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWJ0QkGX1rGcqy3ye-w33GviXa7KoIx-WK5o02eOat_nyceRZWj-CQJVoRiHlcEXJxGkQ5RrH3aMaZ4qhcnkOwqSsX7gqrQT_fWPM-ng2i5qux5xNKVYjpXWY9KL_sNftXcw6bztyirTPEHOWOE1XpSdaBf3Ndpv19s5aOMX9Br3F7tC6FpCnT_Pqz3rbJ_RIyq1ONL135zvjIch6FhM_MGFs-GdpCKauWjrM0xNLEYhVOU71pHyqIFGnBEhDF6c5-2FEIuBsZ9g"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-8 w-full">
+<div class="flex gap-2 mb-4">
+<span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider">Avançado</span>
+<span class="px-3 py-1 rounded-full bg-surface-container-highest/60 backdrop-blur-md text-on-surface text-[10px] font-bold uppercase tracking-wider">12 Aulas</span>
+</div>
+<h4 class="text-3xl font-headline font-extrabold mb-2">Linguagem Corporal de Liderança</h4>
+<p class="text-on-surface-variant text-sm max-w-lg mb-6">Domine o palco com técnicas de presença executiva e controle espacial.</p>
+<button class="px-8 py-3 bg-gradient-to-br from-secondary to-primary-container text-on-primary rounded-full font-bold text-sm hover:shadow-lg hover:shadow-secondary/20 transition-all active:scale-95">Começar Agora</button>
+</div>
+</div>
+<!-- Small Secondary Card -->
+<div class="md:col-span-4 group relative overflow-hidden rounded-[2.5rem] bg-surface-container-low h-[400px]">
+<img class="absolute inset-0 w-full h-full object-cover opacity-60 transition-transform duration-700 group-hover:scale-105" data-alt="close up of a person's hands making expressive gestures during a presentation with warm bokeh lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYgPU4BqH-mVG43QZpcxQfvPpnJ2OHLCos3K5r_aijvF2_lF-PnTIAF9HcwNLgXv9xN051IOKf2tF3Y3wneBZDvqlSLWgu9_uxspKpr7RCzsEsh_OOXylc2nP_BsxJqa3ek4ulEIgFWpUgzSFxT-btpA9xFsyMDWOclNThVexLS54HPBhGkdX_TGkIwldxMi1IcuTnHURqCGlOZr_nXX-HU8R3SJHIm73c24QyWqoaWfpUvEPlAjNNConOMI2r0CXdLXU2h7dJ1Q"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent to-surface-container-low"></div>
+<div class="absolute bottom-0 left-0 p-8">
+<span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-wider mb-4 inline-block">Iniciante</span>
+<h4 class="text-xl font-headline font-bold mb-2">Gestos Essenciais</h4>
+<p class="text-on-surface-variant text-sm mb-4">Como usar as mãos para pontuar suas ideias principais.</p>
+<div class="flex items-center gap-2 text-secondary">
+<span class="material-symbols-outlined text-sm">schedule</span>
+<span class="text-xs font-bold tracking-tight">45 min</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: Vocal (Asymmetric Cards) -->
+<section class="mb-16">
+<div class="flex items-center gap-4 mb-8">
+<h3 class="text-2xl font-headline font-bold">Vocal</h3>
+<div class="h-px flex-1 bg-gradient-to-r from-outline-variant/30 to-transparent"></div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Vocal Card 1 -->
+<div class="bg-surface-container-high rounded-[2rem] p-1 flex flex-col group border border-outline-variant/5">
+<div class="relative h-48 overflow-hidden rounded-[1.8rem]">
+<img class="w-full h-full object-cover" data-alt="studio microphone in a dark professional recording booth with blue atmospheric lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqyVE95QN_eDXvZEA7LIurxWyOvuWW0iyeVOZdtz10N3wXCR_7y9FLDRrJF7Vk1Bb2r2kjcJtJvFOau_XaI0eC9xG-Qw3kup8e2pvqzuXrvJnJ_A0DzfiP9M3nOaemnIkCCQpLBjJayKK9laWxdh-6OT_9Gb5TpONzNJXNWrKzau-IFz1VxgbMmRCJPbzjxYfDokXGPH4u06NZEP0QN9yTT_IhRpO6eqaflsf_W701hH6-TXiJj3tab2O6jnfK9xUTYab-xPzt-Q"/>
+<div class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-surface-container-lowest/80 backdrop-blur-md text-tertiary text-[10px] font-bold tracking-widest uppercase">Intermediário</div>
+</div>
+<div class="p-6">
+<h4 class="text-lg font-headline font-bold mb-2 group-hover:text-secondary transition-colors">Dicção e Clareza</h4>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">Exercícios práticos para eliminar vícios de linguagem e melhorar a projeção.</p>
+<div class="w-full h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="w-1/3 h-full bg-secondary"></div>
+</div>
+<div class="flex justify-between items-center mt-3">
+<span class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">Progresso</span>
+<span class="text-[10px] text-secondary font-bold">33%</span>
+</div>
+</div>
+</div>
+<!-- Vocal Card 2 -->
+<div class="bg-surface-container-high rounded-[2rem] p-1 flex flex-col group border border-outline-variant/5">
+<div class="relative h-48 overflow-hidden rounded-[1.8rem]">
+<img class="w-full h-full object-cover" data-alt="abstract visualization of sound waves with glowing blue and teal lines on a dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKcpIU5b7kOM4_QfYhbRt-EaHO6nP7yYOWMb_fTBzHtVPDEkBYXBt_t_A54RvGieuhE51Dzbem0KsrPHDG1TUtsxSsrF1Uh8ny3y6s_x_82qtKd5bde1dmYKaNrbxuJWbqL0jttsYW04E2KEwDxtWnUprs7Tuzsk7Ilxk-C-WQQ0L7JnUzKpmt1y6-KIEPHcqvJ7iCA2UrU6alM-qxc4OalsWFZJLs20MJ321iLyyOu6VthAts8FJinVA7fYSXOaPLXfPGPmS-Gw"/>
+<div class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-surface-container-lowest/80 backdrop-blur-md text-on-secondary-container text-[10px] font-bold tracking-widest uppercase">Avançado</div>
+</div>
+<div class="p-6">
+<h4 class="text-lg font-headline font-bold mb-2 group-hover:text-secondary transition-colors">Poder da Pausa</h4>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">Aprenda a usar o silêncio estratégico para criar impacto e suspense.</p>
+<button class="w-full py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">
+                            Ver Detalhes <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Vocal Card 3 -->
+<div class="bg-surface-container-high rounded-[2rem] p-1 flex flex-col group border border-outline-variant/5">
+<div class="relative h-48 overflow-hidden rounded-[1.8rem]">
+<img class="w-full h-full object-cover" data-alt="high-tech audio interface with glowing sliders and knobs in a dimly lit environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDc2hgWCD6OdzJ7HrWmfeEqU7_YBPVnbntcv7zHgFGsZ3oXhuvTd7VnNEwMnJ2m51J-qDrBcIMRyvYnxF9zZ0nSzyNXgS4T3JfHq-ODLegCiHj2HYrAzMKb21vLBREPVHZe_agYx_PanVOrP3fL49GuOwrMAgY-bZ8dNhb8LGY4iwjzXv1P-AKLfaUNxUtdIXk6QD2L588Ct1RYsVHu1yxLTsgu9-nX6lFIkeJI6nwGaCbGFJpYwlPhOR0NFyEouwQivzKvENtAsA"/>
+<div class="absolute top-4 right-4 px-3 py-1 rounded-lg bg-surface-container-lowest/80 backdrop-blur-md text-on-secondary-container text-[10px] font-bold tracking-widest uppercase">Iniciante</div>
+</div>
+<div class="p-6">
+<h4 class="text-lg font-headline font-bold mb-2 group-hover:text-secondary transition-colors">Tom e Entonação</h4>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">Varie sua voz para manter o engajamento e evitar o tom monótono.</p>
+<button class="w-full py-3 bg-surface-container-highest hover:bg-surface-bright text-on-surface rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-2">
+                            Ver Detalhes <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Category: Argumentação (Glassmorphism List) -->
+<section class="mb-24">
+<div class="flex items-center gap-4 mb-8">
+<h3 class="text-2xl font-headline font-bold">Argumentação</h3>
+<div class="h-px flex-1 bg-gradient-to-r from-outline-variant/30 to-transparent"></div>
+</div>
+<div class="flex flex-col gap-4">
+<!-- List Item 1 -->
+<div class="group bg-surface-container-low/40 border border-outline-variant/10 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 hover:bg-surface-container-high transition-all">
+<div class="flex items-center gap-6 w-full sm:w-auto">
+<div class="w-16 h-16 bg-gradient-to-br from-tertiary to-tertiary-container rounded-2xl flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-tertiary text-3xl">psychology</span>
+</div>
+<div>
+<div class="flex gap-2 mb-1">
+<span class="text-[10px] font-bold text-tertiary uppercase tracking-tighter">Intermediário</span>
+<span class="text-[10px] text-on-surface-variant">•</span>
+<span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">Storytelling</span>
+</div>
+<h4 class="text-xl font-headline font-bold">Estrutura de Persuasão Aristotélica</h4>
+</div>
+</div>
+<div class="flex items-center gap-4 w-full sm:w-auto">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-bold text-on-surface-variant">4 Módulos</p>
+<p class="text-[10px] text-on-surface-variant opacity-60">2h total</p>
+</div>
+<button class="w-full sm:w-12 h-12 rounded-full border border-secondary/30 flex items-center justify-center text-secondary hover:bg-secondary hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+</div>
+</div>
+<!-- List Item 2 -->
+<div class="group bg-surface-container-low/40 border border-outline-variant/10 rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-6 hover:bg-surface-container-high transition-all">
+<div class="flex items-center gap-6 w-full sm:w-auto">
+<div class="w-16 h-16 bg-gradient-to-br from-primary-container to-surface-container-highest rounded-2xl flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-secondary text-3xl">forum</span>
+</div>
+<div>
+<div class="flex gap-2 mb-1">
+<span class="text-[10px] font-bold text-on-primary-container uppercase tracking-tighter">Avançado</span>
+<span class="text-[10px] text-on-surface-variant">•</span>
+<span class="text-[10px] text-on-surface-variant font-bold uppercase tracking-tighter">Debate</span>
+</div>
+<h4 class="text-xl font-headline font-bold">Lidando com Perguntas Difíceis</h4>
+</div>
+</div>
+<div class="flex items-center gap-4 w-full sm:w-auto">
+<div class="text-right hidden sm:block">
+<p class="text-xs font-bold text-on-surface-variant">6 Módulos</p>
+<p class="text-[10px] text-on-surface-variant opacity-60">3.5h total</p>
+</div>
+<button class="w-full sm:w-12 h-12 rounded-full border border-secondary/30 flex items-center justify-center text-secondary hover:bg-secondary hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full h-20 flex justify-around items-center px-4 pb-2 bg-[#131b2e]/60 backdrop-blur-xl dark:bg-[#131b2e]/60 z-50 rounded-t-[2rem] border-t border-[#434652]/15 shadow-2xl">
+<a class="flex flex-col items-center justify-center bg-gradient-to-br from-[#45d8ed] to-[#004d89] text-white rounded-2xl px-5 py-2 active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">school</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">Courses</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">History</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">mic_external_on</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">Speak</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#c3c6d4] px-5 py-2 hover:text-white transition-all active:scale-90 transition-transform" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Plus_Jakarta_Sans'] font-medium text-[10px] uppercase tracking-wider mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

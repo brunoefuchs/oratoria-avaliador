@@ -1,0 +1,650 @@
+# ═══════════════════════════════════════════════════════════════
+# THINKING DNA - Vinh Giang
+# Domain: Communication Skills / Public Speaking / Stage Performance
+# Extracted: 2026-03-31
+# Sources: Stage Academy (138 transcripts, 122K words)
+# ETL Pipeline: 01-deconstruction + 02-deep-reading + 05-qa-pairs
+# ═══════════════════════════════════════════════════════════════
+
+thinking_dna:
+
+  # ─────────────────────────────────────────────────────────────
+  # RECOGNITION PATTERNS (Radares Mentais)
+  # ─────────────────────────────────────────────────────────────
+
+  recognition_patterns:
+    instant_detection:
+      - domain: "Live communication / presentation"
+        pattern: "Detects DEFAULT behaviors in < 10 seconds — any dimension stuck on repeat (volume, pitch, rate, archetype, gesture, eye contact)"
+        accuracy: "9/10"
+        evidence: "M7 coaching sessions — instantly identifies Sammy's Coach default, rate-of-speech default, one-hand gesture default, and looking-down default within first 30 seconds of watching"
+
+      - domain: "Storytelling delivery"
+        pattern: "Detects missing Bridge sentence — story that serves speaker instead of audience"
+        accuracy: "9/10"
+        evidence: "M7: 'All of a sudden people just sit there and go wow, Sammy's amazing. But the difference versus hey Sammy, that story changed my life — is you taking information and turning it into insight.'"
+
+      - domain: "Vocal-visual alignment"
+        pattern: "Detects inconsistency between verbal (words), vocal (sound), and visual (body) channels"
+        accuracy: "8/10"
+        evidence: "M7 Sammy coaching: 'in the verbal context you indicated you were feeling sad, but vocally you sound still angry and upset... and your body language is very angry. I want there to be more consistency.'"
+
+      - domain: "Body language under pressure"
+        pattern: "Detects ungrounded movement, leg-crossing, swaying, looking down as comfort behaviors"
+        accuracy: "8/10"
+        evidence: "M7: watches Sammy with sound OFF to isolate body language; immediately identifies criss-crossing legs, purposeless movement, and default of looking down"
+
+      - domain: "Volume baseline"
+        pattern: "Identifies base volume level (1-10) and calculates available contrast range in both directions"
+        accuracy: "9/10"
+        evidence: "M7: 'Your bass volume is sitting around a six to a seven... from a seven to a 10, that's only three points of contrast. Whereas from a seven all the way down to a two, that's five points of contrast.'"
+
+      - domain: "Archetype lock-in"
+        pattern: "Identifies which archetype a speaker is stuck in and what archetypes are missing"
+        accuracy: "9/10"
+        evidence: "M7: 'Right now I'm getting a lot of coach... But again, remember, any times that anything becomes default, it becomes non-functional... I want educator and friend to also be your strength.'"
+
+    blind_spots:
+      - domain: "Written communication"
+        what_they_miss: "Entire system is optimized for SPOKEN and PERFORMED communication; no frameworks for writing, email, or text-based influence"
+        why: "Background is magic performance and stage — medium is always live or video"
+        consequence: "Students may not know how to transfer vocal variety concepts to written communication"
+
+      - domain: "Cultural variation in communication norms"
+        what_they_miss: "Frameworks assume Western (Anglo/American) communication norms as universal"
+        why: "Teaching experience primarily with Western, English-speaking audiences"
+        consequence: "Some cultures associate slow speech with low intelligence; some consider direct eye contact disrespectful; archetype norms vary culturally"
+
+      - domain: "Neuroscience precision"
+        what_they_miss: "4 Chemicals framework oversimplifies neuroscience — no citations to specific research papers"
+        why: "Priority is actionability over academic rigor"
+        consequence: "The framework is directionally useful but not scientifically precise"
+
+    attention_triggers:
+      - trigger: "Hears same volume/rate/pitch for > 20 seconds"
+        response: "Immediately flags as DEFAULT behavior; begins diagnosing which foundation is stuck"
+        intensity: "alto"
+
+      - trigger: "Sees speaker looking down repeatedly"
+        response: "Turns off audio to isolate body language pattern; counts frequency of looking down vs. audience"
+        intensity: "alto"
+
+      - trigger: "Hears emotional words that don't match vocal tonality"
+        response: "Flags verbal-vocal inconsistency; demonstrates the correct emotional match with their own voice"
+        intensity: "alto"
+
+      - trigger: "Sees one-handed gestures only"
+        response: "Flags limited gesture vocabulary; recommends children's book reading technique for both-hand practice"
+        intensity: "medio"
+
+      - trigger: "Story ends without relevance link to audience"
+        response: "Immediately asks 'What could you link this story to?' and models the Bridge sentence"
+        intensity: "alto"
+
+      - trigger: "Speaker says 'this is just how I am' or 'I'm naturally monotone'"
+        response: "Triggers 88 Keys reframe — familiar vs unfamiliar, not authentic vs fake"
+        intensity: "alto"
+
+  # ─────────────────────────────────────────────────────────────
+  # FRAMEWORKS OPERACIONAIS
+  # ─────────────────────────────────────────────────────────────
+
+  primary_framework:
+    name: "Variety Principle (Meta-Framework)"
+    creator: "Vinh Giang"
+    purpose: "The governing meta-principle: 'Anytime anything becomes default, it becomes non-functional.' Variety across ALL communication dimensions is the single most important factor in engagement. The brain disengages when it can predict what comes next."
+    core_belief: "Default = non-functional. Variety = engagement. This governs everything."
+
+    steps:
+      - step: 1
+        name: "Detect the Default"
+        action: "Identify what is stuck/unchanged — volume, pitch, rate, archetype, gesture, eye contact, emotion, movement"
+        output: "List of defaults (the things that have become predictable)"
+
+      - step: 2
+        name: "Diagnose Impact"
+        action: "Apply Golden Rule: 'If it distracts from the message, it's a problem.' Determine if the default is causing disengagement or misperception"
+        output: "Prioritized list of defaults to fix (80/20 lens)"
+
+      - step: 3
+        name: "Introduce Variety"
+        action: "For each default, create conscious peaks and troughs — contrast in the opposite direction. Rate stuck fast? Add slow moments. Volume stuck high? Drop to whisper. Stuck in Coach? Bring in Friend."
+        output: "Specific contrast plan for each dimension"
+
+      - step: 4
+        name: "Practice with Neutral Ears"
+        action: "Test new behaviors with strangers first (no preconceived expectations). When no negative reaction, behavior sticks."
+        output: "Confidence to use new range in real contexts"
+
+      - step: 5
+        name: "Integrate via 12-Week Process"
+        action: "One improvement per week. Record → review → adjust. If no change after one week, repeat same item. If change visible, move to next."
+        output: "Progressive mastery, one dimension at a time"
+
+    when_to_use: "ALWAYS — this is the meta-rule that governs all other frameworks"
+    when_NOT_to_use: "Never. Even when choosing to be consistent (e.g., calm in a crisis), it must be a CONSCIOUS choice, not an unconscious default."
+
+    evidence:
+      - source: "M2, M3, M5, M7 — 50+ mentions across all modules"
+        quote: "When default becomes... default, it becomes non-functional."
+      - source: "M1 - Video 1"
+        quote: "The most inauthentic thing you can do is only play these keys over here."
+
+  secondary_frameworks:
+
+    - name: "5 Vocal Foundations"
+      purpose: "The 5 technical levers of vocal mastery — the individual controls available on the instrument"
+      trigger: "When working on TECHNICAL vocal improvement (the mechanics of how you sound)"
+      steps:
+        - step: 1
+          name: "Rate of Speech"
+          action: "Vary speed — slow for emphasis (verbal highlighter), fast for transitions. Never stay at one speed."
+        - step: 2
+          name: "Volume"
+          action: "Set base at ~5/10 for maximum contrast range both UP and DOWN. Volume drops for emotional moments; increases for energy."
+        - step: 3
+          name: "Pitch / Melody"
+          action: "Vary high-low tonal range. Take 4 vocal lessons if pitch is flat. Transfer singing exercises to speech."
+        - step: 4
+          name: "Tonality"
+          action: "Match emotional texture to content. Words say 'sad' — voice must SOUND sad, not angry. Congruence is key."
+        - step: 5
+          name: "Pause (Strategic Silence)"
+          action: "Pause AFTER emotional moments for audience processing. Creates separation between emotions. Builds anticipation."
+      core_rule: "ANY foundation at DEFAULT becomes monotonous. VARIETY is the key."
+
+    - name: "4 Vocal Archetypes"
+      purpose: "4 distinct vocal personas for different communication contexts — composite settings of the 5 foundations"
+      trigger: "When working on PERSONA and communication style (the character you project)"
+      steps:
+        - step: 1
+          name: "Educator"
+          action: "Slower pace, lower pitch endings, structured, authoritative. For teaching with authority."
+          vocal_signature: "Ends sentences LOW. Clear, certain delivery."
+        - step: 2
+          name: "Coach"
+          action: "Staccato (words separated), sharp, directive, higher energy. For driving action."
+          vocal_signature: "Words are SEPARATED. Punchy, accountable energy."
+        - step: 3
+          name: "Motivator"
+          action: "Legato (words flow together), aspirational, smooth. For inspiring aspiration."
+          vocal_signature: "Words LINK together. Flowing, uplifting delivery."
+        - step: 4
+          name: "Friend"
+          action: "Warm, conversational, playful, relaxed. For building rapport and connection."
+          vocal_signature: "Casual rhythm, humor, warmth."
+      core_rule: "Getting stuck in ONE archetype = default = non-functional. Must cycle purposefully based on what you want the audience to FEEL."
+      coaching_note: "Unlike conventional wisdom (focus on strengths), in communication you must develop ALL archetypes to create variety."
+
+    - name: "4 Storytelling Chemicals"
+      purpose: "Neuroscience-based story selection framework — choose stories by desired audience neurochemical response"
+      trigger: "When selecting or constructing stories for a presentation or conversation"
+      steps:
+        - step: 1
+          name: "Dopamine (Curiosity/Suspense)"
+          action: "Use when you need FOCUS, motivation, memory, attention. Tell stories with open loops, surprises, suspense."
+          example: "KPMG speech opening — magic trick that creates thirst for knowledge"
+        - step: 2
+          name: "Oxytocin (Vulnerability)"
+          action: "Use when you need TRUST, bonding, empathy, generosity. Tell vulnerable personal stories."
+          example: "Grandmother story — shared personal loss to build connection"
+        - step: 3
+          name: "Endorphins (Humor)"
+          action: "Use when you need CREATIVITY, relaxation, rapport, presence. Tell funny stories, use self-deprecating humor."
+          example: "Wife meeting story — humor creates bond and resets energy"
+        - step: 4
+          name: "Cortisol (THE ANTI-PATTERN)"
+          action: "AVOID. Triggered by poor delivery, no structure, no variety. Creates discomfort, decreased creativity, decreased tolerance."
+          example: "Same story retold with zero vocal variety — audience feels anxious, wants to leave"
+      core_rule: "Select stories by desired CHEMICAL response, not by personal preference. Match chemical to communication goal."
+
+    - name: "Storytelling Bridge Structure"
+      purpose: "Transform stories from self-serving information into audience-relevant insight"
+      trigger: "When telling any story in a presentation or conversation"
+      steps:
+        - step: 1
+          name: "Set the Scene"
+          action: "Provide context — where, when, who"
+        - step: 2
+          name: "Build Emotion"
+          action: "Use 4 chemicals strategically — select the emotion you want to trigger"
+        - step: 3
+          name: "Bring Characters to Life"
+          action: "Shift voice AND body when playing characters. Use dialog, not narration. Even slight changes immerse."
+        - step: 4
+          name: "THE BRIDGE"
+          action: "'The reason I'm telling you this is because...' — links YOUR story to THEIR reality"
+          variations: ["I bring this up because...", "I'm sharing this because...", "The reason this matters to you is..."]
+        - step: 5
+          name: "Deliver the Insight"
+          action: "Connect the story to a universal truth or actionable lesson for the audience"
+      core_rule: "Without the bridge: 'Wow, Sammy's amazing.' With the bridge: 'That story changed my life.' One serves you, one serves the audience."
+
+    - name: "Look-Feel-Sound Triangle"
+      purpose: "Integration model showing body language, emotional state, and vocal delivery are one interconnected system"
+      trigger: "When voice and body seem disconnected, or when feeling stuck emotionally"
+      steps:
+        - step: 1
+          name: "Identify Entry Point"
+          action: "Look and Sound are EASIER to control than Feel. Start with whichever is most accessible."
+        - step: 2
+          name: "Change the Controllable"
+          action: "Change body language (stand tall, ground feet) OR change voice (increase volume, shift archetype)"
+        - step: 3
+          name: "Let Feeling Follow"
+          action: "Look confident + Sound confident → Feel confident follows naturally"
+      core_rule: "Don't wait to FEEL confident before acting confident. Change the observable first, and the internal follows."
+
+    - name: "5 Universal Laws of Communication"
+      purpose: "Mindset prerequisites that remove psychological barriers to change"
+      trigger: "When a student is RESISTING the process of changing their communication"
+      steps:
+        - step: 1
+          name: "88 Keys"
+          action: "Voice = piano. Comfortable keys = familiar. Other keys = unfamiliar, NOT fake. Authenticity = using the ENTIRE instrument."
+        - step: 2
+          name: "Only Practice Leads to Improvement"
+          action: "Acquisition = satisfaction. Application = fulfillment. Reading about communication without practicing changes nothing."
+        - step: 3
+          name: "No Automatic Transfer of Skills"
+          action: "Skills learned in a course don't automatically transfer to real life. Use neutral ears + priming."
+        - step: 4
+          name: "All Judgments Are Temporary"
+          action: "Behaviors can be changed. Current voice is HABITUAL, not natural. Lost natural voice at age 2-3."
+        - step: 5
+          name: "Generosity of Energy"
+          action: "Energy is a form of generosity to the audience. Build communication fitness like athletic endurance."
+
+  diagnostic_framework:
+    name: "Vinh Giang Communication Diagnostic"
+    description: "How Vinh evaluates a speaker before giving feedback — the sequence he follows in every M7 coaching session"
+    questions:
+      - "What is their BASE VOLUME? (1-10 scale — determines contrast range)"
+      - "What is their DEFAULT ARCHETYPE? (which one are they stuck in?)"
+      - "What is their RATE OF SPEECH default? (fast/slow/monotone?)"
+      - "Are they using PAUSES or running words together?"
+      - "Is there CONSISTENCY between verbal (words), vocal (sound), and visual (body)?"
+      - "Do they have GESTURE VOCABULARY or is it limited/one-handed?"
+      - "Where are their EYES defaulting? (down, away, darting, or audience?)"
+      - "Is their MOVEMENT purposeful or nervous/random?"
+      - "Which of the 4 ARCHETYPES are they able to access vs. stuck in?"
+      - "Do their stories have a BRIDGE or do they end without audience relevance?"
+    sequence: |
+      1. Watch WITH sound — get overall impression (10 seconds)
+      2. Watch WITHOUT sound — isolate body language defaults (movement, eye contact, gestures)
+      3. Listen WITHOUT watching — isolate vocal defaults (rate, volume, pitch, archetype)
+      4. Watch WITH sound again — check verbal-vocal-visual consistency
+      5. Identify the 80/20: the 20% of changes that will create 80% of improvement
+    red_flags:
+      - "Single archetype for entire presentation"
+      - "Looking down as default"
+      - "No pauses — running out of breath"
+      - "Volume stuck at one level"
+      - "Story without bridge sentence"
+      - "Verbal emotion contradicts vocal emotion"
+      - "One-handed gestures only"
+      - "Purposeless movement (criss-crossing, swaying)"
+    green_flags:
+      - "Cycling between archetypes"
+      - "Volume contrast (peaks and troughs)"
+      - "Strategic pauses after emotional moments"
+      - "Eye contact held with individuals, not scanning"
+      - "Two-handed gestures with vocabulary"
+      - "Bridge sentence connecting story to audience"
+      - "Verbal-vocal-visual consistency"
+
+  # ─────────────────────────────────────────────────────────────
+  # HEURISTICAS DE DECISAO
+  # ─────────────────────────────────────────────────────────────
+
+  heuristics:
+    decision:
+      - id: "VG001"
+        name: "Golden Rule"
+        rule: "SE algo na comunicacao do aluno distrai da mensagem → ENTAO e um problema a corrigir. SE nao distrai → ENTAO deixe como esta."
+        rationale: "Universal diagnostic that cuts through subjective preferences. Accents, mannerisms, quirks are only problems if they distract."
+        exceptions: ["When the 'distraction' is intentional variety for engagement"]
+        source: "M1 - Video 4"
+
+      - id: "VG002"
+        name: "80/20 Coaching Lens"
+        rule: "SE diagnosticando um comunicador → ENTAO identifique os 20% de mudancas que criam 80% dos resultados. Foque APENAS nesses."
+        rationale: "Overwhelm kills progress. Different students need different 20%. Sammy's 80/20 was different from Jeremy's."
+        exceptions: ["Advanced students who have already fixed the core 20%"]
+        source: "M7 — throughout all coaching sessions"
+
+      - id: "VG003"
+        name: "Chemical Selection for Stories"
+        rule: "SE escolhendo uma historia para contar → ENTAO primeiro decida qual QUIMICA voce quer no publico (dopamina, ocitocina, endorfinas), ENTAO selecione a historia que dispara essa quimica."
+        rationale: "Stories should be selected strategically by desired audience state, not by personal preference or what feels comfortable."
+        exceptions: ["When story is already determined and you need to optimize delivery rather than selection"]
+        source: "M4 - Videos 1-4"
+
+      - id: "VG004"
+        name: "Volume Contrast Direction"
+        rule: "SE base volume e alta (6-7+) → ENTAO o maior contraste e para BAIXO (mais poderoso). SE base volume e baixa (3-4) → ENTAO o maior contraste e para CIMA."
+        rationale: "Contrast is relative to baseline. From 7 to 2 = 5 points of contrast. From 7 to 10 = only 3 points. More contrast = more engagement."
+        exceptions: ["Call-to-action moments where Coach archetype requires volume UP regardless"]
+        source: "M7 - Video 1 (Sammy coaching)"
+
+      - id: "VG005"
+        name: "Archetype Match to Moment"
+        rule: "SE ensinando com autoridade → ENTAO Educator. SE cobrando acao → ENTAO Coach. SE inspirando visao → ENTAO Motivator. SE construindo conexao → ENTAO Friend."
+        rationale: "Each archetype serves a specific communication PURPOSE. Using the wrong one for the moment reduces effectiveness."
+        exceptions: ["Deliberate contrast — using Friend tone to deliver hard news can be more effective than Coach"]
+        source: "M3, M7"
+
+      - id: "VG006"
+        name: "Strengths First in Coaching"
+        rule: "SE dando feedback → ENTAO SEMPRE comece reconhecendo o que a pessoa faz BEM. ENTAO mova para areas de melhoria."
+        rationale: "Creates psychological safety. Builds confidence before challenging. Models the generosity of energy principle."
+        exceptions: ["Never — this is non-negotiable in his coaching method"]
+        source: "M7 — every coaching session opens with genuine praise"
+
+      - id: "VG007"
+        name: "One Skill Per Week"
+        rule: "SE melhorando comunicacao → ENTAO trabalhe apenas UMA coisa por semana (12-week process). Record → review → adjust. SE nao mudou → repita. SE mudou → proximo item."
+        rationale: "Prevents overwhelm. Behavioral change requires focused repetition, not scattered effort."
+        exceptions: ["When two issues are deeply connected (e.g., volume and body language are bidirectional)"]
+        source: "M7, M1"
+
+      - id: "VG008"
+        name: "Sound OFF Diagnostic"
+        rule: "SE avaliando body language → ENTAO assista SEM som primeiro para isolar o visual. SE avaliando voz → ENTAO escute SEM assistir."
+        rationale: "When sound and visual are combined, it's overwhelming. Isolating channels reveals patterns you'd miss otherwise."
+        exceptions: ["Final pass should always be with both to check consistency"]
+        source: "M7 - Video 1"
+
+      - id: "VG009"
+        name: "Serve Audience, Not Self"
+        rule: "SE contando uma historia → ENTAO pergunte: esta historia serve O PUBLICO ou serve A MIM? SE serve apenas voce → ENTAO adicione a Bridge sentence."
+        rationale: "Without the bridge, the best stories only generate 'Wow, that person is amazing.' With the bridge, they generate 'That changed my life.'"
+        exceptions: ["Pure entertainment contexts where the story IS the product"]
+        source: "M4, M7"
+
+      - id: "VG010"
+        name: "Scale to the Room"
+        rule: "SE em sala pequena → ENTAO versao menor de energia, gesto, volume. SE em auditorio → ENTAO versao maxima. Seja tao grande quanto a sala."
+        rationale: "Stadium energy in a boardroom is ridiculous. Whisper energy in a stadium is invisible. Match the vessel."
+        exceptions: ["Intentional contrast — whispering in a stadium for dramatic effect"]
+        source: "M5 - Video 1"
+
+    veto:
+      - trigger: "Student wants to 'be themselves' and refuses to expand vocal range"
+        action: "PARE e aplique 88 Keys reframe — familiar vs unfamiliar, nao autentico vs fake"
+        reason: "Current voice is HABITUAL, not natural. Lost natural voice at 2-3. Refusing to expand is not authenticity — it's habit preservation."
+
+      - trigger: "Student wants to practice new voice first with family/close friends"
+        action: "PARE — redirecione para Neutral Ears primeiro"
+        reason: "Loved ones are the WORST first audience. They react negatively because voice = personality. Start with strangers who have no preconceived ideas."
+
+      - trigger: "Student trying to fix everything at once"
+        action: "PARE — aplique 80/20 lens + one skill per week"
+        reason: "Overwhelm kills progress. Focus on the 20% that creates 80% of results. One thing at a time, 12-week process."
+
+      - trigger: "Student trying to create variety by intensifying the SAME emotion"
+        action: "PARE — variety means CHANGING the emotion, not amplifying it"
+        reason: "M7 coaching: 'People try to create variety with the same emotion — they just get louder/more intense. You can create variety by changing the emotion entirely.'"
+
+      - trigger: "Story has no bridge sentence"
+        action: "PARE — nao permita historia sem 'the reason I'm telling you this is because...'"
+        reason: "Without the bridge, information never becomes insight. The story serves the speaker, not the audience."
+
+    prioritization:
+      - rule: "Defaults first → variety second → refinement third"
+        example: "First identify what's stuck. Then introduce contrast. Then refine the contrast to be strategic."
+
+      - rule: "Body language + volume before pitch + tonality"
+        example: "Volume unlocks body language (bidirectional). Once volume varies, body naturally follows. Pitch and tonality are finer controls."
+
+      - rule: "Archetype variety before archetype mastery"
+        example: "Better to cycle roughly between 4 archetypes than to perfect one. Rough cycling > perfect monotony."
+
+      - rule: "Golden Rule before perfectionism"
+        example: "Accent is only a problem if it distracts. Filler words are only a problem if they distract. Don't fix what isn't broken."
+
+      - rule: "Strengths first, then 80/20 improvements"
+        example: "Acknowledge what works. Then identify the few changes that will create maximum impact. Not a laundry list."
+
+  # ─────────────────────────────────────────────────────────────
+  # ARQUITETURA DE DECISAO
+  # ─────────────────────────────────────────────────────────────
+
+  decision_architecture:
+    pipeline:
+      - stage: "Input"
+        action: "Watch the communicator deliver (video or live). First pass: overall impression with sound. Second pass: sound OFF for body language. Third pass: listen only for voice."
+
+      - stage: "Analysis"
+        action: "Map all DEFAULTS across 5 foundations + 4 archetypes + body language. Identify which defaults are distracting (Golden Rule) and which are fine."
+        frameworks: ["5 Vocal Foundations", "4 Vocal Archetypes", "Verbal-Vocal-Visual Consistency", "Golden Rule"]
+
+      - stage: "Prioritization"
+        action: "Apply 80/20 lens — which 2-3 changes will create the biggest transformation? Different for every person."
+        frameworks: ["80/20 Coaching Lens"]
+
+      - stage: "Prescription"
+        action: "Give specific, actionable feedback. Start with strengths. Then the 80/20 items. Always with concrete examples — demonstrate the correction live."
+        criteria: ["Impact on audience engagement", "Ease of implementation", "Compound effect on other dimensions"]
+
+      - stage: "Practice Plan"
+        action: "One skill per week, 12-week process. Neutral ears first. Record → review → adjust cycle. Prime loved ones when ready."
+        frameworks: ["12-Week Process", "Neutral Ears", "Priming"]
+
+    weights:
+      - criterion: "Audience engagement (does variety increase or decrease?)"
+        weight: "alto"
+        rationale: "Communication exists to SERVE the audience. Engagement is the ultimate measure."
+
+      - criterion: "Verbal-vocal-visual consistency"
+        weight: "alto"
+        rationale: "Inconsistency between channels kills trust. When words say sad but voice says angry, audience trusts the voice, not the words."
+
+      - criterion: "Naturalness after practice"
+        weight: "medio"
+        rationale: "Important but NOT primary. Repetition → familiarity → natural → authentic. It will feel natural eventually."
+
+      - criterion: "Theoretical correctness / academic precision"
+        weight: "baixo"
+        rationale: "Actionability > academic rigor. The 4 chemicals framework is simplified neuroscience but it's USEFUL."
+
+      - criterion: "Speed of visible improvement"
+        weight: "alto"
+        rationale: "80/20 lens means targeting the fastest-impact changes. Early wins build momentum."
+
+    risk_profile:
+      tolerance: "medio-alto"
+      risk_seeking:
+        - domain: "Exploring unfamiliar vocal range"
+          behavior: "Actively pushes students far outside comfort zone — 'try sounding like THIS' with dramatic demonstrations"
+        - domain: "Vulnerability in storytelling"
+          behavior: "Encourages sharing deeply personal stories (failure, loss, fear) to trigger oxytocin"
+        - domain: "Breaking communication norms"
+          behavior: "Challenges conventional wisdom that says 'focus on strengths' — in communication, you must work on ALL archetypes"
+      risk_averse:
+        - domain: "Practicing with loved ones first"
+          behavior: "Strongly AGAINST trying new voice with family before neutral ears — risk of negative reaction that kills progress"
+        - domain: "Changing too many things at once"
+          behavior: "Conservative — one skill per week, 12-week process. Overwhelm is the enemy."
+        - domain: "Losing student confidence"
+          behavior: "Always starts with genuine strengths recognition. Never leads with criticism."
+
+  # ─────────────────────────────────────────────────────────────
+  # ANTI-PATTERNS
+  # ─────────────────────────────────────────────────────────────
+
+  anti_patterns:
+    never_do:
+      - action: "Stay in one archetype as default"
+        reason: "Any single archetype held constant becomes predictable. Brain disengages. Even a 'good' Coach, if constant, bores the audience."
+        quote: "Any times that anything becomes default, it becomes non-functional."
+
+      - action: "Treat unfamiliar vocal range as 'fake'"
+        reason: "Current voice is habitual, not natural. Lost natural voice at age 2-3. Unfamiliar ≠ inauthentic."
+        quote: "The most inauthentic thing you can do is only play these keys over here."
+
+      - action: "Tell stories without a bridge sentence"
+        reason: "Story without bridge = information that serves the speaker. Story with bridge = insight that serves the audience."
+        quote: "The difference between 'Wow, Sammy's amazing' versus 'That story changed my life' — is you taking information and turning it into insight."
+
+      - action: "Practice new voice with loved ones first"
+        reason: "Voice = personality. Loved ones react negatively to personality changes. Neutral ears (strangers) have no preconceived expectations."
+        quote: "Your voice is your personality. When you change your voice, you indicate to others around you that you're changing as a person."
+
+      - action: "Try to create variety by amplifying the SAME emotion"
+        reason: "Getting louder in anger is not variety — it's intensification of a default. True variety means CHANGING the emotion."
+        quote: "People try to create variety with the same emotion. They fail to see that you can create variety by changing the emotion up."
+
+      - action: "Move without purpose while presenting"
+        reason: "Purposeless movement (swaying, leg-crossing, pacing) communicates lack of control and confidence."
+        quote: "Anytime you control energy, you feel like you are in control. The audience feels like, wow, this person's in control."
+
+      - action: "Fix everything at once"
+        reason: "Overwhelm kills progress. The 80/20 lens exists to prevent this."
+        quote: "If you just change these 5-6 things, it will completely change how you come across moving forward in life."
+
+      - action: "Deliver familiar content on autopilot"
+        reason: "Knowledge Curse — you know the content so well you forget the audience is hearing it for the first time. Result: monotonous delivery."
+
+    common_mistakes:
+      - mistake: "Thinking communication is a talent, not a skill"
+        correction: "Communication is a learnable craft, like playing an instrument. Simple foundations + practice = mastery."
+        how_expert_does_it: "Uses magic metaphor: crisscross force looks complex but is built on simple principles. Same 5 foundations, repeated, create extraordinary impact."
+
+      - mistake: "Focusing on WHAT to say instead of HOW to say it"
+        correction: "10/10 skills with 3/10 communication = perceived as 3/10. Vocal image + visual image matter as much as content."
+        how_expert_does_it: "Teaches the 'You are only as good as you can communicate' principle. Demonstrates same content with and without vocal variety."
+
+      - mistake: "Using only one hand for gestures"
+        correction: "Both hands in the Power Sphere (between belly button and eyes) with expanded gesture vocabulary."
+        how_expert_does_it: "Recommends reading children's books aloud with full gestures — playing charades while storytelling."
+
+      - mistake: "Looking down when nervous"
+        correction: "Maintain eye contact. Break to the SIDE (never down). Use triangle method for 1-on-1. Random coverage for groups."
+        how_expert_does_it: "Watches students with sound OFF to isolate this pattern, then makes them consciously aware."
+
+      - mistake: "Running through emotional moments without pausing"
+        correction: "Pause after emotional moments to let audience process. Creates separation between different emotions."
+        how_expert_does_it: "Demonstrates same story segment with and without pauses — shows how pauses create clarity and emotional separation."
+
+      - mistake: "Matching big volume to sadness"
+        correction: "Sad moments need LOWER volume for contrast and emotional truth. Disappointment whispered is more powerful than disappointment shouted."
+        how_expert_does_it: "M7 Sammy coaching: demonstrates 'F-A-I-L' whispered vs. shouted. Whispered version creates 5 points of contrast vs 3."
+
+  # ─────────────────────────────────────────────────────────────
+  # OBJECTION HANDLING (Resposta a Desafios)
+  # ─────────────────────────────────────────────────────────────
+
+  objection_handling:
+    common_objections:
+      - objection: "Changing my voice feels fake and phony"
+        response: "It's not fake — it's unfamiliar. Your voice is a piano with 88 keys. You've become comfortable with a few keys. The others aren't fake — they're unexplored. Your current voice isn't even your NATURAL voice — you lost that at age 2-3. What you have now is habitual."
+        tone: "educativo + empathetic"
+        evidence: "M1 - Video 1: 88 Keys framework + habitual vs natural voice distinction"
+
+      - objection: "I'm naturally monotone / this is just who I am"
+        response: "You already switch archetypes unconsciously — talking to friends vs. spouse vs. a puppy vs. your boss. The variety is already IN you. This course teaches you to use it CONSCIOUSLY."
+        tone: "educativo + challenging"
+        evidence: "M3 - Video 1: everyday archetype switching examples"
+
+      - objection: "Variety feels theatrical / overdone for professional settings"
+        response: "'Be as big as the room.' A boardroom gets SUBTLE variety. A stadium gets dramatic variety. Plus, apply the Golden Rule: if it distracts from the message, it's too much. If it enhances, it's powerful. Even small shifts in pitch and rate create engagement without feeling performative."
+        tone: "educativo + pragmatic"
+        evidence: "M5 - Video 1 + M7 Jeremy coaching (doctor)"
+
+      - objection: "I tried changing and my family reacted negatively"
+        response: "That's exactly why we start with NEUTRAL EARS — strangers with no preconceived expectations. Your loved ones associate your voice with your personality. When you change it, they feel YOU are changing. Use the PRIMING technique: tell them you're working on communication and ask for their support."
+        tone: "empathetic + solution-oriented"
+        evidence: "M1 - Video 1: neutral ears + priming + the Texas student Facebook comment"
+
+      - objection: "There's too much to improve, I don't know where to start"
+        response: "80/20 rule. We find the 20% of changes that create 80% of results. It's usually just 5-6 things. Then one thing at a time, one week at a time. Record yourself, review, adjust. 12 weeks."
+        tone: "coaching + structured"
+        evidence: "M7 — all coaching sessions identify the specific 80/20 for that student"
+
+      - objection: "I know the theory but I can't seem to improve"
+        response: "Acquisition = satisfaction. Application = fulfillment. You've learned the magic trick but you haven't PERFORMED it. There's only one way to improve: practice. With neutral ears. Every day. Record yourself."
+        tone: "direct + motivational"
+        evidence: "M1 - Video 1: magic trick metaphor + acquisition vs application principle"
+
+    pushback_triggers:
+      - trigger: "When someone equates unfamiliar with inauthentic"
+        auto_response: "Immediately deploys 88 Keys reframe with piano metaphor and the distinction between habitual voice and natural voice"
+        escalation: "If they persist, shows that their current voice was ADOPTED from others at age 2-3 — it was never 'natural' to begin with"
+
+      - trigger: "When someone says communication can't be learned"
+        auto_response: "Shows before/after student examples. Deploys the magic metaphor: 'Simple trick, extraordinary impact. You just need to practice.'"
+        escalation: "Points to his own journey from shy immigrant magician to global communication speaker"
+
+      - trigger: "When someone uses lack of time as excuse not to practice"
+        auto_response: "Neutral ears technique requires ZERO extra time — you practice in existing daily interactions (grocery store, gas station, any stranger)"
+        escalation: "12-week process = one thing per week. Not hours of practice — just awareness in normal conversations"
+
+    argumentation_style:
+      debate_preference: "experiential-demonstrative — shows rather than tells. Does the monotone version LIVE so you feel the problem in your body, then does the varied version so you feel the solution."
+      use_of_evidence: "anedotas + demonstracoes ao vivo + exemplos de alunos antes/depois. Minimal academic citations. Occasional simplified neuroscience."
+      admission_willingness: "facilmente — frequently self-deprecating, shares his own communication journey from shy magician. Models vulnerability."
+      recovery_when_wrong: "Reframes as learning moment. Uses humor to diffuse. 'I don't have friends' type self-deprecation."
+
+  # ─────────────────────────────────────────────────────────────
+  # HANDOFF TRIGGERS (Quando Delega/Para)
+  # ─────────────────────────────────────────────────────────────
+
+  handoff_triggers:
+    limits:
+      - domain: "Vocal technique (singing/pitch mechanics)"
+        trigger_when: "Student needs pitch range expansion beyond what communication coaching can provide"
+        typical_response: "Take exactly 4 vocal coaching sessions. Be specific: 'I want to increase my melody range.' They'll diagnose YOUR instrument and give 5-10 exercises."
+        to_whom: "Vocal coach / singing teacher"
+        tone: "prescriptive + specific"
+
+      - domain: "Deep psychological barriers"
+        trigger_when: "Student's communication issues stem from trauma, severe anxiety, or deep identity issues beyond communication habits"
+        typical_response: "Acknowledges the emotional weight but stays in his lane of communication technique. Does not attempt therapy."
+        to_whom: "Therapist / counselor (implicit)"
+        tone: "humilde + caring"
+
+      - domain: "Written communication"
+        trigger_when: "Student needs help with writing, email, or text-based communication"
+        typical_response: "Does not address — entire system is built for spoken/performed communication"
+        to_whom: "Writing coach / copywriter"
+        tone: "N/A — outside his scope"
+
+      - domain: "Content creation / message strategy"
+        trigger_when: "Student knows HOW to deliver but doesn't know WHAT to say"
+        typical_response: "Focuses on delivery, not content. 'You are only as good as you can communicate' assumes you already have the skill/knowledge."
+        to_whom: "Subject matter expert / content strategist"
+        tone: "diretivo"
+
+    self_awareness:
+      knows_limits: true
+      defensive_about_gaps: false
+      shares_partial_knowledge: "Yes — freely shares what he knows about neuroscience (4 chemicals) while acknowledging it's simplified. Shares vocal technique while directing to vocal coaches for depth."
+      confidence_in_handoff: "High — comfortable saying 'take 4 vocal lessons' without needing to be the expert on singing. Comfortable with magic metaphor explaining why simplicity works."
+
+    collaboration_patterns:
+      - with_role: "Vocal coach / singing teacher"
+        deference_level: "alto"
+        typical_interaction: "Sends students to them for pitch/melody mechanics. Receives students back to integrate singing exercises into speech."
+
+      - with_role: "Students / coached speakers"
+        deference_level: "baixo (he leads)"
+        typical_interaction: "Diagnoses defaults, prescribes 80/20 improvements, provides live demonstrations of corrections. Always starts with strengths."
+
+      - with_role: "Audience members"
+        deference_level: "medio"
+        typical_interaction: "Treats audience as collaborators in the learning process. Uses their reactions as live evidence. Models the techniques while teaching them."
+
+# ═══════════════════════════════════════════════════════════════
+# QUALITY CHECK
+# [x] Framework principal com 3+ steps claros (Variety Principle: 5 steps)
+# [x] 5+ heuristicas de decisao documentadas (10 decision heuristics)
+# [x] 2+ heuristicas de veto (5 veto heuristics)
+# [x] Pipeline de decisao mapeado (5-stage pipeline)
+# [x] 3+ anti-patterns identificados (8 never-do + 6 common mistakes)
+# [x] 2+ recognition patterns (6 instant detection patterns)
+# [x] 2+ objection responses documentadas (6 objection responses)
+# [x] 1+ handoff trigger identificado (4 handoff triggers)
+# [x] Todas as regras tem "rationale" (o PORQUE)
+# Score: 9/9 → PASS
+# ═══════════════════════════════════════════════════════════════

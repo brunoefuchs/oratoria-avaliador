@@ -1,0 +1,109 @@
+---
+# Smoke Test Results — Gui Reginatto Agent
+# Executed: 2026-04-14
+# Method: Sub-agent adopted Gui persona, responded to 3 scenarios, self-evaluated against 7 fidelity signals
+
+metadata:
+  agent: "squads/squad-creator-pro/agents/gui-reginatto.md"
+  agent_version: "1.0.0"
+  tests_passed: "3/3"
+  fidelity_average: 9.67
+  verdict: PASS
+  production_ready: true
+
+smoke_tests:
+  - id: SMOKE_01
+    scenario: "Diagnostico I-C-M de oratoria fraca"
+    input: "Eu falo em reunioes mas ninguem me escuta. Sinto que passa batido."
+    verdict: PASS
+    fidelity_signals:
+      frameworks: 10
+      signatures: 10
+      voice: 9
+      structure: 10
+      power_words: 10
+      zero_generic: 10
+      result_linked: 8
+      average: 9.6
+    frameworks_applied:
+      - "Raio-X em 3 Niveis"
+      - "Piramide do Individuo (I-C-M)"
+      - "5 Canais de Autoridade"
+      - "Automodelagem em 3 Etapas"
+    signatures_used:
+      - "voce nao esta ruim, voce esta travado"
+      - "comunicacao de dono nao e sobre gritar"
+      - "7 segundos + 7 encontros"
+      - "nao ha como impactar sem destravar"
+      - "voce vale quanto consegue comunicar que vale"
+
+  - id: SMOKE_02
+    scenario: "Objecao 'nao tenho dom' — reenquadre automatico"
+    input: "Comunicacao e dom. Meu irmao tem, eu nao. Nasci assim."
+    verdict: PASS
+    fidelity_signals:
+      frameworks: 10
+      signatures: 10
+      voice: 10
+      structure: 10
+      power_words: 9
+      zero_generic: 10
+      result_linked: 7
+      average: 9.4
+    frameworks_applied:
+      - "Immune System (recusa categorica)"
+      - "Piramide — Capacidade vs Identidade"
+      - "Automodelagem 21 dias"
+      - "2 Medos Inatos (Aula 1)"
+    signatures_used:
+      - "Comunicacao nao e dom, e tecnica"
+      - "Nao e fraqueza, e habito"
+      - "Voce nasce com 2 medos: barulho alto e altura"
+      - "Coragem nao e ausencia de medo"
+      - "Seguranca e produto de acao"
+
+  - id: SMOKE_03
+    scenario: "Estrategia de conteudo pra autoridade digital"
+    input: "Tenho loja fisica, resisto a me expor. Clientes novos so vem de indicacao. Preciso crescer mas nao quero aparecer."
+    verdict: PASS
+    fidelity_signals:
+      frameworks: 10
+      signatures: 10
+      voice: 10
+      structure: 10
+      power_words: 10
+      zero_generic: 10
+      result_linked: 10
+      average: 10.0
+    frameworks_applied:
+      - "Vitrine Digital"
+      - "Bilhete Premiado"
+      - "Exposicao Progressiva (Story → Live → Palco)"
+      - "Funil Digital (topo/meio/fundo)"
+      - "Empatia Reversa"
+      - "Piramide — Merecimento"
+    signatures_used:
+      - "digital e a nova vitrine"
+      - "exposicao gera vendas"
+      - "tudo e conteudo"
+      - "gravar video como escovar os dentes"
+      - "a empresa nao cresce porque a cabeca do dono nao cresce"
+      - "posicionamento assertivo"
+      - "poucas coisas custam tanto dinheiro quanto o silencio"
+    cases_cited:
+      - "Alex do Para (Reels → mentoria high-ticket)"
+      - "Planeta Estofados / Eliane (sonho de valsa empatia reversa)"
+
+minor_adjustments:
+  - "SMOKE_01 poderia invocar DISC (H04) para calibrar linguagem, mas input nao deu signal suficiente"
+  - "SMOKE_01/02 poderiam amarrar resultado financeiro mais explicito (big idea 'mercado ruim' nao literal)"
+  - "SMOKE_02 poderia fechar com case Ceara R$16K→R$200K para reforcar vinculo resultado"
+
+strengths_observed:
+  - "Frameworks canonicos aplicados organicamente (nao forcados)"
+  - "Signature phrases entrelacadas no raciocinio (nao cola)"
+  - "Immune system disparou corretamente em SMOKE_02"
+  - "Casos reais com numeros concretos"
+  - "Estrutura canonica Diagnostico → Confronto → Prescricao → CTA consistente"
+  - "Zero linguagem generica ou hedging"
+  - "Saudacao 'turma' usada nos 3 testes"
