@@ -33,23 +33,24 @@ MOTIVACAO_TO_CONTEXTO = {
 }
 
 
-def _get_pesos(contexto: str | None = None, motivacao: list | None = None) -> dict:
-    """Retorna pesos baseados no contexto ou motivacao.
+def _get_pesos(contexto: str | None = None, motivacao: list | None = None) -> tuple[dict, str | None]:
+    """Retorna (pesos, contexto_resolvido).
 
     Prioridade: contexto direto > primeira motivacao com mapeamento > default.
+    Story 7.4 QA fix: retorna tambem o contexto resolvido para badge UI.
     """
     # Backward compat: contexto direto (V1 do questionario)
     if contexto and contexto in PESOS_POR_CONTEXTO:
-        return PESOS_POR_CONTEXTO[contexto]
+        return PESOS_POR_CONTEXTO[contexto], contexto
 
     # V2: mapear motivacao para contexto
     if motivacao:
         for m in motivacao:
             mapped = MOTIVACAO_TO_CONTEXTO.get(m)
             if mapped and mapped in PESOS_POR_CONTEXTO:
-                return PESOS_POR_CONTEXTO[mapped]
+                return PESOS_POR_CONTEXTO[mapped], mapped
 
-    return PESOS_DEFAULT
+    return PESOS_DEFAULT, None
 
 
 def aggregate_metrics(
@@ -89,7 +90,7 @@ def aggregate_metrics(
             )
 
     # Score geral PONDERADO com pesos contextuais
-    pesos = _get_pesos(contexto=contexto, motivacao=motivacao)
+    pesos, contexto_resolvido = _get_pesos(contexto=contexto, motivacao=motivacao)
     overall_score = 0.0
     peso_total = 0.0
 
@@ -129,7 +130,7 @@ def aggregate_metrics(
         "incomplete_dimensions": incomplete_dimensions,
         "dimensoes_fortes": dimensoes_fortes,
         "dimensoes_fracas": dimensoes_fracas,
-        "contexto": contexto,
+        "contexto": contexto_resolvido,
         "pesos_utilizados": pesos,
         "video_metadata": video_metadata,
     }
