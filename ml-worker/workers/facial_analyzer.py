@@ -10,7 +10,6 @@ Output alimentado para `congruence_analyzer` (cruzamento voz-corpo-rosto).
 """
 
 import time
-from collections import deque
 from pathlib import Path
 
 import mediapipe as mp
@@ -88,9 +87,19 @@ def _eye_aspect_ratio(landmarks, side: str) -> float:
     Piscada/olho fechado: EAR baixo (<0.18). Olho normal: ~0.25-0.35.
     """
     if side == "left":
-        top, bottom, left, right = LEFT_EYE_TOP, LEFT_EYE_BOTTOM, LEFT_EYE_LEFT, LEFT_EYE_RIGHT
+        top, bottom, left, right = (
+            LEFT_EYE_TOP,
+            LEFT_EYE_BOTTOM,
+            LEFT_EYE_LEFT,
+            LEFT_EYE_RIGHT,
+        )
     else:
-        top, bottom, left, right = RIGHT_EYE_TOP, RIGHT_EYE_BOTTOM, RIGHT_EYE_LEFT, RIGHT_EYE_RIGHT
+        top, bottom, left, right = (
+            RIGHT_EYE_TOP,
+            RIGHT_EYE_BOTTOM,
+            RIGHT_EYE_LEFT,
+            RIGHT_EYE_RIGHT,
+        )
     height = _distance(landmarks, top, bottom)
     width = _distance(landmarks, left, right)
     if width <= 1e-6:
@@ -101,6 +110,7 @@ def _eye_aspect_ratio(landmarks, side: str) -> float:
 def _extract_frames_facial(video_path: str, fps: int) -> list[str]:
     """Extrai frames com FFmpeg — mesma implementacao de posture/gesture."""
     import subprocess
+
     output_dir = Path(video_path).parent / "frames_facial"
     output_dir.mkdir(exist_ok=True)
     pattern = str(output_dir / "frame_%04d.jpg")
@@ -195,7 +205,9 @@ def analyze_facial(video_path: str) -> dict:
         window = smile_arr[i : i + frames_per_window]
         if len(window) > 0:
             window_means.append(float(np.mean(window)))
-    smile_variability = round(float(np.std(window_means)), 3) if len(window_means) > 1 else 0.0
+    smile_variability = (
+        round(float(np.std(window_means)), 3) if len(window_means) > 1 else 0.0
+    )
 
     # AC-3 — brow_raises_per_minute
     # Deteccao: subida rapida (delta > threshold em frames consecutivos)
@@ -209,11 +221,15 @@ def analyze_facial(video_path: str) -> dict:
         elif delta < -BROW_RAISE_DELTA_THRESHOLD * 0.5:
             in_raise = False
     duration_seconds = len(smile_arr) / TARGET_FPS
-    brow_raises_per_minute = round(brow_raises_count / max(duration_seconds / 60, 0.01), 1)
+    brow_raises_per_minute = round(
+        brow_raises_count / max(duration_seconds / 60, 0.01), 1
+    )
 
     # AC-4 — eye_openness_stddev (filtrando piscadas para nao confundir com fadiga)
     ear_filtered = ear_arr[ear_arr > BLINK_EAR_THRESHOLD]
-    eye_openness_stddev = round(float(np.std(ear_filtered)), 4) if len(ear_filtered) > 5 else 0.0
+    eye_openness_stddev = (
+        round(float(np.std(ear_filtered)), 4) if len(ear_filtered) > 5 else 0.0
+    )
 
     # Estimativa simples de textura emocional (sub-porcoes)
     neutro_count = int(np.sum((smile_arr <= SMILE_INDEX_THRESHOLD)))
@@ -330,7 +346,11 @@ def _disponivel_false(motivo: str, warnings_list: list[str] | None = None) -> di
         "smile_variability": 0.0,
         "brow_raises_per_minute": 0.0,
         "eye_openness_stddev": 0.0,
-        "emocional_texture": {"neutro_percent": 0, "positivo_percent": 0, "tenso_percent": 0},
+        "emocional_texture": {
+            "neutro_percent": 0,
+            "positivo_percent": 0,
+            "tenso_percent": 0,
+        },
         "feedback": motivo,
         "detection_pct": 0.0,
         "warnings": warnings_list or [motivo],

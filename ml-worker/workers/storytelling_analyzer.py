@@ -348,7 +348,9 @@ def analyze_storytelling(
     cta = _detect_cta(closing_text)
     chemicals = _detect_chemicals(text_lower, variety_metrics)
     score, diagnostico = _compute_score(bridge, hook, cta, chemicals)
-    suggestions = _generate_suggestions(bridge, hook, cta, chemicals) if score < 70 else []
+    suggestions = (
+        _generate_suggestions(bridge, hook, cta, chemicals) if score < 70 else []
+    )
 
     # AC-9 — fallback LLM opcional (default off)
     use_llm = os.environ.get("STORYTELLING_USE_LLM", "false").lower() == "true"

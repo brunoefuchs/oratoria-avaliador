@@ -32,7 +32,8 @@ def transcribe_audio(audio_path: str, model_name: str = "medium") -> dict:
         word_timestamps=True,
         initial_prompt=(
             "Esta e uma transcricao fiel de oratoria em portugues brasileiro. "
-            "Preserve TODOS os vicios de linguagem como ne, tipo, ai, sabe, entao, ahn, eh, hum. "
+            "Preserve TODOS os vicios de linguagem como ne, tipo, ai, sabe, "
+            "entao, ahn, eh, hum. "
             "Nao corrija nem omita marcadores de hesitacao."
         ),
         condition_on_previous_text=False,
@@ -41,12 +42,14 @@ def transcribe_audio(audio_path: str, model_name: str = "medium") -> dict:
     words = []
     for segment in result.get("segments", []):
         for word_info in segment.get("words", []):
-            words.append({
-                "word": word_info["word"].strip(),
-                "start": round(word_info["start"], 3),
-                "end": round(word_info["end"], 3),
-                "confidence": round(word_info.get("probability", 0.0), 3),
-            })
+            words.append(
+                {
+                    "word": word_info["word"].strip(),
+                    "start": round(word_info["start"], 3),
+                    "end": round(word_info["end"], 3),
+                    "confidence": round(word_info.get("probability", 0.0), 3),
+                }
+            )
 
     duration = time.time() - start
     logger.info(
@@ -119,29 +122,45 @@ def analyze_prosody(audio_path: str) -> dict:
         mask_pitch = (pitch_timestamps >= t_start) & (pitch_timestamps < t_end)
         janela_pitch = pitch_all[mask_pitch]
         janela_pitch = janela_pitch[janela_pitch > 0]
-        pitch_por_janela.append(round(float(np.mean(janela_pitch)), 1) if len(janela_pitch) > 0 else 0.0)
+        pitch_por_janela.append(
+            round(float(np.mean(janela_pitch)), 1) if len(janela_pitch) > 0 else 0.0
+        )
 
         # Volume medio na janela
         int_timestamps = intensity.xs()
         mask_int = (int_timestamps >= t_start) & (int_timestamps < t_end)
         janela_int = intensity_values[mask_int]
-        volume_por_janela.append(round(float(np.mean(janela_int)), 1) if len(janela_int) > 0 else 0.0)
+        volume_por_janela.append(
+            round(float(np.mean(janela_int)), 1) if len(janela_int) > 0 else 0.0
+        )
 
-    # CV de pitch e volume calculados a partir das MEDIAS POR JANELA (nao valores brutos)
-    # Isso garante que medimos variacao TEMPORAL, nao variacao frame-a-frame
+    # CV de pitch e volume calculados a partir das MEDIAS POR JANELA
+    # (nao valores brutos). Isso garante que medimos variacao TEMPORAL,
+    # nao variacao frame-a-frame.
     if len(pitch_por_janela) >= 2:
         valid_pitch = [p for p in pitch_por_janela if p > 0]
-        cv_pitch = round(float(np.std(valid_pitch) / (abs(np.mean(valid_pitch)) + 1e-8)), 4) if valid_pitch else 0.0
+        cv_pitch = (
+            round(float(np.std(valid_pitch) / (abs(np.mean(valid_pitch)) + 1e-8)), 4)
+            if valid_pitch
+            else 0.0
+        )
     else:
         cv_pitch = 0.0
 
     if len(volume_por_janela) >= 2:
-        cv_volume = round(float(np.std(volume_por_janela) / (abs(np.mean(volume_por_janela)) + 1e-8)), 4)
+        cv_volume = round(
+            float(np.std(volume_por_janela) / (abs(np.mean(volume_por_janela)) + 1e-8)),
+            4,
+        )
     else:
         cv_volume = 0.0
 
     # Volume base (1-10 scale)
-    volume_base_1_10 = round(min(10, max(1, (intensity_mean - 40) / 4)), 1) if intensity_mean > 40 else 1.0
+    volume_base_1_10 = (
+        round(min(10, max(1, (intensity_mean - 40) / 4)), 1)
+        if intensity_mean > 40
+        else 1.0
+    )
 
     elapsed = time.time() - start
     logger.info(
@@ -183,8 +202,16 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
     # Apenas sons de hesitacao REAIS (nao muletas como "entao", "ai")
     # Muletas nao tornam a pausa antes delas uma "hesitacao"
     hesitacao_sounds = {
-        "hum", "humm", "hummm", "eee", "eeee", "eeeee",
-        "ãã", "aaa", "uhh", "éee",
+        "hum",
+        "humm",
+        "hummm",
+        "eee",
+        "eeee",
+        "eeeee",
+        "ãã",
+        "aaa",
+        "uhh",
+        "éee",
     }
 
     for i in range(1, len(words)):
@@ -192,7 +219,6 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
         if gap < 0.2:
             continue
 
-        prev_word = words[i - 1]["word"].lower().strip(".,!?")
         next_word = words[i]["word"].lower().strip(".,!?")
 
         pausa = {
@@ -215,15 +241,21 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
         elif gap > 3.0:
             pausas_hesitacao.append(pausa)
 
-    total_pausas = len(pausas_estrategicas) + len(pausas_hesitacao) + len(pausas_respiracao)
+    total_pausas = (
+        len(pausas_estrategicas) + len(pausas_hesitacao) + len(pausas_respiracao)
+    )
     duration_minutes = prosody.get("audio_duration_seconds", 1) / 60
 
     return {
         "qtd_estrategicas": len(pausas_estrategicas),
         "qtd_hesitacao": len(pausas_hesitacao),
         "qtd_respiracao": len(pausas_respiracao),
-        "hesitacao_por_min": round(len(pausas_hesitacao) / max(duration_minutes, 0.1), 1),
-        "estrategicas_por_min": round(len(pausas_estrategicas) / max(duration_minutes, 0.1), 1),
+        "hesitacao_por_min": round(
+            len(pausas_hesitacao) / max(duration_minutes, 0.1), 1
+        ),
+        "estrategicas_por_min": round(
+            len(pausas_estrategicas) / max(duration_minutes, 0.1), 1
+        ),
         "ratio_estrategicas": round(len(pausas_estrategicas) / max(total_pausas, 1), 3),
         "estrategicas": pausas_estrategicas,
         "hesitacao": pausas_hesitacao,
@@ -258,7 +290,9 @@ def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:
 
     # CV de velocidade (entre janelas)
     if len(wpm_por_janela) >= 2:
-        cv_velocidade = round(float(np.std(wpm_por_janela) / (abs(np.mean(wpm_por_janela)) + 1e-8)), 4)
+        cv_velocidade = round(
+            float(np.std(wpm_por_janela) / (abs(np.mean(wpm_por_janela)) + 1e-8)), 4
+        )
     else:
         cv_velocidade = 0.0
 
@@ -266,8 +300,6 @@ def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:
     pausas = _classificar_pausas(words, prosody)
 
     # Score anti-monotonia
-    pitch_janelas = prosody.get("pitch_por_janela", [])
-    volume_janelas = prosody.get("volume_por_janela", [])
     cv_pitch = prosody.get("cv_pitch", 0)
     cv_volume = prosody.get("cv_volume", 0)
 
@@ -347,7 +379,9 @@ def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:
     else:
         bonus_pausa = 0
 
-    pausa_score = min(100, max(0, pausa_score_base - penalidade_hesitacao + bonus_pausa))
+    pausa_score = min(
+        100, max(0, pausa_score_base - penalidade_hesitacao + bonus_pausa)
+    )
 
     # Score final ponderado
     voice_score = round(

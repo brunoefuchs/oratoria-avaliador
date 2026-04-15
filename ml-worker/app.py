@@ -93,7 +93,10 @@ def _run_squad_shadow(
     # Lazy import + sys.path extension (squad mora fora de ml-worker/)
     import sys as _sys
     from pathlib import Path as _Path
-    squad_tasks = _Path(__file__).resolve().parents[1] / "squads" / "oratoria-avaliador" / "tasks"
+
+    squad_tasks = (
+        _Path(__file__).resolve().parents[1] / "squads" / "oratoria-avaliador" / "tasks"
+    )
     if str(squad_tasks) not in _sys.path:
         _sys.path.insert(0, str(squad_tasks))
 
@@ -204,7 +207,12 @@ async def _run_pipeline(req: ProcessRequest):
             facial_result = analyze_facial(video_path)
         except Exception as e:
             logger.error("facial_analysis_failed", error=str(e))
-            facial_result = {"disponivel": False, "score": 0, "diagnostico": "failed", "feedback": str(e)}
+            facial_result = {
+                "disponivel": False,
+                "score": 0,
+                "diagnostico": "failed",
+                "feedback": str(e),
+            }
 
         # Step 5: Analise de voz (Whisper + Parselmouth)
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_voice")
@@ -244,8 +252,11 @@ async def _run_pipeline(req: ProcessRequest):
         except Exception as e:
             logger.error("tonality_analysis_failed", error=str(e))
             tonality_result = {
-                "disponivel": False, "score": 0, "diagnostico": "failed",
-                "feedback": str(e), "warnings": [str(e)],
+                "disponivel": False,
+                "score": 0,
+                "diagnostico": "failed",
+                "feedback": str(e),
+                "warnings": [str(e)],
             }
 
         # Step 6: Deteccao de vicios de linguagem
@@ -279,7 +290,10 @@ async def _run_pipeline(req: ProcessRequest):
             opening_result = analyze_opening(
                 transcription,
                 voice_result.get("metrics", voice_result),
-                voice_result.get("audio_duration_seconds", voice_result.get("metrics", {}).get("audio_duration_seconds", 0)),
+                voice_result.get(
+                    "audio_duration_seconds",
+                    voice_result.get("metrics", {}).get("audio_duration_seconds", 0),
+                ),
             )
         except Exception as e:
             logger.error("opening_analysis_failed", error=str(e))
@@ -303,18 +317,24 @@ async def _run_pipeline(req: ProcessRequest):
 
             storytelling_result = analyze_storytelling(
                 transcription,
-                variety_metrics=variety_result.get("metrics") if isinstance(variety_result, dict) else None,
+                variety_metrics=variety_result.get("metrics")
+                if isinstance(variety_result, dict)
+                else None,
                 opening_result=opening_result,  # Story 7.3 fix QA — consistencia hook
             )
         except Exception as e:
             logger.error("storytelling_analysis_failed", error=str(e))
             storytelling_result = {
-                "disponivel": False, "score": 0, "diagnostico": "failed",
+                "disponivel": False,
+                "score": 0,
+                "diagnostico": "failed",
                 "suggestions": [str(e)],
             }
 
         # Step 8: Classificacao de arquetipos vocais — NOVO
-        await _notify_status(req.callback_url, req.evaluation_id, "analyzing_archetypes")
+        await _notify_status(
+            req.callback_url, req.evaluation_id, "analyzing_archetypes"
+        )
         try:
             from workers.archetype_classifier import classify_archetypes
 
@@ -345,7 +365,12 @@ async def _run_pipeline(req: ProcessRequest):
         ctx_wait_deadline = time.time() + 15
         while True:
             try:
-                ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
+                ctx_result = (
+                    supabase.table("evaluation_context")
+                    .select("*")
+                    .eq("evaluation_id", req.evaluation_id)
+                    .execute()
+                )
                 if ctx_result.data:
                     ctx = ctx_result.data[0]
                     eval_contexto = ctx.get("contexto")  # backward compat V1
@@ -354,7 +379,9 @@ async def _run_pipeline(req: ProcessRequest):
             except Exception:
                 pass
             if time.time() >= ctx_wait_deadline:
-                logger.info("evaluation_context_timeout", evaluation_id=req.evaluation_id)
+                logger.info(
+                    "evaluation_context_timeout", evaluation_id=req.evaluation_id
+                )
                 break
             time.sleep(1)
 
@@ -389,7 +416,9 @@ async def _run_pipeline(req: ProcessRequest):
             from workers.temporal_analyzer import analyze_temporal
 
             temporal = analyze_temporal(
-                voice_result, variety_result, filler_result,
+                voice_result,
+                variety_result,
+                filler_result,
                 duration_seconds=video_metadata.get("duration_seconds", 0),
             )
             aggregated["temporal"] = temporal
@@ -442,7 +471,12 @@ async def _run_pipeline(req: ProcessRequest):
             # Buscar contexto completo do orador para o LLM
             eval_context = None
             try:
-                ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
+                ctx_result = (
+                    supabase.table("evaluation_context")
+                    .select("*")
+                    .eq("evaluation_id", req.evaluation_id)
+                    .execute()
+                )
                 if ctx_result.data:
                     eval_context = ctx_result.data[0]
             except Exception:
@@ -453,7 +487,9 @@ async def _run_pipeline(req: ProcessRequest):
                 {
                     "evaluation_id": req.evaluation_id,
                     "summary": report.get("resumo", report.get("summary", "")),
-                    "dimension_feedback": report.get("dimensoes", report.get("dimension_feedback", {})),
+                    "dimension_feedback": report.get(
+                        "dimensoes", report.get("dimension_feedback", {})
+                    ),
                     "forcas": report.get("forcas", []),
                     "melhorias": report.get("melhorias_80_20", []),
                     "plano_12_semanas": report.get("plano_12_semanas", []),
@@ -486,7 +522,9 @@ async def _run_pipeline(req: ProcessRequest):
                     evaluation_context={
                         "motivacao": eval_motivacao,
                         "contexto_v1": eval_contexto,
-                    } if (eval_motivacao or eval_contexto) else None,
+                    }
+                    if (eval_motivacao or eval_contexto)
+                    else None,
                 )
             except Exception as e:
                 # Shadow NUNCA derruba pipeline real.

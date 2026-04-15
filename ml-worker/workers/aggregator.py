@@ -13,12 +13,48 @@ PESOS_DEFAULT = {
 
 # Pesos contextuais por tipo de apresentacao
 PESOS_POR_CONTEXTO = {
-    "palco":       {"variety": 0.25, "voice": 0.20, "gesture": 0.18, "posture": 0.22, "fillers": 0.15},
-    "podcast":     {"variety": 0.30, "voice": 0.35, "gesture": 0.10, "posture": 0.05, "fillers": 0.20},
-    "vendas":      {"variety": 0.20, "voice": 0.25, "gesture": 0.20, "posture": 0.15, "fillers": 0.20},
-    "rede_social": {"variety": 0.25, "voice": 0.20, "gesture": 0.20, "posture": 0.15, "fillers": 0.20},
-    "reuniao":     {"variety": 0.20, "voice": 0.25, "gesture": 0.15, "posture": 0.20, "fillers": 0.20},
-    "aula":        {"variety": 0.25, "voice": 0.25, "gesture": 0.20, "posture": 0.15, "fillers": 0.15},
+    "palco": {
+        "variety": 0.25,
+        "voice": 0.20,
+        "gesture": 0.18,
+        "posture": 0.22,
+        "fillers": 0.15,
+    },
+    "podcast": {
+        "variety": 0.30,
+        "voice": 0.35,
+        "gesture": 0.10,
+        "posture": 0.05,
+        "fillers": 0.20,
+    },
+    "vendas": {
+        "variety": 0.20,
+        "voice": 0.25,
+        "gesture": 0.20,
+        "posture": 0.15,
+        "fillers": 0.20,
+    },
+    "rede_social": {
+        "variety": 0.25,
+        "voice": 0.20,
+        "gesture": 0.20,
+        "posture": 0.15,
+        "fillers": 0.20,
+    },
+    "reuniao": {
+        "variety": 0.20,
+        "voice": 0.25,
+        "gesture": 0.15,
+        "posture": 0.20,
+        "fillers": 0.20,
+    },
+    "aula": {
+        "variety": 0.25,
+        "voice": 0.25,
+        "gesture": 0.20,
+        "posture": 0.15,
+        "fillers": 0.15,
+    },
 }
 
 
@@ -33,7 +69,9 @@ MOTIVACAO_TO_CONTEXTO = {
 }
 
 
-def _get_pesos(contexto: str | None = None, motivacao: list | None = None) -> tuple[dict, str | None]:
+def _get_pesos(
+    contexto: str | None = None, motivacao: list | None = None
+) -> tuple[dict, str | None]:
     """Retorna (pesos, contexto_resolvido).
 
     Prioridade: contexto direto > primeira motivacao com mapeamento > default.
@@ -106,12 +144,8 @@ def aggregate_metrics(
         overall_score = 0
 
     # Diagnostico rapido: dimensoes fortes e fracas
-    dimensoes_fortes = [
-        dim for dim, score in dimension_scores.items() if score >= 70
-    ]
-    dimensoes_fracas = [
-        dim for dim, score in dimension_scores.items() if score < 50
-    ]
+    dimensoes_fortes = [dim for dim, score in dimension_scores.items() if score >= 70]
+    dimensoes_fracas = [dim for dim, score in dimension_scores.items() if score < 50]
 
     logger.info(
         "metrics_aggregated",
