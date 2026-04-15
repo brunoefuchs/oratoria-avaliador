@@ -1,0 +1,12 @@
+video_id,dimension,app_score,gui_score,distance,flag_gt20
+,posture,,,=ABS(C2-D2),=IF(E2>20,"FLAG","")
+,gesture,,,=ABS(C3-D3),=IF(E3>20,"FLAG","")
+,voice,,,=ABS(C4-D4),=IF(E4>20,"FLAG","")
+,fillers,,,=ABS(C5-D5),=IF(E5>20,"FLAG","")
+,variety,,,=ABS(C6-D6),=IF(E6>20,"FLAG","")
+,archetypes,,,=ABS(C7-D7),=IF(E7>20,"FLAG","")
+,identity,,,=ABS(C8-D8),=IF(E8>20,"FLAG","")
+,opening,,,=ABS(C9-D9),=IF(E9>20,"FLAG","")
+,congruence,,,=ABS(C10-D10),=IF(E10>20,"FLAG","")
+,temporal,,,=ABS(C11-D11),=IF(E11>20,"FLAG","")
+,overall,,,=ABS(C12-D12),=IF(E12>20,"FLAG","")
