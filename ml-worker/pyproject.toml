@@ -5,13 +5,17 @@ requires-python = ">=3.11"
 
 [tool.ruff]
 target-version = "py311"
-line-length = 88
+line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
 
 [tool.ruff.lint.per-file-ignores]
+# Arquivos com conteúdo de usuário (strings em PT-BR: exercícios, feedback, templates).
+# Quebrar essas strings prejudica legibilidade sem benefício — mantemos exemptos de E501.
 "workers/report_generator.py" = ["E501"]
+"workers/coaching_plan.py" = ["E501"]
+"workers/opening_analyzer.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
