@@ -89,29 +89,39 @@ workflow:
     - phase: 4
       id: hierarchy
       name: "Problem Hierarchy Ranking"
-      status: not_implemented
+      status: implemented
       epic_delivery: 3
-      planned_agent: hierarchy-ranker
+      agent: hierarchy-ranker
+      implementation: "tasks/hierarchy_ranker.py :: rank_problems()"
       action: "rank_problems_by_impact"
       inputs: [scores_by_dimension, congruence_report, evaluation_context]
       outputs: [problem_hierarchy]
       checkpoint:
         gate: G5_HIERARCHY_VALIDITY
         blocking: true
+        pass_when: "Top-N problemas com rank sequencial + evidence + why não vazios"
 
     - phase: 5
       id: mentor-narrative
       name: "Mentor Narrative Generation"
-      status: not_implemented
+      status: implemented
       epic_delivery: 3
-      planned_agents: [mentor-router, mentor-narrator, exercise-prescriber]
+      agents: [mentor-router, mentor-narrator, exercise-prescriber]
+      implementation:
+        router: "tasks/mentor_router.py :: route_mentor()"
+        narrator: "tasks/mentor_narrator.py :: render_template_narrative() | build_llm_prompt()"
+        prescriber: "tasks/exercise_prescriber.py :: prescribe()"
       action: "generate_narrative_with_voice_dna"
       inputs: [problem_hierarchy, evaluation_context]
-      outputs: [mentor_narrative, exercises]
-      checkpoint:
-        gate: G4_VOICE_DNA_FIDELITY
-        blocking: true
-        pass_when: "Fidelity ≥85%"
+      outputs: [mentor_narrative, exercise_plan]
+      checkpoints:
+        - gate: G4_VOICE_DNA_FIDELITY
+          blocking: true
+          pass_when: "fidelity_checker ≥85%"
+          note: "template mode baseline = 100%; LLM real depende de prompt engineering em Epic 3b"
+        - gate: G6_EXERCISE_LINKAGE
+          blocking: true
+          pass_when: "todos top-N têm has_exercise=true"
 
     - phase: 6
       id: quality-gate

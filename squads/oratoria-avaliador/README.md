@@ -1,7 +1,7 @@
 # 🎤 Oratória Avaliador — Meta-Squad de Governança
 
-> **Status:** Epic 2 delivered — Scoring + Congruence
-> **Versão:** 0.2.0
+> **Status:** Epic 3 delivered — Mentor Narrative
+> **Versão:** 0.3.0
 > **PRD canônico:** [`docs/projects/oratoria-avaliador/prd.md`](../../docs/projects/oratoria-avaliador/prd.md)
 
 ## O que este squad é
@@ -30,11 +30,16 @@ A inteligência do produto está na orquestração, não na captura.
 | `speech-prosody-expert` (lean reference) | ✅ Epic 2 |
 | `face-gesture-expert` (lean reference) | ✅ Epic 2 |
 | `narrative-structure-expert` (lean reference) | ✅ Epic 2 |
-| `wf-evaluate-pipeline` (phases 1-3 implemented; 4-6 stub) | ✅ Epic 2 |
-| 11 smoke tests total (3 contract + 8 scoring/congruence) | ✅ PASS |
+| `mentor-router` + `tasks/mentor_router.py` | ✅ Epic 3 |
+| `hierarchy-ranker` + `tasks/hierarchy_ranker.py` (G5 gate) | ✅ Epic 3 |
+| `exercise-prescriber` + `tasks/exercise_prescriber.py` (G6 gate) | ✅ Epic 3 |
+| `mentor-narrator` + `tasks/mentor_narrator.py` (template+LLM prompt, G4 gate) | ✅ Epic 3 |
+| `tasks/fidelity_checker.py` (G4 measurement) | ✅ Epic 3 |
+| `wf-evaluate-pipeline` (phases 1-5 implemented; 6 stub) | ✅ Epic 3 |
+| 25 smoke tests total (3+3+8+11) | ✅ PASS |
 | `psychometry-calibrator` | ⏳ Epic 2b (deferred) |
-| Mentor narrative | ⏳ Epic 3 |
-| Quality gate keeper | ⏳ Epic 4 |
+| LLM call integration (mentor-narrator usa template hoje) | ⏳ Epic 3b |
+| Quality gate keeper (G1-G6 combinados) | ⏳ Epic 4 |
 | B2B team aggregation | ⏳ Epic 5 |
 
 ### Rodar smoke tests
@@ -49,6 +54,9 @@ python3 squads/oratoria-avaliador/tasks/test_adapter.py
 
 # Epic 2: Scoring + Congruence (8 testes)
 python3 squads/oratoria-avaliador/tasks/test_scoring_congruence.py
+
+# Epic 3: Mentor Narrative (11 testes: router + hierarchy + exercise + narrator + fidelity)
+python3 squads/oratoria-avaliador/tasks/test_epic_3.py
 ```
 
 ## Ativação

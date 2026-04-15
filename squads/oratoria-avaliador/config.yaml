@@ -4,7 +4,7 @@
 pack:
   name: oratoria-avaliador
   title: "Oratória Avaliador — Meta-Squad de Governança"
-  version: "0.2.0"
+  version: "0.3.0"
   author: "Bruno (brunoefuchs@gmail.com)"
   description: "Meta-squad que governa o pipeline de avaliação de oratória em vídeo. Orquestra ml-worker (captura), scoring, congruência, narrativa de mentor (vinh/gui) e quality gate antes do release."
   icon: "🎤"
@@ -14,15 +14,24 @@ entry_agent: oratoria-avaliador-chief
 tested: false
 
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   score: null
-  epic_delivered: 2
+  epic_delivered: 3
   roadmap_total_epics: 6
   prd_source: "docs/projects/oratoria-avaliador/prd.md"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CHANGELOG
 # ═══════════════════════════════════════════════════════════════════════════════
+# v0.3.0 (2026-04-14) — Epic 3: Mentor Narrative
+#   - mentor-router (pt-BR/en + motivação → gui/vinh)
+#   - hierarchy-ranker (weighted_impact = gap × weight; top-N)
+#   - exercise-prescriber (library gui+vinh × 4 dims; G6 gate)
+#   - mentor-narrator (template + llm_prompt com DNA injection)
+#   - fidelity_checker (G4 gate; template baseline 100%)
+#   - Workflow phases 4-5 implementadas
+#   - 11/11 novos smoke tests PASS
+#
 # v0.2.0 (2026-04-14) — Epic 2: Scoring + Congruence
 #   - scoring-engine agent + tasks/scoring_engine.py (pesos contextuais)
 #   - congruence-auditor agent + tasks/congruence_auditor.py (G3 gate)
@@ -93,9 +102,42 @@ agents:
     agent_type: "technical-reference"
     epic_source: 2
 
+  # ─── Epic 3: Mentor Narrative ───
+  - id: mentor-router
+    name: "Mentor Router"
+    role: "Decide gui vs vinh baseado em language + 6.Q"
+    tier: 1
+    agent_type: "functional-deterministic"
+    implementation: "tasks/mentor_router.py"
+    epic_source: 3
+
+  - id: hierarchy-ranker
+    name: "Hierarchy Ranker"
+    role: "Rankeia problemas por weighted_impact (top-N)"
+    tier: 2
+    agent_type: "functional-deterministic"
+    implementation: "tasks/hierarchy_ranker.py"
+    epic_source: 3
+
+  - id: exercise-prescriber
+    name: "Exercise Prescriber"
+    role: "Linka exercício mentor-específico a cada problema — G6 gate"
+    tier: 2
+    agent_type: "functional-deterministic"
+    implementation: "tasks/exercise_prescriber.py"
+    epic_source: 3
+
+  - id: mentor-narrator
+    name: "Mentor Narrator"
+    role: "Gera narrativa com Voice DNA injection (template + LLM) — G4 gate"
+    tier: 1
+    agent_type: "hybrid"
+    implementation: "tasks/mentor_narrator.py"
+    epic_source: 3
+
 # Agents planejados (futuros epics):
 # Epic 2b (deferred): psychometry-calibrator (não urgente; exige dataset ≥500)
-# Epic 3: mentor-router, mentor-narrator, hierarchy-ranker, exercise-prescriber
+# Epic 3b (deferred): LLM call integration em mentor-narrator (hoje usa template)
 # Epic 4: quality-gate-keeper, calibration-keeper
 # Epic 5: team-aggregator
 
