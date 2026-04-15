@@ -76,6 +76,64 @@ def _save_analysis(supabase, evaluation_id: str, dimension: str, result: dict):
     ).execute()
 
 
+def _run_squad_shadow(
+    *,
+    evaluation_id: str,
+    video_url: str,
+    video_metadata: dict,
+    worker_results: dict,
+    evaluation_context: dict | None,
+) -> None:
+    """Roda oratoria-avaliador squad em shadow mode.
+
+    Shadow = não bloqueia, não afeta fluxo user-facing, apenas loga.
+    Import é lazy para evitar custo quando feature flag off.
+    Qualquer exceção é capturada pelo caller — aqui só loga-se decisão.
+    """
+    # Lazy import + sys.path extension (squad mora fora de ml-worker/)
+    import sys as _sys
+    from pathlib import Path as _Path
+    squad_tasks = _Path(__file__).resolve().parents[1] / "squads" / "oratoria-avaliador" / "tasks"
+    if str(squad_tasks) not in _sys.path:
+        _sys.path.insert(0, str(squad_tasks))
+
+    from process_evaluation import process as _squad_process
+
+    duration = float(video_metadata.get("duration_seconds", 0) or 0)
+
+    result = _squad_process(
+        evaluation_id=evaluation_id,
+        storage_path=video_url,
+        duration_seconds=duration,
+        worker_outputs=worker_results,
+        evaluation_context=evaluation_context,
+        mode="template",  # Epic 3b real-LLM ainda não integrado
+    )
+
+    decision = result.get("gate_decision", {})
+    artifacts = result.get("artifacts", {})
+    fidelity = artifacts.get("fidelity_result", {}).get("fidelity_pct")
+    mentor = artifacts.get("router_result", {}).get("mentor")
+
+    logger.info(
+        "shadow_squad_decision",
+        evaluation_id=evaluation_id,
+        verdict=decision.get("verdict"),
+        release=decision.get("release_to_user"),
+        critical_fails=decision.get("critical_fails", []),
+        mentor=mentor,
+        fidelity_pct=fidelity,
+        pipeline_result=result.get("pipeline_result"),
+    )
+
+    if decision.get("verdict") == "FAIL":
+        logger.info(
+            "shadow_squad_audit",
+            evaluation_id=evaluation_id,
+            audit=result.get("audit_report"),
+        )
+
+
 async def _run_pipeline(req: ProcessRequest):
     start = time.time()
     logger.info("pipeline_start", evaluation_id=req.evaluation_id)
@@ -138,6 +196,16 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "gesture", gesture_result)
 
+        # Step 4.5: Story 7.4 — Analise de expressao facial (smile, brow, eye openness)
+        await _notify_status(req.callback_url, req.evaluation_id, "analyzing_facial")
+        try:
+            from workers.facial_analyzer import analyze_facial
+
+            facial_result = analyze_facial(video_path)
+        except Exception as e:
+            logger.error("facial_analysis_failed", error=str(e))
+            facial_result = {"disponivel": False, "score": 0, "diagnostico": "failed", "feedback": str(e)}
+
         # Step 5: Analise de voz (Whisper + Parselmouth)
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_voice")
         try:
@@ -167,6 +235,18 @@ async def _run_pipeline(req: ProcessRequest):
             transcription = {"full_text": "", "words": []}
 
         _save_analysis(supabase, req.evaluation_id, "voice", voice_result)
+
+        # Step 5.5: Story 7.5 — Tonality VAD (5a Vocal Foundation)
+        try:
+            from workers.tonality_analyzer import analyze_tonality
+
+            tonality_result = analyze_tonality(audio_path)
+        except Exception as e:
+            logger.error("tonality_analysis_failed", error=str(e))
+            tonality_result = {
+                "disponivel": False, "score": 0, "diagnostico": "failed",
+                "feedback": str(e), "warnings": [str(e)],
+            }
 
         # Step 6: Deteccao de vicios de linguagem
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_fillers")
@@ -219,6 +299,22 @@ async def _run_pipeline(req: ProcessRequest):
             variety_result = {"score": 0, "confidence": "failed", "metrics": {}}
 
         _save_analysis(supabase, req.evaluation_id, "variety", variety_result)
+
+        # Step 7.5: Story 7.3 — Storytelling Analyzer (bridge, hook, CTA, chemicals)
+        try:
+            from workers.storytelling_analyzer import analyze_storytelling
+
+            storytelling_result = analyze_storytelling(
+                transcription,
+                variety_metrics=variety_result.get("metrics") if isinstance(variety_result, dict) else None,
+                opening_result=opening_result,  # Story 7.3 fix QA — consistencia hook
+            )
+        except Exception as e:
+            logger.error("storytelling_analysis_failed", error=str(e))
+            storytelling_result = {
+                "disponivel": False, "score": 0, "diagnostico": "failed",
+                "suggestions": [str(e)],
+            }
 
         # Step 8: Classificacao de arquetipos vocais — NOVO
         await _notify_status(
@@ -326,6 +422,20 @@ async def _run_pipeline(req: ProcessRequest):
             full_detailed["temporal"] = aggregated["temporal"]
         if aggregated.get("congruence"):
             full_detailed["congruence"] = aggregated["congruence"]
+        # Story 5.3: expor contexto + pesos no relatorio (badge + transparencia)
+        if aggregated.get("contexto"):
+            full_detailed["contexto"] = aggregated["contexto"]
+        if aggregated.get("pesos_utilizados"):
+            full_detailed["pesos_utilizados"] = aggregated["pesos_utilizados"]
+        # Story 7.4: expor analise facial no relatorio
+        if facial_result and facial_result.get("disponivel"):
+            full_detailed["facial"] = facial_result
+        # Story 7.5: expor tonality VAD no relatorio
+        if tonality_result and tonality_result.get("disponivel"):
+            full_detailed["tonality"] = tonality_result
+        # Story 7.3: expor analise de storytelling no relatorio
+        if storytelling_result and storytelling_result.get("disponivel"):
+            full_detailed["storytelling"] = storytelling_result
 
         supabase.table("aggregated_metrics").insert(
             {
@@ -375,6 +485,37 @@ async def _run_pipeline(req: ProcessRequest):
             ).execute()
         except Exception as e:
             logger.error("report_generation_failed", error=str(e))
+
+        # Step 11: SHADOW MODE — squad oratoria-avaliador em paralelo
+        # Não altera fluxo user-facing. Apenas loga decisões para comparação.
+        # Feature flag: config.ORATORIA_SHADOW_MODE_ENABLED.
+        if config.ORATORIA_SHADOW_MODE_ENABLED:
+            try:
+                _run_squad_shadow(
+                    evaluation_id=req.evaluation_id,
+                    video_url=req.video_url,
+                    video_metadata=video_metadata,
+                    worker_results={
+                        "voice_analyzer": voice_result,
+                        "filler_detector": filler_result,
+                        "posture_analyzer": posture_result,
+                        "gesture_analyzer": gesture_result,
+                        "facial_analyzer": facial_result,
+                        "opening_analyzer": opening_result,
+                        "tonality_analyzer": tonality_result,
+                    },
+                    evaluation_context={
+                        "motivacao": eval_motivacao,
+                        "contexto_v1": eval_contexto,
+                    } if (eval_motivacao or eval_contexto) else None,
+                )
+            except Exception as e:
+                # Shadow NUNCA derruba pipeline real.
+                logger.warning(
+                    "shadow_mode_failed",
+                    evaluation_id=req.evaluation_id,
+                    error=str(e),
+                )
 
         elapsed = time.time() - start
         logger.info(
