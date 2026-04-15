@@ -1,0 +1,44 @@
+schema: 1
+story: "7.5"
+gate: PASS
+status_reason: "Re-review pos-smoke 2026-04-14. Decisao parselmouth/Praat sobre opensmile foi acerto critico — zero nova dependencia, sem licensa comercial. VAD em 6 texturas funcional."
+reviewer: "Quinn"
+updated: "2026-04-15T11:45:00Z"
+top_issues:
+  - id: "PERF-002"
+    severity: medium
+    finding: "parselmouth roda em CPU — performance em videos longos (>15min) nao benchmarked formalmente"
+    suggested_action: "Benchmark formal em video de 30min; se degradacao >20%, considerar batch processing"
+  - id: "REQ-001"
+    severity: low
+    finding: "AC-8 (desvio tonal vs baseline) implementado com heurística fixa — poderia evoluir para baseline adaptativo por usuario"
+    suggested_action: "Backlog feature: personalizacao de baseline tonal em Epic 8+"
+waiver: { active: false }
+
+quality_checks:
+  code_review: PASS
+  unit_tests: CONCERN  # parselmouth requer audio real para test completo
+  acceptance_criteria: PASS
+  no_regressions: PASS
+  performance: CONCERN  # benchmark formal pendente
+  security: PASS
+  documentation: PASS
+
+ac_coverage:
+  AC-1_vad_6_texturas: VERIFIED
+  AC-2_prosody_metrics: VERIFIED
+  AC-3_pitch_range: VERIFIED
+  AC-4_tempo_analysis: VERIFIED
+  AC-5_energy_dynamics: VERIFIED
+  AC-6_tonality_score: VERIFIED
+  AC-7_tonality_viz_frontend: VERIFIED_POS_SMOKE
+  AC-8_desvio_tonal: VERIFIED_COM_DESVIO  # heuristica aceita
+
+files_created:
+  - ml-worker/workers/tonality_analyzer.py
+  - apps/web/src/components/tonality-viz.tsx
+
+dependency_decisions:
+  - choice: parselmouth (Praat)
+    rejected: opensmile
+    rationale: "Zero nova dependencia conda/apt, sem licensa comercial, API pythonic, comunidade academica ativa"

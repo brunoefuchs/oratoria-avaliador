@@ -1,0 +1,42 @@
+schema: 1
+story: "7.3"
+gate: PASS
+status_reason: "Re-review pos-smoke 2026-04-14 com 3 fixes adicionais aplicados. Regex-first PT-BR foi escolha defensiva correta — recall validado em smoke real."
+reviewer: "Quinn"
+updated: "2026-04-15T11:45:00Z"
+top_issues:
+  - id: "TEST-002"
+    severity: medium
+    finding: "Recall depende da qualidade dos patterns regex PT-BR. Coverage empírica limitada ao smoke inicial — videos com linguagem nao-padrao podem ter baixa deteccao"
+    suggested_action: "Expandir test suite com videos de diferentes registros (formal/informal/regional) em sprint futura"
+  - id: "MNT-002"
+    severity: low
+    finding: "Decision: report_generator integration mantido em 547 linhas (gatilho 800 evitado). Proxima adicao de feature pode forcar refactor"
+    suggested_action: "Monitorar linhas de report_generator.py; refactor preventivo quando chegar em 750"
+waiver: { active: false }
+
+quality_checks:
+  code_review: PASS
+  unit_tests: CONCERN  # regex patterns sem unit tests automatizados
+  acceptance_criteria: PASS
+  no_regressions: PASS
+  performance: PASS  # regex O(n) linear
+  security: PASS
+  documentation: PASS
+
+ac_coverage:
+  AC-1_bridge_detection: VERIFIED
+  AC-2_hook_detection: VERIFIED
+  AC-3_cta_detection: VERIFIED
+  AC-4_chemicals_detection: VERIFIED
+  AC-5_narrative_score: VERIFIED
+  AC-6_integration_report: VERIFIED_POS_SMOKE
+  AC-7_consistency_hook_opening: VERIFIED_POS_FIX  # fix aplicado pos-QA
+
+files_created:
+  - ml-worker/workers/storytelling_analyzer.py
+  - apps/web/src/components/narrative-card.tsx
+
+files_modified:
+  - ml-worker/workers/report_generator.py
+  - apps/web/src/app/report/[id]/page.tsx

@@ -1,0 +1,42 @@
+schema: 1
+story: "7.1"
+gate: PASS
+status_reason: "Re-review pos-smoke 2026-04-14 resolveu HIGH (AC-7 regressao) e MEDIUM (gesto_zona ZONA_LABELS). Whisper 'ne' preservation + filler dedup aplicados como bonus."
+reviewer: "Quinn"
+updated: "2026-04-15T11:45:00Z"
+top_issues:
+  - id: "TEST-001"
+    severity: low
+    finding: "Folder ml-worker/tests/ vazia, pytest nao instalado. Math validado inline (python -c) mas nao persistido como unit tests."
+    suggested_action: "Criar story 8.x para setup pytest + migrar validacoes inline para tests persistentes"
+  - id: "MNT-001"
+    severity: low
+    finding: "Constants IDEAL_GESTURES_MIN/MAX declaradas in-function em gesture_analyzer.py (linha ~296)"
+    suggested_action: "Refactor cosmetico: mover para module-level (nao bloqueia)"
+waiver: { active: false }
+
+quality_checks:
+  code_review: PASS
+  unit_tests: CONCERN  # debt registrado, nao bloqueante
+  acceptance_criteria: PASS
+  no_regressions: PASS  # resolvido pos-smoke
+  performance: PASS
+  security: PASS
+  documentation: PASS
+
+ac_coverage:
+  AC-1_diversidade_shannon: VERIFIED
+  AC-2_vicios_por_minuto: VERIFIED
+  AC-3_eye_contact_bell_curve: VERIFIED
+  AC-4_gesticulacao_bidirectional: VERIFIED
+  AC-5_renomeacoes_pt_br: VERIFIED
+  AC-6_ne_detection: VERIFIED
+  AC-7_regressao_zero: VERIFIED_POS_SMOKE
+
+files_modified:
+  - ml-worker/workers/archetype_classifier.py
+  - ml-worker/workers/filler_detector.py
+  - ml-worker/workers/gesture_analyzer.py
+  - ml-worker/workers/voice_analyzer.py  # Whisper config bonus
+  - apps/web/src/lib/report-labels.ts  # NEW
+  - apps/web/src/app/report/[id]/[dimension]/page.tsx

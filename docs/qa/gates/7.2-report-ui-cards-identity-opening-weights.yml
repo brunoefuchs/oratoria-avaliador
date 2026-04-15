@@ -1,0 +1,38 @@
+schema: 1
+story: "7.2"
+gate: PASS
+status_reason: "Re-review pos-smoke 2026-04-14 validou 3 cards (Identidade + Abertura + Pesos) renderizam corretamente com drill-downs. Concerns iniciais eram operacionais/UX, nao estruturais."
+reviewer: "Quinn"
+updated: "2026-04-15T11:45:00Z"
+top_issues:
+  - id: "DOC-001"
+    severity: low
+    finding: "Transparencia de pesos (AC-3) poderia ter tooltip explicando Shannon entropy para usuarios nao-tecnicos"
+    suggested_action: "UX refinement em story futura (Epic 8+)"
+waiver: { active: false }
+
+quality_checks:
+  code_review: PASS
+  unit_tests: N/A  # frontend — coberto por smoke manual
+  acceptance_criteria: PASS
+  no_regressions: PASS
+  performance: PASS
+  security: PASS  # sem dangerouslySetInnerHTML
+  documentation: PASS
+
+ac_coverage:
+  AC-1_card_identidade_principal: VERIFIED
+  AC-2_drilldown_identidade: VERIFIED
+  AC-3_card_abertura_principal: VERIFIED
+  AC-4_drilldown_abertura: VERIFIED
+  AC-5_score_breakdown_interativo: VERIFIED
+  AC-6_pesos_transparencia: VERIFIED
+  AC-7_responsividade_mobile: VERIFIED_POS_SMOKE
+
+files_created:
+  - apps/web/src/components/identity-card.tsx
+  - apps/web/src/components/opening-card.tsx
+  - apps/web/src/components/score-breakdown.tsx
+  - apps/web/src/app/report/[id]/identity/page.tsx
+  - apps/web/src/app/report/[id]/opening/page.tsx
+  - apps/web/src/lib/types/report.ts
