@@ -7,7 +7,7 @@ logger = structlog.get_logger()
 # Muletas retoticas (fim de frase, habito social — menos graves)
 MULETAS_RETORICAS = [
     r"\bné\b",
-    r"\bne\b",     # Whisper pode transcrever sem acento
+    r"\bne\b",  # Whisper pode transcrever sem acento
     r"\btá\b",
     r"\bta\b",
     r"\bsabe\b",
@@ -55,9 +55,7 @@ for categoria, patterns in CATEGORIAS.items():
 
 # Pattern unico para deteccao rapida
 ALL_FILLER_REGEX = re.compile(
-    "|".join(
-        p for patterns in CATEGORIAS.values() for p in patterns
-    ),
+    "|".join(p for patterns in CATEGORIAS.values() for p in patterns),
     re.IGNORECASE,
 )
 
@@ -88,28 +86,30 @@ def _detectar_clusters(fillers_found: list) -> list:
             cluster_atual.append(fillers_found[i])
         else:
             if len(cluster_atual) >= 3:
-                clusters.append({
-                    "inicio": cluster_atual[0]["timestamp"],
-                    "fim": cluster_atual[-1]["timestamp"],
-                    "quantidade": len(cluster_atual),
-                    "palavras": [f["word"] for f in cluster_atual],
-                    "duracao": round(
-                        cluster_atual[-1]["timestamp"] - cluster_atual[0]["timestamp"], 1
-                    ),
-                })
+                clusters.append(
+                    {
+                        "inicio": cluster_atual[0]["timestamp"],
+                        "fim": cluster_atual[-1]["timestamp"],
+                        "quantidade": len(cluster_atual),
+                        "palavras": [f["word"] for f in cluster_atual],
+                        "duracao": round(
+                            cluster_atual[-1]["timestamp"] - cluster_atual[0]["timestamp"], 1
+                        ),
+                    }
+                )
             cluster_atual = [fillers_found[i]]
 
     # Checar ultimo cluster
     if len(cluster_atual) >= 3:
-        clusters.append({
-            "inicio": cluster_atual[0]["timestamp"],
-            "fim": cluster_atual[-1]["timestamp"],
-            "quantidade": len(cluster_atual),
-            "palavras": [f["word"] for f in cluster_atual],
-            "duracao": round(
-                cluster_atual[-1]["timestamp"] - cluster_atual[0]["timestamp"], 1
-            ),
-        })
+        clusters.append(
+            {
+                "inicio": cluster_atual[0]["timestamp"],
+                "fim": cluster_atual[-1]["timestamp"],
+                "quantidade": len(cluster_atual),
+                "palavras": [f["word"] for f in cluster_atual],
+                "duracao": round(cluster_atual[-1]["timestamp"] - cluster_atual[0]["timestamp"], 1),
+            }
+        )
 
     return clusters
 
@@ -146,9 +146,7 @@ def detect_fillers(transcription: dict) -> dict:
             contagem_por_categoria[categoria] += 1
 
             context_before = " ".join(w["word"] for w in words[max(0, i - 3) : i])
-            context_after = " ".join(
-                w["word"] for w in words[i + 1 : min(len(words), i + 4)]
-            )
+            context_after = " ".join(w["word"] for w in words[i + 1 : min(len(words), i + 4)])
 
             filler_entry = {
                 "word": word.lower().strip(),
@@ -191,9 +189,7 @@ def detect_fillers(transcription: dict) -> dict:
     # Metricas por minuto
     duration_minutes = audio_duration / 60 if audio_duration > 0 else 1
     fillers_per_minute = round(len(fillers_found) / duration_minutes, 1)
-    hesitacoes_per_minute = round(
-        contagem_por_categoria["hesitacao"] / duration_minutes, 1
-    )
+    hesitacoes_per_minute = round(contagem_por_categoria["hesitacao"] / duration_minutes, 1)
     muletas_per_minute = round(
         (contagem_por_categoria["muleta_retorica"] + contagem_por_categoria["muleta_conexao"])
         / duration_minutes,
@@ -206,9 +202,7 @@ def detect_fillers(transcription: dict) -> dict:
     # Diversidade lexical
     all_words = [w["word"].lower().strip() for w in words if w["word"].strip()]
     unique_words = set(all_words)
-    type_token_ratio = (
-        round(len(unique_words) / len(all_words), 3) if all_words else 0.0
-    )
+    type_token_ratio = round(len(unique_words) / len(all_words), 3) if all_words else 0.0
 
     # Clusters de fillers (red flags)
     clusters = _detectar_clusters(fillers_found)
@@ -221,7 +215,9 @@ def detect_fillers(transcription: dict) -> dict:
 
     # Score base: fillers ponderados por gravidade E contexto de uso
     peso_total_contextual = sum(f.get("peso_contextual", 1.0) for f in fillers_found)
-    fillers_ponderados_por_min = peso_total_contextual / duration_minutes if duration_minutes > 0 else 0
+    fillers_ponderados_por_min = (
+        peso_total_contextual / duration_minutes if duration_minutes > 0 else 0
+    )
 
     # Escala: < 3 ponderado/min = 100, > 12 ponderado/min = 0
     if fillers_ponderados_por_min <= 3:

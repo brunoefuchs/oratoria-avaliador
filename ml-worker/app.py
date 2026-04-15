@@ -13,9 +13,7 @@ import config
 from workers.video_processor import split_video
 
 structlog.configure(
-    wrapper_class=structlog.make_filtering_bound_logger(
-        logging.getLevelName(config.LOG_LEVEL)
-    ),
+    wrapper_class=structlog.make_filtering_bound_logger(logging.getLevelName(config.LOG_LEVEL)),
 )
 
 logger = structlog.get_logger()
@@ -199,7 +197,10 @@ async def _run_pipeline(req: ProcessRequest):
             opening_result = analyze_opening(
                 transcription,
                 voice_result.get("metrics", voice_result),
-                voice_result.get("audio_duration_seconds", voice_result.get("metrics", {}).get("audio_duration_seconds", 0)),
+                voice_result.get(
+                    "audio_duration_seconds",
+                    voice_result.get("metrics", {}).get("audio_duration_seconds", 0),
+                ),
             )
         except Exception as e:
             logger.error("opening_analysis_failed", error=str(e))
@@ -236,9 +237,7 @@ async def _run_pipeline(req: ProcessRequest):
         voice_metrics_data = voice_result.get("metrics", voice_result)
         video_metadata = {
             "duration_seconds": voice_metrics_data.get("audio_duration_seconds", 0),
-            "frames_processed": posture_result.get("metrics", {}).get(
-                "total_frames", 0
-            ),
+            "frames_processed": posture_result.get("metrics", {}).get("total_frames", 0),
         }
 
         # Buscar contexto do questionario pre-avaliacao (V2 — 6 perguntas)
@@ -249,7 +248,12 @@ async def _run_pipeline(req: ProcessRequest):
         ctx_wait_deadline = time.time() + 15
         while True:
             try:
-                ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
+                ctx_result = (
+                    supabase.table("evaluation_context")
+                    .select("*")
+                    .eq("evaluation_id", req.evaluation_id)
+                    .execute()
+                )
                 if ctx_result.data:
                     ctx = ctx_result.data[0]
                     eval_contexto = ctx.get("contexto")  # backward compat V1
@@ -293,7 +297,9 @@ async def _run_pipeline(req: ProcessRequest):
             from workers.temporal_analyzer import analyze_temporal
 
             temporal = analyze_temporal(
-                voice_result, variety_result, filler_result,
+                voice_result,
+                variety_result,
+                filler_result,
                 duration_seconds=video_metadata.get("duration_seconds", 0),
             )
             aggregated["temporal"] = temporal
@@ -332,7 +338,12 @@ async def _run_pipeline(req: ProcessRequest):
             # Buscar contexto completo do orador para o LLM
             eval_context = None
             try:
-                ctx_result = supabase.table("evaluation_context").select("*").eq("evaluation_id", req.evaluation_id).execute()
+                ctx_result = (
+                    supabase.table("evaluation_context")
+                    .select("*")
+                    .eq("evaluation_id", req.evaluation_id)
+                    .execute()
+                )
                 if ctx_result.data:
                     eval_context = ctx_result.data[0]
             except Exception:
@@ -343,7 +354,9 @@ async def _run_pipeline(req: ProcessRequest):
                 {
                     "evaluation_id": req.evaluation_id,
                     "summary": report.get("resumo", report.get("summary", "")),
-                    "dimension_feedback": report.get("dimensoes", report.get("dimension_feedback", {})),
+                    "dimension_feedback": report.get(
+                        "dimensoes", report.get("dimension_feedback", {})
+                    ),
                     "forcas": report.get("forcas", []),
                     "melhorias": report.get("melhorias_80_20", []),
                     "plano_12_semanas": report.get("plano_12_semanas", []),
@@ -371,9 +384,7 @@ async def _run_pipeline(req: ProcessRequest):
             evaluation_id=req.evaluation_id,
             error=str(e),
         )
-        await _notify_complete(
-            req.callback_url, req.evaluation_id, "error", error_message=str(e)
-        )
+        await _notify_complete(req.callback_url, req.evaluation_id, "error", error_message=str(e))
 
 
 @app.post("/process")
