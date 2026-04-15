@@ -1,0 +1,53 @@
+handoff:
+  from_agent: pm
+  to_agent: sm
+  timestamp: "2026-04-14T16:00:00-03:00"
+  consumed: true
+  consumed_at: "2026-04-14T16:30:00-03:00"
+  consumed_by: "@sm River (drafted 7.6.convergence-harness.story.md)"
+
+  story_context:
+    epic_id: "7.0"
+    epic_path: "docs/stories/7.0.epic-report-precision.md"
+    epic_status: "Draft"
+    branch: "main"
+    current_task: "Draft de 3 stories novas adicionadas ao Epic 7"
+
+  decisions:
+    - "Epic 7 escopo expandido de 5 para 8 stories (7.6/7.7/7.8 adicionadas)"
+    - "7.6 (Harness Multi-IA) classificada CRITICAL e movida para Wave 1 paralela com 7.1"
+    - "7.7 (Ground Truth Humano) responde Open Question #3 (Bruno confirmou mentor disponivel)"
+    - "7.8 (Refactor report_generator) conditional, trigger-based, movida de OUT para IN"
+    - "Wave 4 nova criada para 7.8 conditional"
+
+  files_modified:
+    - "docs/stories/7.0.epic-report-precision.md (271 linhas, era 163)"
+
+  blockers: []
+
+  next_action: |
+    @sm River deve executar *draft (ou *create-next-story) para cada uma das 3 stories novas,
+    nesta ordem de prioridade:
+
+    1. 7.6 Harness Multi-IA (CRITICAL, bloqueante) — draft PRIMEIRO
+    2. 7.7 Ground Truth Humano (HIGH) — draft em seguida
+    3. 7.8 Refactor report_generator (MEDIUM conditional) — draft por ultimo
+       (considerar escalonar para @architect Aria + Spec Pipeline antes de draft)
+
+    Specs completas de cada story estao no Epic 7.0 seção "Specs das Stories Novas".
+    Acceptance Criteria, dependencias e executor ja definidos.
+
+    Apos draft, handoff para @po Pax executar *validate-story-draft (10-point checklist).
+
+  context_for_sm:
+    pareto_zone_08: "7.6 Harness Multi-IA — genialidade escondida, norte tecnico do Epic 7"
+    pareto_zone_4:  "7.3, 7.4, 7.5 (ja existentes)"
+    pareto_zone_20: "7.1, 7.2, 7.7"
+    pareto_zone_80: "7.8 apenas se trigger ativar"
+
+  source_documents:
+    - "docs/stories/7.0.epic-report-precision.md (Epic atualizado)"
+    - "Conversa @oalanicolas 2026-04-14 (Pareto ao Cubo v3)"
+    - "memory/mentors_feedback_2026_04_09.md (feedback Vinh+Gui)"
+
+  last_command: "*create-epic update"
