@@ -1,7 +1,7 @@
 # 🎤 Oratória Avaliador — Meta-Squad de Governança
 
-> **Status:** Epic 3 delivered — Mentor Narrative
-> **Versão:** 0.3.0
+> **Status:** Epic 4 delivered — Quality Gate + Calibration (pipeline completo)
+> **Versão:** 0.4.0
 > **PRD canônico:** [`docs/projects/oratoria-avaliador/prd.md`](../../docs/projects/oratoria-avaliador/prd.md)
 
 ## O que este squad é
@@ -35,12 +35,36 @@ A inteligência do produto está na orquestração, não na captura.
 | `exercise-prescriber` + `tasks/exercise_prescriber.py` (G6 gate) | ✅ Epic 3 |
 | `mentor-narrator` + `tasks/mentor_narrator.py` (template+LLM prompt, G4 gate) | ✅ Epic 3 |
 | `tasks/fidelity_checker.py` (G4 measurement) | ✅ Epic 3 |
-| `wf-evaluate-pipeline` (phases 1-5 implemented; 6 stub) | ✅ Epic 3 |
-| 25 smoke tests total (3+3+8+11) | ✅ PASS |
+| `quality-gate-keeper` + `tasks/quality_gate_keeper.py` (G_FINAL) | ✅ Epic 4 |
+| `calibration-keeper` + `tasks/calibration_keeper.py` (G7 gate) | ✅ Epic 4 |
+| `tasks/audit_outlier.py` + `wf-audit-outlier.yaml` | ✅ Epic 4 |
+| `tasks/dashboard_generator.py` | ✅ Epic 4 |
+| `tasks/pipeline_end_to_end.py` (runner das 6 fases) | ✅ Epic 4 |
+| `wf-evaluate-pipeline` (phases 1-6 COMPLETE) | ✅ Epic 4 |
+| `wf-calibrate-weights.yaml` (human-in-loop) | ✅ Epic 4 |
+| 39 smoke tests total (3+3+8+11+14) | ✅ PASS |
 | `psychometry-calibrator` | ⏳ Epic 2b (deferred) |
 | LLM call integration (mentor-narrator usa template hoje) | ⏳ Epic 3b |
-| Quality gate keeper (G1-G6 combinados) | ⏳ Epic 4 |
 | B2B team aggregation | ⏳ Epic 5 |
+| Evolve dimensions | ⏳ Epic 6 |
+
+### 🎯 Milestone: Pipeline end-to-end COMPLETO
+
+Com Epic 4 concluído, o squad tem **pipeline integral** de features brutas a
+release decision:
+
+```
+features_canonical (v1.0.0)
+  → G1 contract validity
+  → scoring + pesos contextuais
+  → G3 congruence check
+  → hierarchy ranking (G5)
+  → mentor routing + narrative (G4) + exercises (G6)
+  → G_FINAL → RELEASE or FAIL → wf-audit-outlier
+```
+
+Cada mudança de peso/threshold passa por `wf-calibrate-weights` (human-in-loop)
+e grava precedent imutável via calibration-keeper (G7).
 
 ### Rodar smoke tests
 
@@ -55,8 +79,32 @@ python3 squads/oratoria-avaliador/tasks/test_adapter.py
 # Epic 2: Scoring + Congruence (8 testes)
 python3 squads/oratoria-avaliador/tasks/test_scoring_congruence.py
 
-# Epic 3: Mentor Narrative (11 testes: router + hierarchy + exercise + narrator + fidelity)
+# Epic 3: Mentor Narrative (11 testes)
 python3 squads/oratoria-avaliador/tasks/test_epic_3.py
+
+# Epic 4: Quality Gate + Calibration + End-to-end (14 testes)
+python3 squads/oratoria-avaliador/tasks/test_epic_4.py
+```
+
+### Rodar pipeline end-to-end
+
+```python
+from pipeline_end_to_end import run_pipeline
+import json
+
+with open("squads/oratoria-avaliador/data/fixtures/features_valid_v1.json") as f:
+    features = json.load(f)
+
+result = run_pipeline(
+    features,
+    evaluation_context={"motivacao": ["vender_mais"]},
+)
+
+decision = result["gate_decision"]
+print(decision["verdict"], decision["release_to_user"])
+# PASS True
+
+print(result["artifacts"]["narrative"])  # relatório na voz do gui-reginatto
 ```
 
 ## Ativação

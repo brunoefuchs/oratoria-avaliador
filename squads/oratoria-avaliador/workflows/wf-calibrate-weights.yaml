@@ -1,0 +1,71 @@
+workflow:
+  id: wf-calibrate-weights
+  name: "Calibrate Weights / Thresholds with Mentor Feedback"
+  version: "0.1.0"
+  status: implemented
+  type: support
+  owner: oratoria-avaliador-chief
+  purpose: >-
+    Incorporar feedback de mentor humano em ajuste sistemático de pesos
+    contextuais ou thresholds de gate. Human-in-loop obrigatório. Toda mudança
+    grava precedent via calibration-keeper (G7).
+  epic_source: 4
+
+  inputs:
+    - name: feedback_signal
+      required: true
+      description: "Divergência mentor humano vs output do squad (ex: mentor diz que score voice está subestimado em contexto vendas)"
+    - name: target_parameter
+      required: true
+      description: "O que mudar (scoring.weights.vendas.voice | congruence.CONG_02.threshold_critical | etc.)"
+    - name: proposed_change
+      required: true
+      description: "Valor novo proposto + rationale"
+
+  outputs:
+    - name: calibration_entry
+      description: "Precedent gravado em data/calibration_log.jsonl"
+    - name: applied_change
+      description: "Novo valor aplicado no módulo correspondente (scoring_engine.py | congruence_auditor.py)"
+
+  sequence:
+    - phase: 1
+      id: propose
+      name: "Collect mentor proposal"
+      human_in_loop: true
+      required_fields: [target, before_value, after_value, why, evidence_refs]
+
+    - phase: 2
+      id: review
+      name: "Review proposal (Bruno ou mentor senior)"
+      human_in_loop: true
+      decision: "accept | reject | defer"
+
+    - phase: 3
+      id: record-precedent
+      name: "Append-only log entry"
+      implementation: "tasks/calibration_keeper.py :: record_precedent()"
+      required: true
+      outputs: [precedent_id]
+
+    - phase: 4
+      id: apply-change
+      name: "Aplicar mudança no módulo Python"
+      note: "Em Epic 4, mudança é manual no código + commit com precedent_id no message. Epic 4b: aplicação automática via config externo."
+
+    - phase: 5
+      id: verify
+      name: "G7 audit trail verification"
+      implementation: "tasks/calibration_keeper.py :: verify_current_state_traceable()"
+      pass_when: "current_value bate com after do último precedent"
+
+  anti_patterns:
+    never_do:
+      - "Aplicar mudança sem gravar precedent"
+      - "Aceitar mudança sem rationale"
+      - "Pular review (human-in-loop é não-negociável)"
+
+  smoke_tests:
+    - id: WFCW_SMOKE_01
+      scenario: "record precedent + verify traceability"
+      validated: "2026-04-14"

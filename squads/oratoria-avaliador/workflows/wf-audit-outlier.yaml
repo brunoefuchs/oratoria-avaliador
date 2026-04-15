@@ -1,0 +1,70 @@
+workflow:
+  id: wf-audit-outlier
+  name: "Audit Outlier / Gate FAIL Investigation"
+  version: "0.1.0"
+  status: implemented
+  type: governance
+  owner: oratoria-avaliador-chief
+  purpose: >-
+    Investigar quality_gate_decision com verdict=FAIL. Gerar hipóteses de root
+    cause, action items e escalar para o responsável correto (@data-engineer /
+    @architect / human_mentor).
+  epic_source: 4
+
+  inputs:
+    - name: gate_decision
+      required: true
+      description: "Output de quality-gate-keeper com verdict=FAIL"
+
+  outputs:
+    - name: audit_report
+      description: "Hipóteses + action items + escalation"
+
+  sequence:
+    - phase: 1
+      id: detect-trigger
+      name: "Identify triggering gate(s)"
+      agent: oratoria-avaliador-chief
+      action: "read gate_decision.critical_fails"
+      outputs: [failed_gates]
+
+    - phase: 2
+      id: generate-hypotheses
+      name: "Generate root cause hypotheses"
+      implementation: "tasks/audit_outlier.py :: audit()"
+      outputs: [audit_report]
+
+    - phase: 3
+      id: escalate
+      name: "Route to responsible party"
+      routing_rules:
+        G1_fail: "@data-engineer (contract/schema ownership)"
+        G3_fail: "human_mentor (contradição exige julgamento)"
+        G4_fail: "human_mentor (fidelity exige ouvido humano)"
+        G5_fail: "@architect (ranking logic)"
+        G6_fail: "@architect (exercise library design)"
+      outputs: [escalation_notification]
+
+    - phase: 4
+      id: record-precedent
+      name: "Register in calibration log if waiver applied"
+      implementation: "tasks/calibration_keeper.py :: record_precedent()"
+      conditional: "only if FAIL → WAIVED"
+      outputs: [calibration_entry]
+
+  failure_modes:
+    - signal: "audit sem critical_fails (verdict=PASS passou por engano)"
+      mitigation: "audit report retorna trivial; loga anomalia"
+    - signal: "escalação repetida para mesmo gate em N avaliações"
+      mitigation: "flag para revisão de thresholds (provável calibração necessária)"
+
+  smoke_tests:
+    - id: WFAO_SMOKE_01
+      scenario: "G1 FAIL → escalate @data-engineer"
+      validated: "2026-04-14"
+    - id: WFAO_SMOKE_02
+      scenario: "G3 FAIL → escalate human_mentor"
+      validated: "2026-04-14"
+    - id: WFAO_SMOKE_03
+      scenario: "PASS trivial → sem escalation"
+      validated: "2026-04-14"

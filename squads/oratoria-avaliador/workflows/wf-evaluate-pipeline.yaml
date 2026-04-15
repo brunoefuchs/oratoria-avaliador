@@ -126,9 +126,10 @@ workflow:
     - phase: 6
       id: quality-gate
       name: "Quality Gate (release decision)"
-      status: not_implemented
+      status: implemented
       epic_delivery: 4
-      planned_agent: quality-gate-keeper
+      agent: quality-gate-keeper
+      implementation: "tasks/quality_gate_keeper.py :: aggregate_gates()"
       action: "apply_deterministic_gates_G1_G6"
       inputs:
         - contract_validation_result
@@ -136,13 +137,17 @@ workflow:
         - congruence_report
         - problem_hierarchy
         - mentor_narrative
-        - exercises
+        - exercise_plan
+        - fidelity_result
       outputs: [quality_gate_decision, evaluation_report]
       checkpoint:
-        gate: FINAL_RELEASE_DECISION
+        gate: G_FINAL_RELEASE
         blocking: true
-        pass_action: "return evaluation_report → user"
-        fail_action: "handoff to wf-audit-outlier"
+        verdicts:
+          PASS: "return evaluation_report → user"
+          WAIVED: "return evaluation_report → user + log precedent (calibration-keeper)"
+          FAIL: "handoff to wf-audit-outlier"
+          INCOMPLETE: "wait / re-run fases faltantes"
 
   # ─────────────────────────────────────────────────────────────────────────────
   # AGENT COVERAGE
