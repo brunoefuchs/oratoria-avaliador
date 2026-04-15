@@ -8,3 +8,8 @@ openai-whisper>=20231117
 parselmouth>=0.4.3
 structlog>=24.1.0
 python-multipart>=0.0.9
+
+# Story 8.1 — Truth Contract: schema validation + tests
+pydantic>=2.6
+pytest>=8.0
+pytest-asyncio>=0.23
