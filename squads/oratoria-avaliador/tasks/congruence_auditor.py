@@ -23,7 +23,10 @@ Retorno padronizado:
 
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -147,41 +150,56 @@ RULES_SCORES_ONLY = [
 
 def audit_congruence(scoring_output: dict[str, Any]) -> dict[str, Any]:
     """Aplica regras de congruência sobre output do scoring_engine."""
-    evaluation_id = scoring_output.get("evaluation_id")
-    dimension_scores = scoring_output.get("dimension_scores") or {}
-    incomplete = scoring_output.get("incomplete_dimensions") or []
-    overall = scoring_output.get("overall_score")
+    evaluation_id = scoring_output.get("evaluation_id") if isinstance(scoring_output, dict) else None
+    try:
+        logger.info("operation_started", extra={"task": "congruence_auditor", "evaluation_id": evaluation_id})
+        dimension_scores = scoring_output.get("dimension_scores") or {}
+        incomplete = scoring_output.get("incomplete_dimensions") or []
+        overall = scoring_output.get("overall_score")
 
-    violations: list[dict] = []
+        violations: list[dict] = []
 
-    for rule in RULES_SCORES_ONLY:
-        v = rule(dimension_scores)
+        for rule in RULES_SCORES_ONLY:
+            v = rule(dimension_scores)
+            if v is not None:
+                violations.append(v)
+
+        v = rule_all_high_but_overall_low(dimension_scores, overall)
         if v is not None:
             violations.append(v)
 
-    v = rule_all_high_but_overall_low(dimension_scores, overall)
-    if v is not None:
-        violations.append(v)
+        v = rule_incomplete_coverage_critical(dimension_scores, incomplete)
+        if v is not None:
+            violations.append(v)
 
-    v = rule_incomplete_coverage_critical(dimension_scores, incomplete)
-    if v is not None:
-        violations.append(v)
+        critical = [v for v in violations if v["severity"] == "critical"]
+        warnings_ = [v for v in violations if v["severity"] == "warning"]
 
-    critical = [v for v in violations if v["severity"] == "critical"]
-    warnings_ = [v for v in violations if v["severity"] == "warning"]
+        if critical:
+            result = "FAIL_CRITICAL"
+        elif warnings_:
+            result = "PASS_WITH_WARNINGS"
+        else:
+            result = "PASS"
 
-    if critical:
-        result = "FAIL_CRITICAL"
-    elif warnings_:
-        result = "PASS_WITH_WARNINGS"
-    else:
-        result = "PASS"
-
-    return {
-        "gate": "G3_CONGRUENCE",
-        "evaluation_id": evaluation_id,
-        "result": result,
-        "violations": violations,
-        "critical_count": len(critical),
-        "warning_count": len(warnings_),
-    }
+        output = {
+            "gate": "G3_CONGRUENCE",
+            "evaluation_id": evaluation_id,
+            "result": result,
+            "violations": violations,
+            "critical_count": len(critical),
+            "warning_count": len(warnings_),
+        }
+        logger.info("operation_completed", extra={"task": "congruence_auditor", "verdict": output.get("result", "unknown")})
+        return output
+    except (KeyError, TypeError, ValueError) as e:
+        logger.error("operation_failed", exc_info=True, extra={"task": "congruence_auditor", "error_type": type(e).__name__})
+        return {
+            "gate": "G3_CONGRUENCE",
+            "evaluation_id": evaluation_id,
+            "result": "INCOMPLETE",
+            "violations": [],
+            "critical_count": 0,
+            "warning_count": 0,
+            "error": {"type": type(e).__name__, "message": str(e)},
+        }

@@ -24,8 +24,11 @@ Output: audit_report.json
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def audit(gate_decision: dict[str, Any]) -> dict[str, Any]:
@@ -34,51 +37,66 @@ def audit(gate_decision: dict[str, Any]) -> dict[str, Any]:
     Se verdict=PASS → audit é trivial (nada a investigar).
     Se verdict=FAIL → investiga cada gate que falhou.
     """
-    evaluation_id = gate_decision.get("evaluation_id")
-    verdict = gate_decision.get("verdict")
-    critical_fails = gate_decision.get("critical_fails", [])
-    gate_states = gate_decision.get("gate_states", {})
+    evaluation_id = gate_decision.get("evaluation_id") if isinstance(gate_decision, dict) else None
+    try:
+        logger.info("operation_started", extra={"task": "audit_outlier", "evaluation_id": evaluation_id})
+        verdict = gate_decision.get("verdict")
+        critical_fails = gate_decision.get("critical_fails", [])
+        gate_states = gate_decision.get("gate_states", {})
 
-    hypotheses: list[dict[str, Any]] = []
-    action_items: list[str] = []
-    escalate_to = "none"
+        hypotheses: list[dict[str, Any]] = []
+        action_items: list[str] = []
+        escalate_to = "none"
 
-    if verdict == "PASS":
+        if verdict == "PASS":
+            result = {
+                "schema_version": "1.0.0",
+                "evaluation_id": evaluation_id,
+                "trigger": "none",
+                "verdict_audited": verdict,
+                "hypotheses": [],
+                "action_items": ["Nenhuma ação necessária — gate PASS"],
+                "escalation_needed": False,
+                "escalate_to": "none",
+                "timestamp": _iso_now(),
+            }
+            logger.info("operation_completed", extra={"task": "audit_outlier", "verdict": result.get("verdict_audited", "unknown")})
+            return result
+
+        # Investigação por gate
+        for gate_id in critical_fails:
+            _investigate_gate(gate_id, gate_states, hypotheses, action_items)
+
+        # Escalation heurística
+        if any("G1" in g for g in critical_fails):
+            escalate_to = "@data-engineer"  # contract/schema é responsabilidade dele
+        elif any("G3" in g or "G4" in g for g in critical_fails):
+            escalate_to = "human_mentor"  # congruência/fidelity pedem olhar humano
+        elif any("G5" in g or "G6" in g for g in critical_fails):
+            escalate_to = "@architect"  # ranking/exercise logic é design
+
+        result = {
+            "schema_version": "1.0.0",
+            "evaluation_id": evaluation_id,
+            "trigger": ",".join(critical_fails) or "UNKNOWN",
+            "verdict_audited": verdict,
+            "hypotheses": hypotheses,
+            "action_items": action_items,
+            "escalation_needed": True,
+            "escalate_to": escalate_to,
+            "timestamp": _iso_now(),
+        }
+        logger.info("operation_completed", extra={"task": "audit_outlier", "verdict": result.get("verdict_audited", "unknown")})
+        return result
+    except (KeyError, TypeError, ValueError) as e:
+        logger.error("operation_failed", exc_info=True, extra={"task": "audit_outlier", "error_type": type(e).__name__})
         return {
             "schema_version": "1.0.0",
             "evaluation_id": evaluation_id,
-            "trigger": "none",
-            "verdict_audited": verdict,
-            "hypotheses": [],
-            "action_items": ["Nenhuma ação necessária — gate PASS"],
-            "escalation_needed": False,
-            "escalate_to": "none",
+            "verdict_audited": "INCOMPLETE",
+            "error": {"type": type(e).__name__, "message": str(e)},
             "timestamp": _iso_now(),
         }
-
-    # Investigação por gate
-    for gate_id in critical_fails:
-        _investigate_gate(gate_id, gate_states, hypotheses, action_items)
-
-    # Escalation heurística
-    if any("G1" in g for g in critical_fails):
-        escalate_to = "@data-engineer"  # contract/schema é responsabilidade dele
-    elif any("G3" in g or "G4" in g for g in critical_fails):
-        escalate_to = "human_mentor"  # congruência/fidelity pedem olhar humano
-    elif any("G5" in g or "G6" in g for g in critical_fails):
-        escalate_to = "@architect"  # ranking/exercise logic é design
-
-    return {
-        "schema_version": "1.0.0",
-        "evaluation_id": evaluation_id,
-        "trigger": ",".join(critical_fails) or "UNKNOWN",
-        "verdict_audited": verdict,
-        "hypotheses": hypotheses,
-        "action_items": action_items,
-        "escalation_needed": True,
-        "escalate_to": escalate_to,
-        "timestamp": _iso_now(),
-    }
 
 
 def _iso_now() -> str:

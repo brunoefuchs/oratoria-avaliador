@@ -28,6 +28,7 @@ Uso CLI:
 from __future__ import annotations
 
 import json
+import logging
 import sys
 from pathlib import Path
 from typing import Any
@@ -37,6 +38,8 @@ try:
     HAS_JSONSCHEMA = True
 except ImportError:
     HAS_JSONSCHEMA = False
+
+logger = logging.getLogger(__name__)
 
 SCHEMA_PATH = Path(__file__).parent.parent / "data" / "features_canonical.schema.json"
 SUPPORTED_VERSIONS = {"1.0.0", "1.1.0"}  # minor bumps são aditivos (backward compat)

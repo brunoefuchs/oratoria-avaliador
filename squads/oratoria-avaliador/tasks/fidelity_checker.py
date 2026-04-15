@@ -18,6 +18,7 @@ similarity ou LLM-as-judge em Epic 4b se necessário.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from mentor_narrator import (
@@ -25,6 +26,8 @@ from mentor_narrator import (
     extract_signature_phrases,
     load_voice_dna,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def measure_fidelity(

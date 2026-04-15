@@ -42,11 +42,14 @@ aplicado. É a API estável do squad — mantenha backward compat.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from ml_worker_adapter import to_features_canonical
 from pipeline_end_to_end import run_pipeline
 from audit_outlier import audit
+
+logger = logging.getLogger(__name__)
 
 
 def process(

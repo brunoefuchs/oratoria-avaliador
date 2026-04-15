@@ -18,9 +18,12 @@ runtime comparing applied_weights vs last calibrated state).
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 LOG_PATH = Path(__file__).parent.parent / "data" / "calibration_log.jsonl"
 
@@ -41,33 +44,47 @@ def record_precedent(
     evidence_refs: list[str] | None = None,
 ) -> dict[str, Any]:
     """Grava precedent em append-only log. Retorna entry criada."""
-    entry = {
-        "precedent_id": f"CAL-{_iso_now().replace(':', '-').replace('.', '-')}",
-        "timestamp": _iso_now(),
-        "change_type": change_type,
-        "target": target,
-        "before": before,
-        "after": after,
-        "why": why,
-        "who": who,
-        "mentor_signoff": mentor_signoff,
-        "evidence_refs": evidence_refs or [],
-    }
+    try:
+        logger.info("operation_started", extra={"task": "calibration_keeper", "target": target, "change_type": change_type})
+        entry = {
+            "precedent_id": f"CAL-{_iso_now().replace(':', '-').replace('.', '-')}",
+            "timestamp": _iso_now(),
+            "change_type": change_type,
+            "target": target,
+            "before": before,
+            "after": after,
+            "why": why,
+            "who": who,
+            "mentor_signoff": mentor_signoff,
+            "evidence_refs": evidence_refs or [],
+        }
 
-    # Validação: change_type válido
-    if change_type not in ("weight_adjust", "threshold_adjust", "new_rule", "rollback"):
-        entry["_validation_error"] = f"change_type inválido: {change_type}"
+        # Validação: change_type válido
+        if change_type not in ("weight_adjust", "threshold_adjust", "new_rule", "rollback"):
+            entry["_validation_error"] = f"change_type inválido: {change_type}"
+            logger.info("operation_completed", extra={"task": "calibration_keeper", "verdict": "validation_error"})
+            return entry
+
+        # Gate G7: sem signoff + mudança crítica = warning (mas ainda grava)
+        if change_type in ("weight_adjust", "threshold_adjust") and not mentor_signoff:
+            entry["_warning"] = "G7 warn: mudança sem mentor_signoff — risco de drift"
+
+        LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with open(LOG_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+        logger.info("operation_completed", extra={"task": "calibration_keeper", "verdict": "recorded", "precedent_id": entry.get("precedent_id")})
         return entry
-
-    # Gate G7: sem signoff + mudança crítica = warning (mas ainda grava)
-    if change_type in ("weight_adjust", "threshold_adjust") and not mentor_signoff:
-        entry["_warning"] = "G7 warn: mudança sem mentor_signoff — risco de drift"
-
-    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with open(LOG_PATH, "a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
-
-    return entry
+    except (KeyError, TypeError, ValueError, OSError) as e:
+        logger.error("operation_failed", exc_info=True, extra={"task": "calibration_keeper", "error_type": type(e).__name__})
+        return {
+            "precedent_id": None,
+            "timestamp": _iso_now(),
+            "change_type": change_type,
+            "target": target,
+            "verdict": "INCOMPLETE",
+            "error": {"type": type(e).__name__, "message": str(e)},
+        }
 
 
 def read_log(limit: int | None = None) -> list[dict[str, Any]]:
