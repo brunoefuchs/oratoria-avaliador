@@ -158,7 +158,15 @@ def detect_fillers(transcription: dict) -> dict:
             }
             fillers_found.append(filler_entry)
 
-            normalized = word.lower().strip()
+            # Story 7.1 fix QA — normalizar agressivamente para agrupar variantes:
+            # 'aí' / 'ai' / 'então,' / 'então' / 'né?' / 'né' viram chaves unicas.
+            normalized = word.lower().strip().rstrip(".,!?;:").strip()
+            # Remove acentos para agrupar 'aí' com 'ai', 'né' com 'ne'
+            import unicodedata
+            normalized = "".join(
+                c for c in unicodedata.normalize("NFD", normalized)
+                if unicodedata.category(c) != "Mn"
+            )
             filler_counts[normalized] = filler_counts.get(normalized, 0) + 1
 
     # Classificacao contextual (nervoso vs estilistico)
@@ -199,9 +207,13 @@ def detect_fillers(transcription: dict) -> dict:
         / duration_minutes,
         1,
     )
+    # Story 7.1 AC-2: consolidacao "Vicios de Linguagem por Minuto"
+    # = fillers_per_minute (todos os tipos: hesitacoes + muletas).
+    # Mantemos campos brutos para rastreabilidade interna.
+    vicios_por_minuto = fillers_per_minute
 
-    # Top 3 fillers
-    top_fillers = sorted(filler_counts.items(), key=lambda x: x[1], reverse=True)[:3]
+    # Story 7.1 fix QA — antes era top 3, agora top 10 para o usuario ver TODOS os vicios
+    top_fillers = sorted(filler_counts.items(), key=lambda x: x[1], reverse=True)[:10]
 
     # Diversidade lexical
     all_words = [w["word"].lower().strip() for w in words if w["word"].strip()]
@@ -269,6 +281,8 @@ def detect_fillers(transcription: dict) -> dict:
         },
         "hesitacoes_per_minute": hesitacoes_per_minute,
         "muletas_per_minute": muletas_per_minute,
+        # Story 7.1 AC-2: campo consolidado para UI ("Vicios de Linguagem por Minuto")
+        "vicios_por_minuto": vicios_por_minuto,
         "clusters": clusters,
         "total_clusters": len(clusters),
     }

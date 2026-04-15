@@ -16,12 +16,27 @@ WPM_IDEAL_CENTRO = 150
 
 
 def transcribe_audio(audio_path: str, model_name: str = "medium") -> dict:
-    """Transcreve audio usando Whisper com timestamps por palavra."""
+    """Transcreve audio usando Whisper com timestamps por palavra.
+
+    Story 7.1 fix (2026-04-14): preservar fillers PT-BR.
+    - initial_prompt informa o modelo para nao "limpar" muletas/hesitacoes
+    - condition_on_previous_text=False evita "alucinacao corretiva" baseada em contexto
+    """
     start = time.time()
     logger.info("whisper_transcribe_start", audio_path=audio_path, model=model_name)
 
     model = whisper.load_model(model_name)
-    result = model.transcribe(audio_path, language="pt", word_timestamps=True)
+    result = model.transcribe(
+        audio_path,
+        language="pt",
+        word_timestamps=True,
+        initial_prompt=(
+            "Esta e uma transcricao fiel de oratoria em portugues brasileiro. "
+            "Preserve TODOS os vicios de linguagem como ne, tipo, ai, sabe, entao, ahn, eh, hum. "
+            "Nao corrija nem omita marcadores de hesitacao."
+        ),
+        condition_on_previous_text=False,
+    )
 
     words = []
     for segment in result.get("segments", []):

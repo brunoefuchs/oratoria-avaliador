@@ -248,8 +248,22 @@ def classify_archetypes(audio_path: str) -> dict:
     # =============================================
 
     # 1. Diversidade de arquetipos — peso 40%
-    #    4 arquetipos = 100, 3 = 75, 2 = 50, 1 = 25
-    diversidade_score = num_arquetipos_unicos * 25
+    # Story 7.1 AC-1: combina cobertura (quantos dos 4 arquetipos foram usados)
+    # com evenness (quao equilibrado e o uso entre os usados).
+    #   1 arquetipo em 100%  = 0
+    #   2 em 50/50           = ~50
+    #   4 igualmente (25%)   = 100
+    #   2 em 80/20           = ~36 (penalizado por desequilibrio interno)
+    if num_arquetipos_unicos <= 1:
+        diversidade_score = 0.0
+    else:
+        valores_norm = [pct / 100.0 for pct in distribuicao.values() if pct > 0]
+        entropy = -sum(v * np.log(v) for v in valores_norm)
+        # Max entropy = log(N) onde N = arquetipos usados (uso equilibrado entre eles).
+        # Isso isola "evenness interna" da "cobertura".
+        max_entropy = np.log(num_arquetipos_unicos)
+        evenness = entropy / max_entropy if max_entropy > 0 else 0
+        diversidade_score = (num_arquetipos_unicos / 4) * evenness * 100
 
     # 2. Cycling (trocas por minuto) — peso 30%
     #    Ideal: 2-5 trocas/min
