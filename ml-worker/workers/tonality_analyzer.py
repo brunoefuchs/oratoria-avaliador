@@ -52,7 +52,9 @@ def _extract_features_window(
         return None
 
     # Pitch
-    pitch = trecho.to_pitch(time_step=0.01, pitch_floor=PITCH_MIN_HZ, pitch_ceiling=PITCH_MAX_HZ)
+    pitch = trecho.to_pitch(
+        time_step=0.01, pitch_floor=PITCH_MIN_HZ, pitch_ceiling=PITCH_MAX_HZ
+    )
     pitch_values = pitch.selected_array["frequency"]
     voiced = pitch_values[pitch_values > 0]
     if len(voiced) < 5:
@@ -73,13 +75,21 @@ def _extract_features_window(
 
     # Jitter + Shimmer (precisam de PointProcess)
     try:
-        point_process = call(trecho, "To PointProcess (periodic, cc)", PITCH_MIN_HZ, PITCH_MAX_HZ)
-        jitter_local = call(point_process, "Get jitter (local)", 0, 0, 0.0001, 0.02, 1.3)
+        point_process = call(
+            trecho, "To PointProcess (periodic, cc)", PITCH_MIN_HZ, PITCH_MAX_HZ
+        )
+        jitter_local = call(
+            point_process, "Get jitter (local)", 0, 0, 0.0001, 0.02, 1.3
+        )
         shimmer_local = call(
             [trecho, point_process], "Get shimmer (local)", 0, 0, 0.0001, 0.02, 1.3, 1.6
         )
-        jitter_local = float(jitter_local) if not np.isnan(jitter_local) else JITTER_NEUTRAL
-        shimmer_local = float(shimmer_local) if not np.isnan(shimmer_local) else SHIMMER_NEUTRAL
+        jitter_local = (
+            float(jitter_local) if not np.isnan(jitter_local) else JITTER_NEUTRAL
+        )
+        shimmer_local = (
+            float(shimmer_local) if not np.isnan(shimmer_local) else SHIMMER_NEUTRAL
+        )
     except Exception:
         jitter_local = JITTER_NEUTRAL
         shimmer_local = SHIMMER_NEUTRAL
@@ -117,19 +127,33 @@ def _compute_vad(features: dict, global_baseline: dict) -> dict:
     i_baseline = global_baseline["intensity_mean"]
 
     # Valence: HNR alto + jitter baixo = positivo. Pitch acima da media tambem.
-    jitter_score = max(-0.5, min(0.5, (JITTER_NEUTRAL - features["jitter"]) / JITTER_NEUTRAL))
+    jitter_score = max(
+        -0.5, min(0.5, (JITTER_NEUTRAL - features["jitter"]) / JITTER_NEUTRAL)
+    )
     hnr_score = max(-0.5, min(0.5, (features["hnr"] - HNR_GOOD) / 10))
-    pitch_pos = max(-0.3, min(0.3, (features["pitch_mean"] - p_baseline) / max(p_baseline, 1)))
+    pitch_pos = max(
+        -0.3, min(0.3, (features["pitch_mean"] - p_baseline) / max(p_baseline, 1))
+    )
     valence = max(-1.0, min(1.0, jitter_score + hnr_score + pitch_pos))
 
     # Arousal: intensidade + range de pitch + std de intensidade
     intensity_rel = (features["intensity_mean"] - i_baseline) / max(i_baseline, 1)
-    pitch_range_norm = min(1.0, features["pitch_range"] / 250)  # 250Hz = range expressivo
+    pitch_range_norm = min(
+        1.0, features["pitch_range"] / 250
+    )  # 250Hz = range expressivo
     intensity_var = min(1.0, features["intensity_std"] / 10)
-    arousal = max(0.0, min(1.0, 0.4 + intensity_rel * 0.3 + pitch_range_norm * 0.4 + intensity_var * 0.2))
+    arousal = max(
+        0.0,
+        min(
+            1.0,
+            0.4 + intensity_rel * 0.3 + pitch_range_norm * 0.4 + intensity_var * 0.2,
+        ),
+    )
 
     # Dominance: pitch medio (mais baixo = mais dominante) + intensidade estavel + HNR alto
-    pitch_low_score = max(0.0, min(0.4, (p_baseline - features["pitch_mean"]) / max(p_baseline, 1) + 0.2))
+    pitch_low_score = max(
+        0.0, min(0.4, (p_baseline - features["pitch_mean"]) / max(p_baseline, 1) + 0.2)
+    )
     intensity_stable = max(0.0, min(0.3, 0.3 - intensity_var * 0.3))
     hnr_dominance = max(0.0, min(0.3, features["hnr"] / 30))
     dominance = max(0.0, min(1.0, pitch_low_score + intensity_stable + hnr_dominance))
@@ -257,14 +281,16 @@ def analyze_tonality(audio_path: str) -> dict:
         textura = _classify_textura(vad)
         texturas_count[textura] += 1
         successful_windows += 1
-        vad_temporal.append({
-            "start": round(t_start, 1),
-            "end": round(t_end, 1),
-            "v": vad["v"],
-            "a": vad["a"],
-            "d": vad["d"],
-            "textura": textura,
-        })
+        vad_temporal.append(
+            {
+                "start": round(t_start, 1),
+                "end": round(t_end, 1),
+                "v": vad["v"],
+                "a": vad["a"],
+                "d": vad["d"],
+                "textura": textura,
+            }
+        )
 
     if successful_windows == 0:
         return _disponivel_false("Nenhuma janela de audio teve features extraiveis")
@@ -356,8 +382,12 @@ def _disponivel_false(motivo: str) -> dict:
         "vad_medio": {"valence": 0.0, "arousal": 0.0, "dominance": 0.0},
         "vad_temporal": [],
         "textura_distribuicao": {
-            "neutro": 0, "entusiasmado": 0, "confiante": 0,
-            "apatico": 0, "tenso": 0, "hesitante": 0,
+            "neutro": 0,
+            "entusiasmado": 0,
+            "confiante": 0,
+            "apatico": 0,
+            "tenso": 0,
+            "hesitante": 0,
         },
         "textura_dominante": "indisponivel",
         "feedback": motivo,

@@ -24,7 +24,9 @@ logger = structlog.get_logger()
 JANELA_ARQUETIPO = 10  # Analisa blocos de 10 segundos
 
 
-def _extrair_features_janela(sound: parselmouth.Sound, t_inicio: float, t_fim: float) -> dict:
+def _extrair_features_janela(
+    sound: parselmouth.Sound, t_inicio: float, t_fim: float
+) -> dict:
     """Extrai features acusticas de uma janela temporal para classificacao."""
     try:
         trecho = sound.extract_part(from_time=t_inicio, to_time=t_fim)
@@ -135,7 +137,14 @@ def _classificar_arquetipo(features: dict, media_global: dict) -> dict:
     # AMIGO: volume moderado, pouca variacao, ritmo casual
     scores["amigo"] = (
         max(0, (1.0 - abs(vol_rel - 0.95)) * 25)  # Volume levemente abaixo
-        + max(0, (1.0 - abs(features["pitch_std"] / (media_global["pitch_std"] + 1e-8) - 0.8)) * 15)
+        + max(
+            0,
+            (
+                1.0
+                - abs(features["pitch_std"] / (media_global["pitch_std"] + 1e-8) - 0.8)
+            )
+            * 15,
+        )
         + max(0, (1.0 - abs(staccato_rel - 0.9)) * 15)  # Staccato moderado
         + max(0, (1.0 - abs(features["speech_ratio"] - 0.75)) * 20)  # Ritmo casual
     )
@@ -191,7 +200,9 @@ def classify_archetypes(audio_path: str) -> dict:
         "pitch_mean": float(np.mean([f["pitch_mean"] for f in features_por_janela])),
         "pitch_std": float(np.mean([f["pitch_std"] for f in features_por_janela])),
         "volume_mean": float(np.mean([f["volume_mean"] for f in features_por_janela])),
-        "staccato_index": float(np.mean([f["staccato_index"] for f in features_por_janela])),
+        "staccato_index": float(
+            np.mean([f["staccato_index"] for f in features_por_janela])
+        ),
     }
 
     # Segunda passada: classificar cada janela
@@ -214,8 +225,7 @@ def classify_archetypes(audio_path: str) -> dict:
 
     # Distribuicao percentual
     distribuicao = {
-        arq: round(count / total * 100, 1)
-        for arq, count in contagem.items()
+        arq: round(count / total * 100, 1) for arq, count in contagem.items()
     }
 
     # Garantir todos os 4 presentes
@@ -274,7 +284,9 @@ def classify_archetypes(audio_path: str) -> dict:
     elif trocas_por_minuto <= 5:
         cycling_score = 80 + (trocas_por_minuto - 2) * 7
     else:
-        cycling_score = max(60, 100 - (trocas_por_minuto - 5) * 10)  # Demais trocas = inconsistencia
+        cycling_score = max(
+            60, 100 - (trocas_por_minuto - 5) * 10
+        )  # Demais trocas = inconsistencia
 
     # 3. Anti-lock-in — peso 30%
     #    Penaliza concentracao excessiva em um arquetipo
@@ -290,9 +302,7 @@ def classify_archetypes(audio_path: str) -> dict:
         lockin_score = 100  # Distribuicao equilibrada
 
     archetype_score = round(
-        diversidade_score * 0.40
-        + cycling_score * 0.30
-        + lockin_score * 0.30
+        diversidade_score * 0.40 + cycling_score * 0.30 + lockin_score * 0.30
     )
     archetype_score = max(0, min(100, archetype_score))
 
