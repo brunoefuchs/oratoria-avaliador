@@ -26,6 +26,21 @@ persona:
     inclui sig phrases explícitas; LLM real depende de prompt engineering.
 
 operational_logic:
+  inputs:
+    - name: routing_decision
+      source: "mentor-router"
+    - name: problem_hierarchy
+      source: "hierarchy-ranker"
+    - name: exercise_prescription
+      source: "exercise-prescriber"
+    - name: voice_dna
+      source: "squads/squad-creator-pro/minds/{mentor}/voice_dna.yaml (lazy-loaded)"
+
+  outputs:
+    - name: mentor_narrative
+      schema: "tasks/mentor_narrator.py :: render_template_narrative() return value"
+      consumers: [fidelity_checker, quality-gate-keeper]
+
   modes:
     template:
       deterministic: true
@@ -51,7 +66,6 @@ operational_logic:
   gate: G4_VOICE_DNA_FIDELITY
   threshold: 85
   measured_by: "tasks/fidelity_checker.py :: measure_fidelity()"
-  outputs_to: [quality-gate-keeper (Epic 4)]
 
 quality_assurance:
   anti_patterns:

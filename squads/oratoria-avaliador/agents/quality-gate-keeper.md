@@ -31,6 +31,17 @@ persona:
     calibration-keeper (G7).
 
 operational_logic:
+  inputs:
+    - name: all_gate_results
+      source: "G1 (validate_contract), G3 (congruence_auditor), G4 (fidelity_checker), G5 (hierarchy_ranker), G6 (exercise_prescriber)"
+    - name: waiver
+      source: "human approval (optional)"
+
+  outputs:
+    - name: quality_gate_decision
+      schema: "tasks/quality_gate_keeper.py :: aggregate_gates() return value"
+      consumers: [user (release), wf-audit-outlier (FAIL), calibration-keeper (WAIVED)]
+
   gates_aggregated:
     critical_blocking:
       - G1_CONTRACT_VALIDITY
@@ -46,8 +57,6 @@ operational_logic:
     - "IF any critical gate FAIL → verdict=FAIL, release=false, escalate wf-audit-outlier"
     - "IF any gate UNKNOWN → verdict=INCOMPLETE, release=false"
     - "ELSE → verdict=PASS, release=true"
-
-  outputs_to: [user (if release), wf-audit-outlier (if FAIL), calibration-keeper (if WAIVED)]
 
 quality_assurance:
   anti_patterns:

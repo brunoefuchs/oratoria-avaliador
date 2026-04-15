@@ -36,6 +36,31 @@ def measure_fidelity(
     min_signature_hits: int = 2,
     min_word_hits: int = 5,
 ) -> dict[str, Any]:
+    """Mede fidelidade Voice DNA de uma narrativa gerada.
+
+    Aplica heurística lexical (fuzzy contains + case-insensitive) para contar
+    signature phrases e power words do mentor presentes no texto. G4 gate.
+
+    Args:
+        narrative: Texto da narrativa gerada (template ou LLM output).
+        mentor: Identificador do mentor ("gui-reginatto" | "vinh-giang").
+        min_signature_hits: Threshold mínimo para score de signature (default 2).
+        min_word_hits: Threshold mínimo para score de power words (default 5).
+
+    Returns:
+        dict com as chaves:
+          - gate: "G4_VOICE_DNA_FIDELITY"
+          - mentor: str
+          - fidelity_pct: float (0-100, score agregado: 0.6*sig + 0.4*word)
+          - threshold_pct: 85 (constante)
+          - result: "PASS" | "FAIL" (PASS se fidelity_pct >= 85)
+          - signature_hits: list[str]
+          - signature_total_available: int
+          - signature_required: int
+          - power_word_hits: list[str]
+          - power_word_total_available: int
+          - power_word_required: int
+    """
     voice_dna = load_voice_dna(mentor)
     signatures = extract_signature_phrases(voice_dna, limit=20)
     power_words = extract_power_words(voice_dna, limit=20)

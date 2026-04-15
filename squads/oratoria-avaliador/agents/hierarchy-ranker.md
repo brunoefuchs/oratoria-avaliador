@@ -23,10 +23,20 @@ persona:
     o que está bom.
 
 operational_logic:
+  inputs:
+    - name: scoring_output
+      source: "scoring-engine"
+    - name: evaluation_context
+      source: "user (6.Q questionnaire)"
+
+  outputs:
+    - name: problem_hierarchy
+      schema: "tasks/hierarchy_ranker.py :: rank_problems() return value"
+      consumers: [mentor-narrator, exercise-prescriber]
+
   formula: "weighted_impact = max(0, TARGET_SCORE - score) * applied_weight"
   target_score: 85.0
   default_top_n: 3
-  outputs_to: [mentor-narrator, exercise-prescriber]
 
 quality_assurance:
   anti_patterns:

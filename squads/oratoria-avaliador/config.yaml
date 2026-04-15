@@ -116,6 +116,7 @@ agents:
     tier: 1
     agent_type: "technical-reference"
     epic_source: 2
+    reference_only: true
 
   - id: face-gesture-expert
     name: "Face & Gesture Expert"
@@ -123,6 +124,7 @@ agents:
     tier: 1
     agent_type: "technical-reference"
     epic_source: 2
+    reference_only: true
 
   - id: narrative-structure-expert
     name: "Narrative Structure Expert"
@@ -130,6 +132,7 @@ agents:
     tier: 1
     agent_type: "technical-reference"
     epic_source: 2
+    reference_only: true
 
   # ─── Epic 3: Mentor Narrative ───
   - id: mentor-router

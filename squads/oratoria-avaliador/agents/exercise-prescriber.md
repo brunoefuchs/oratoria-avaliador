@@ -26,9 +26,19 @@ persona:
     - vinh: verbal highlighter, volume contrast, archetype cycling, bridge
 
 operational_logic:
+  inputs:
+    - name: problem_hierarchy
+      source: "hierarchy-ranker"
+    - name: routing_decision
+      source: "mentor-router"
+
+  outputs:
+    - name: exercise_prescription
+      schema: "tasks/exercise_prescriber.py :: prescribe() return value"
+      consumers: [mentor-narrator, quality-gate-keeper]
+
   gate: G6_EXERCISE_LINKAGE
   pass_when: "Todos os problemas do ranking têm has_exercise=true"
-  outputs_to: [mentor-narrator, quality-gate-keeper (Epic 4)]
 
   library_coverage:
     gui-reginatto: ["voice", "body", "face", "storytelling"]
