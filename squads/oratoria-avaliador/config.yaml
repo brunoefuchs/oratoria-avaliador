@@ -4,26 +4,41 @@
 pack:
   name: oratoria-avaliador
   title: "Oratória Avaliador — Meta-Squad de Governança"
-  version: "0.5.1"
+  version: "0.6.0"
   author: "Bruno (brunoefuchs@gmail.com)"
   description: "Meta-squad que governa o pipeline de avaliação de oratória em vídeo. Orquestra ml-worker (captura), scoring, congruência, narrativa de mentor (vinh/gui) e quality gate antes do release."
   icon: "🎤"
   slash_prefix: "oratoria-avaliador"
 
 entry_agent: oratoria-avaliador-chief
-tested: false
+tested: true
 
 metadata:
-  version: "0.5.1"
-  score: null
+  version: "0.6.0"
+  score: 9.0  # Após upgrade de observability + docs (v0.5.1 era 8.5)
   epic_delivered: 6
   roadmap_total_epics: 6
   note: "Epic 5 (B2B aggregation) deferido — not_before=100+ avaliações PASS em produção"
   prd_source: "docs/projects/oratoria-avaliador/prd.md"
+  last_validation: "2026-04-15 (docs/validation-report-2026-04-15.md)"
+  last_upgrade: "2026-04-15 (docs/upgrade-plan-2026-04-15.md)"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CHANGELOG
 # ═══════════════════════════════════════════════════════════════════════════════
+# v0.6.0 (2026-04-15) — Observability + Doc Cleanup (upgrade pós-validation)
+#   - Logging estruturado (import logging + logger) em todos os 16 production tasks
+#   - Error handling (try/except) em 5 tasks críticos: audit_outlier,
+#     calibration_keeper, congruence_auditor, quality_gate_keeper, scoring_engine
+#   - I/O contracts formalizados em 6 agents: mentor-router, hierarchy-ranker,
+#     exercise-prescriber, mentor-narrator, quality-gate-keeper, calibration-keeper
+#   - reference_only: true em 3 technical-reference agents
+#   - Docstring completo em fidelity_checker.measure_fidelity
+#   - tested: false → true (primeiro *validate-squad formal)
+#   - Zero mudança em schemas/contracts/assinaturas públicas
+#   - 54 smoke tests PASS mantidos sem regressão
+#   - PRs: #8 (observability) + #11 (docs) mergeados em main
+#
 # v0.5.1 (2026-04-14) — Integration bridge ml-worker ↔ squad
 #   - tasks/process_evaluation.py (entrypoint único: process(), process_minimal())
 #   - tasks/ml_worker_adapter.py: _extract_tonality() + SCHEMA_VERSION=1.1.0
