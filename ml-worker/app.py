@@ -91,7 +91,9 @@ def _run_squad_shadow(
     # Lazy import + sys.path extension (squad mora fora de ml-worker/)
     import sys as _sys
     from pathlib import Path as _Path
-    squad_tasks = _Path(__file__).resolve().parents[1] / "squads" / "oratoria-avaliador" / "tasks"
+    _parent_dir = _Path(__file__).resolve().parents[1]
+    _squad_dir = _parent_dir / "squads" / "oratoria-avaliador"
+    squad_tasks = _squad_dir / "tasks"
     if str(squad_tasks) not in _sys.path:
         _sys.path.insert(0, str(squad_tasks))
 
@@ -202,7 +204,12 @@ async def _run_pipeline(req: ProcessRequest):
             facial_result = analyze_facial(video_path)
         except Exception as e:
             logger.error("facial_analysis_failed", error=str(e))
-            facial_result = {"disponivel": False, "score": 0, "diagnostico": "failed", "feedback": str(e)}
+            facial_result = {
+                "disponivel": False,
+                "score": 0,
+                "diagnostico": "failed",
+                "feedback": str(e),
+            }
 
         # Step 5: Analise de voz (Whisper + Parselmouth)
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_voice")
@@ -302,10 +309,16 @@ async def _run_pipeline(req: ProcessRequest):
         try:
             from workers.storytelling_analyzer import analyze_storytelling
 
+            variety_metrics = (
+                variety_result.get("metrics")
+                if isinstance(variety_result, dict)
+                else None
+            )
+            # Story 7.3 fix QA — consistencia hook
             storytelling_result = analyze_storytelling(
                 transcription,
-                variety_metrics=variety_result.get("metrics") if isinstance(variety_result, dict) else None,
-                opening_result=opening_result,  # Story 7.3 fix QA — consistencia hook
+                variety_metrics=variety_metrics,
+                opening_result=opening_result,
             )
         except Exception as e:
             logger.error("storytelling_analysis_failed", error=str(e))
