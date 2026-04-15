@@ -17,6 +17,7 @@ Uso:
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from validate_contract import validate_payload
@@ -28,6 +29,8 @@ from exercise_prescriber import prescribe
 from mentor_narrator import render_template_narrative
 from fidelity_checker import measure_fidelity
 from quality_gate_keeper import aggregate_gates
+
+logger = logging.getLogger(__name__)
 
 
 def run_pipeline(

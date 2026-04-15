@@ -13,7 +13,10 @@ Epic 3 — Story 3.1. Determinístico, sem LLM.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 GUI_KEYWORDS = {
     "vender_mais", "vendas", "redes_sociais",

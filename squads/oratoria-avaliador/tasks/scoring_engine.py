@@ -34,7 +34,10 @@ Princípios operacionais:
 
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PESOS CONTEXTUAIS (canonical em Epic 2 — espelha ml-worker/aggregator.py v1)
@@ -332,45 +335,62 @@ def score_evaluation(
     evaluation_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Aplica scoring em todas as dimensões presentes. Retorna scores_by_dimension."""
-    evaluation_id = features_canonical.get("evaluation_id")
-    dimensions = features_canonical.get("dimensions") or {}
+    evaluation_id = features_canonical.get("evaluation_id") if isinstance(features_canonical, dict) else None
+    try:
+        logger.info("operation_started", extra={"task": "scoring_engine", "evaluation_id": evaluation_id})
+        dimensions = features_canonical.get("dimensions") or {}
 
-    weights, weights_source = resolve_weights(evaluation_context)
+        weights, weights_source = resolve_weights(evaluation_context)
 
-    dimension_scores: dict[str, Any] = {}
-    incomplete: list[str] = []
+        dimension_scores: dict[str, Any] = {}
+        incomplete: list[str] = []
 
-    for dim_name, fn in SCORE_FUNCTIONS.items():
-        dim_data = dimensions.get(dim_name)
-        if not dim_data:
-            incomplete.append(dim_name)
-            continue
-        score, evidence = fn(dim_data)
-        confidence = "high" if evidence and "note" not in evidence[0] else "low"
-        dimension_scores[dim_name] = {
-            "score": score,
-            "evidence": evidence,
-            "confidence": confidence,
+        for dim_name, fn in SCORE_FUNCTIONS.items():
+            dim_data = dimensions.get(dim_name)
+            if not dim_data:
+                incomplete.append(dim_name)
+                continue
+            score, evidence = fn(dim_data)
+            confidence = "high" if evidence and "note" not in evidence[0] else "low"
+            dimension_scores[dim_name] = {
+                "score": score,
+                "evidence": evidence,
+                "confidence": confidence,
+            }
+
+        # Overall: weighted sum, renormalizado sobre dimensões presentes
+        overall = 0.0
+        used_weight = 0.0
+        for dim_name, entry in dimension_scores.items():
+            w = weights.get(dim_name, 0)
+            overall += entry["score"] * w
+            used_weight += w
+        if used_weight > 0:
+            overall_score = round(overall / used_weight, 1)
+        else:
+            overall_score = None
+
+        result = {
+            "schema_version": "1.0.0",
+            "evaluation_id": evaluation_id,
+            "weights_source": weights_source,
+            "applied_weights": weights,
+            "dimension_scores": dimension_scores,
+            "incomplete_dimensions": incomplete,
+            "overall_score": overall_score,
         }
-
-    # Overall: weighted sum, renormalizado sobre dimensões presentes
-    overall = 0.0
-    used_weight = 0.0
-    for dim_name, entry in dimension_scores.items():
-        w = weights.get(dim_name, 0)
-        overall += entry["score"] * w
-        used_weight += w
-    if used_weight > 0:
-        overall_score = round(overall / used_weight, 1)
-    else:
-        overall_score = None
-
-    return {
-        "schema_version": "1.0.0",
-        "evaluation_id": evaluation_id,
-        "weights_source": weights_source,
-        "applied_weights": weights,
-        "dimension_scores": dimension_scores,
-        "incomplete_dimensions": incomplete,
-        "overall_score": overall_score,
-    }
+        logger.info("operation_completed", extra={"task": "scoring_engine", "overall_score": overall_score})
+        return result
+    except (KeyError, TypeError, ValueError) as e:
+        logger.error("operation_failed", exc_info=True, extra={"task": "scoring_engine", "error_type": type(e).__name__})
+        return {
+            "schema_version": "1.0.0",
+            "evaluation_id": evaluation_id,
+            "weights_source": "error",
+            "applied_weights": {},
+            "dimension_scores": {},
+            "incomplete_dimensions": [],
+            "overall_score": None,
+            "verdict": "INCOMPLETE",
+            "error": {"type": type(e).__name__, "message": str(e)},
+        }

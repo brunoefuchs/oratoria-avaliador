@@ -21,6 +21,7 @@ Arquivo de saída: mentor_narrative.md
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +30,8 @@ try:
     HAS_YAML = True
 except ImportError:
     HAS_YAML = False
+
+logger = logging.getLogger(__name__)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]  # .../oratoria-avaliador (repo)
 MINDS_BASE = REPO_ROOT / "squads" / "squad-creator-pro" / "minds"

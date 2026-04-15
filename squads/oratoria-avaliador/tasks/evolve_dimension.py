@@ -24,7 +24,10 @@ Violações bloqueiam. Nunca força release de evolução sem G_EVOLVE PASS.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 
 def classify_change(

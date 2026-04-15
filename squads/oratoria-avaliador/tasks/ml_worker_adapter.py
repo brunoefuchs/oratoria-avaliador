@@ -35,9 +35,12 @@ Story 1.3 — Epic 1. Este arquivo NÃO importa dependências do ml-worker
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 SCHEMA_VERSION = "1.1.0"  # inclui tonality (aditivo)
 SCHEMA_PATH = Path(__file__).parent.parent / "data" / "features_canonical.schema.json"
