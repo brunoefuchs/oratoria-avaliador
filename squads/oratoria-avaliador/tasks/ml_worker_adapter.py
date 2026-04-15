@@ -39,7 +39,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "1.1.0"  # inclui tonality (aditivo)
 SCHEMA_PATH = Path(__file__).parent.parent / "data" / "features_canonical.schema.json"
 
 
@@ -143,6 +143,25 @@ def _extract_face(facial_out: dict | None) -> dict | None:
     return face or None
 
 
+def _extract_tonality(tonality_out: dict | None) -> dict | None:
+    """Extrai features de tonality (schema v1.1.0)."""
+    if not tonality_out or tonality_out.get("confidence") == "failed":
+        return None
+    tm = tonality_out.get("metrics", tonality_out)
+    tonality = {
+        k: v
+        for k, v in {
+            "valence_mean": _safe_get(tm, "valence_mean"),
+            "arousal_mean": _safe_get(tm, "arousal_mean"),
+            "dominance_mean": _safe_get(tm, "dominance_mean"),
+            "emotion_variety": _safe_get(tm, "emotion_variety"),
+            "dominant_emotion": _safe_get(tm, "dominant_emotion"),
+        }.items()
+        if v is not None
+    }
+    return tonality or None
+
+
 def _extract_storytelling(
     voice_out: dict | None, opening_out: dict | None
 ) -> dict | None:
@@ -198,6 +217,7 @@ def to_features_canonical(
     storytelling = _extract_storytelling(
         worker_outputs.get("voice_analyzer"), worker_outputs.get("opening_analyzer")
     )
+    tonality = _extract_tonality(worker_outputs.get("tonality_analyzer"))
 
     dimensions = {
         k: v
@@ -206,6 +226,7 @@ def to_features_canonical(
             "body": body,
             "face": face,
             "storytelling": storytelling,
+            "tonality": tonality,
         }.items()
         if v is not None
     }

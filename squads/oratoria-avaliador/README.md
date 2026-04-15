@@ -1,8 +1,8 @@
 # 🎤 Oratória Avaliador — Meta-Squad de Governança
 
-> **Status:** Epic 6 delivered — Evolve Dimensions playbook (tonality integrada como demo)
-> **Versão:** 0.5.0
+> **Status:** v0.5.1 — ml-worker bridge pronta (Epic 1-4 + 6 delivered; Epic 5 deferred)
 > **Schema contract:** v1.1.0 (aditivo; v1.0.0 ainda suportado)
+> **Integração ml-worker:** `tasks/process_evaluation.py` — ver `INTEGRATION.md`
 > **PRD canônico:** [`docs/projects/oratoria-avaliador/prd.md`](../../docs/projects/oratoria-avaliador/prd.md)
 
 ## O que este squad é
@@ -47,7 +47,9 @@ A inteligência do produto está na orquestração, não na captura.
 | `wf-evolve-dimension.yaml` (7 fases) | ✅ Epic 6 |
 | Schema v1.1.0 com tonality (additive; v1.0.0 backward compat) | ✅ Epic 6 |
 | Tonality scorer + exercises gui/vinh | ✅ Epic 6 |
-| 49 smoke tests total (3+3+8+11+14+10) | ✅ PASS |
+| `tasks/process_evaluation.py` (entrypoint ml-worker) | ✅ v0.5.1 |
+| `INTEGRATION.md` (guia de integração) | ✅ v0.5.1 |
+| 54 smoke tests total (3+3+8+11+14+10+5 integration) | ✅ PASS |
 | `psychometry-calibrator` | ⏳ Epic 2b (deferred; dataset ≥500) |
 | LLM call integration real | ⏳ Epic 3b |
 | B2B team aggregation | ⏳ Epic 5 (not_before: 100+ avaliações em prod) |

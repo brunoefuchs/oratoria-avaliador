@@ -4,7 +4,7 @@
 pack:
   name: oratoria-avaliador
   title: "Oratória Avaliador — Meta-Squad de Governança"
-  version: "0.5.0"
+  version: "0.5.1"
   author: "Bruno (brunoefuchs@gmail.com)"
   description: "Meta-squad que governa o pipeline de avaliação de oratória em vídeo. Orquestra ml-worker (captura), scoring, congruência, narrativa de mentor (vinh/gui) e quality gate antes do release."
   icon: "🎤"
@@ -14,7 +14,7 @@ entry_agent: oratoria-avaliador-chief
 tested: false
 
 metadata:
-  version: "0.5.0"
+  version: "0.5.1"
   score: null
   epic_delivered: 6
   roadmap_total_epics: 6
@@ -24,6 +24,14 @@ metadata:
 # ═══════════════════════════════════════════════════════════════════════════════
 # CHANGELOG
 # ═══════════════════════════════════════════════════════════════════════════════
+# v0.5.1 (2026-04-14) — Integration bridge ml-worker ↔ squad
+#   - tasks/process_evaluation.py (entrypoint único: process(), process_minimal())
+#   - tasks/ml_worker_adapter.py: _extract_tonality() + SCHEMA_VERSION=1.1.0
+#   - tasks/test_integration.py (5 tests com shape real do ml-worker)
+#   - INTEGRATION.md (docs de como plugar em ml-worker/app.py)
+#   - Bug fix: adapter não incluía tonality (gap descoberto via integration test)
+#   - Total suite: 54 tests PASS
+#
 # v0.5.0 (2026-04-14) — Epic 6: Evolve Dimensions playbook
 #   - tasks/evolve_dimension.py (classify_change, bump_version, playbook runner)
 #   - wf-evolve-dimension.yaml (7 fases; additive vs breaking)
