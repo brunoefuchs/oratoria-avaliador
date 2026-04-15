@@ -5,6 +5,12 @@ import { useEffect, useState } from "react";
 import { ScoreCard } from "@/components/score-card";
 import { StarRating } from "@/components/star-rating";
 import { AppShell } from "@/components/app-shell";
+import { IdentityCard } from "@/components/identity-card";
+import { OpeningCard } from "@/components/opening-card";
+import { ScoreBreakdown } from "@/components/score-breakdown";
+import { FacialCard } from "@/components/facial-card";
+import { TonalityViz } from "@/components/tonality-viz";
+import { NarrativeCard } from "@/components/narrative-card";
 import { fetchReport, submitRating, createShare } from "@/lib/api-client";
 
 const DIMENSION_LABELS: Record<string, string> = {
@@ -106,9 +112,26 @@ export default function ReportPage() {
       <div className="space-y-10 md:space-y-14">
         {/* Score Hero */}
         <section className="rounded-3xl bg-surface-container-low p-6 md:p-10 stage-ambient relative overflow-hidden">
-          <span className="font-label text-xs uppercase tracking-[0.3em] text-secondary/80">
-            Seu relatório · The Resonant Stage
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-label text-xs uppercase tracking-[0.3em] text-secondary/80">
+              Seu relatório · The Resonant Stage
+            </span>
+            {data.detailed_metrics?.contexto && (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full bg-secondary/10 px-3 py-1 text-xs font-label uppercase tracking-wider text-secondary"
+                title="Os pesos das dimensões são ajustados conforme o contexto declarado no questionário"
+              >
+                <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Avaliado para: {data.detailed_metrics.contexto}
+              </span>
+            )}
+          </div>
           <div className="mt-4 flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
               <h1 className="font-headline text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">
@@ -124,19 +147,22 @@ export default function ReportPage() {
                 </p>
               )}
             </div>
-            <div className="shrink-0 flex items-baseline gap-2">
-              <span
-                className={`font-headline text-6xl md:text-8xl font-extrabold ${getScoreTone(
-                  data.overall_score
-                )}`}
-              >
-                {data.overall_score}
-              </span>
-              <span className="text-on-surface-variant text-2xl">/100</span>
+            <div
+              className={`shrink-0 ${getScoreTone(data.overall_score)}`}
+            >
+              <ScoreBreakdown
+                overallScore={data.overall_score}
+                dimensionScores={data.dimension_scores ?? {}}
+                weights={data.detailed_metrics?.pesos_utilizados ?? null}
+                contexto={data.detailed_metrics?.contexto ?? null}
+              />
             </div>
           </div>
           <div className="absolute bottom-0 left-0 right-0 fluency-wave opacity-60" />
         </section>
+
+        {/* Story 7.2 — Sua Abertura (antes das dimensões — momento crítico) */}
+        <OpeningCard data={data.detailed_metrics?.opening} evaluationId={id} />
 
         {/* Forças */}
         {forcas.length > 0 && (
@@ -219,6 +245,18 @@ export default function ReportPage() {
             </div>
           </div>
         </section>
+
+        {/* Story 7.2 — Sua Identidade (após dimensões — sub-dimensão qualitativa) */}
+        <IdentityCard data={data.detailed_metrics?.identity} evaluationId={id} />
+
+        {/* Story 7.4 — Expressão Facial (sub-dimensão qualitativa, junto com Identidade) */}
+        <FacialCard data={data.detailed_metrics?.facial} />
+
+        {/* Story 7.5 — Tonality VAD (5ª Vocal Foundation, sub-dimensão qualitativa) */}
+        <TonalityViz data={data.detailed_metrics?.tonality} />
+
+        {/* Story 7.3 — Narrativa (arquitetura da mensagem, sub-dimensão qualitativa) */}
+        <NarrativeCard data={data.detailed_metrics?.storytelling} />
 
         {/* Melhorias 80/20 */}
         {melhorias.length > 0 && (
