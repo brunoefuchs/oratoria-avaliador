@@ -1,0 +1,120 @@
+workflow:
+  id: wf-evolve-dimension
+  name: "Evolve Dimension (additive or breaking)"
+  version: "0.1.0"
+  status: implemented
+  type: meta
+  owner: oratoria-avaliador-chief
+  purpose: >-
+    Adicionar nova dimensão ao pipeline OU modificar existente. Enforce backward
+    compat quando aditivo; força migração quando breaking. Grava precedent via
+    calibration-keeper.
+  epic_source: 6
+
+  inputs:
+    - name: dimension_name
+      required: true
+      description: "Nome da dimensão (ex: tonality, identity, opening)"
+    - name: old_schema_version
+      required: true
+    - name: new_schema_version
+      required: true
+    - name: old_dimensions_map
+      description: "Snapshot do features_canonical.schema.json antes"
+    - name: new_dimensions_map
+      description: "Snapshot proposto"
+    - name: scorer_function_name
+      description: "Nome da função registrada em SCORE_FUNCTIONS"
+
+  outputs:
+    - name: evolution_report
+      description: "Output do run_evolution_playbook"
+
+  sequence:
+    - phase: 1
+      id: classify
+      name: "Classify change (additive vs breaking)"
+      implementation: "tasks/evolve_dimension.py :: classify_change()"
+      outputs: [classification, added, removed, restructured]
+
+    - phase: 2
+      id: version-bump
+      name: "Determine semver bump"
+      implementation: "tasks/evolve_dimension.py :: bump_version()"
+      rules:
+        additive: "minor"
+        breaking: "major"
+      outputs: [expected_version]
+
+    - phase: 3
+      id: ensure-scorer
+      name: "Scorer registered check"
+      implementation: "tasks/evolve_dimension.py :: ensure_scorer_registered()"
+      pass_when: "dimension in SCORE_FUNCTIONS"
+      fail_action: "BLOCK; adicionar _score_<dim>() em scoring_engine.py"
+
+    - phase: 4
+      id: backward-compat
+      name: "Run backward compat test"
+      implementation: "tasks/evolve_dimension.py :: run_backward_compat()"
+      pass_when: "payload da versão anterior ainda passa G1"
+      fail_action: "BLOCK; aditivo deveria preservar compat"
+
+    - phase: 5
+      id: exercise-library-coverage
+      name: "Check exercise library coverage (G6 future-proof)"
+      note: >-
+        Se nova dimensão, library de exercícios em exercise_prescriber.py
+        precisa ter entrada para TODOS os mentores suportados. Senão,
+        G6_EXERCISE_LINKAGE falhará na primeira avaliação real que rankeie
+        essa dim com weight > 0.
+      fail_action: "WARN; adicionar exercícios antes de calibrar peso"
+
+    - phase: 6
+      id: record-precedent
+      name: "Append-only precedent (calibration-keeper)"
+      implementation: "tasks/calibration_keeper.py :: record_precedent()"
+      required_fields:
+        change_type: "new_rule"
+        target: "schema.dimensions.{dimension_name}"
+        before: null
+        after: "dimension_added_v{new_version}"
+        why: "<rationale humano>"
+        mentor_signoff: true
+      outputs: [precedent_id]
+
+    - phase: 7
+      id: apply
+      name: "Apply changes (manual code edit + commit)"
+      artifacts_to_update:
+        - "data/features_canonical.schema.json (enum schema_version + new properties)"
+        - "tasks/validate_contract.py (SUPPORTED_VERSIONS + EXPECTED_VERSION)"
+        - "tasks/scoring_engine.py (_score_<dim>() + SCORE_FUNCTIONS + PESOS_DEFAULT)"
+        - "tasks/exercise_prescriber.py (EXERCISES dict × mentor)"
+        - "tasks/ml_worker_adapter.py (if new worker output)"
+        - "data/fixtures/features_valid_v<new>.json"
+        - "tasks/test_epic_6.py (add regression test)"
+      note: "Commit message deve referenciar precedent_id."
+
+  quality_assurance:
+    anti_patterns:
+      never_do:
+        - "Aplicar mudança breaking como minor (falsifica semver)"
+        - "Omitir scorer para nova dim (quebra G2)"
+        - "Omitir exercícios (quebra G6 em tempo de avaliação real)"
+        - "Remover dim antiga do schema sem bump major"
+        - "Pular calibration precedent (G7 fail em auditoria futura)"
+
+  smoke_tests:
+    - id: WFED_SMOKE_01
+      scenario: "Adicionar tonality v1.0.0 → v1.1.0 (additive PASS)"
+      validated: "2026-04-14"
+    - id: WFED_SMOKE_02
+      scenario: "Scorer ausente → FAIL com action_if_missing"
+      validated: "2026-04-14"
+    - id: WFED_SMOKE_03
+      scenario: "Version bump inconsistente → FAIL"
+      validated: "2026-04-14"
+    - id: WFED_SMOKE_04
+      scenario: "v1.0.0 payload antigo continua passando (backward compat)"
+      validated: "2026-04-14"

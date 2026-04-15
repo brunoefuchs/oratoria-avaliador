@@ -1,7 +1,8 @@
 # 🎤 Oratória Avaliador — Meta-Squad de Governança
 
-> **Status:** Epic 4 delivered — Quality Gate + Calibration (pipeline completo)
-> **Versão:** 0.4.0
+> **Status:** Epic 6 delivered — Evolve Dimensions playbook (tonality integrada como demo)
+> **Versão:** 0.5.0
+> **Schema contract:** v1.1.0 (aditivo; v1.0.0 ainda suportado)
 > **PRD canônico:** [`docs/projects/oratoria-avaliador/prd.md`](../../docs/projects/oratoria-avaliador/prd.md)
 
 ## O que este squad é
@@ -42,11 +43,14 @@ A inteligência do produto está na orquestração, não na captura.
 | `tasks/pipeline_end_to_end.py` (runner das 6 fases) | ✅ Epic 4 |
 | `wf-evaluate-pipeline` (phases 1-6 COMPLETE) | ✅ Epic 4 |
 | `wf-calibrate-weights.yaml` (human-in-loop) | ✅ Epic 4 |
-| 39 smoke tests total (3+3+8+11+14) | ✅ PASS |
-| `psychometry-calibrator` | ⏳ Epic 2b (deferred) |
-| LLM call integration (mentor-narrator usa template hoje) | ⏳ Epic 3b |
-| B2B team aggregation | ⏳ Epic 5 |
-| Evolve dimensions | ⏳ Epic 6 |
+| `tasks/evolve_dimension.py` (playbook runner) | ✅ Epic 6 |
+| `wf-evolve-dimension.yaml` (7 fases) | ✅ Epic 6 |
+| Schema v1.1.0 com tonality (additive; v1.0.0 backward compat) | ✅ Epic 6 |
+| Tonality scorer + exercises gui/vinh | ✅ Epic 6 |
+| 49 smoke tests total (3+3+8+11+14+10) | ✅ PASS |
+| `psychometry-calibrator` | ⏳ Epic 2b (deferred; dataset ≥500) |
+| LLM call integration real | ⏳ Epic 3b |
+| B2B team aggregation | ⏳ Epic 5 (not_before: 100+ avaliações em prod) |
 
 ### 🎯 Milestone: Pipeline end-to-end COMPLETO
 
@@ -84,6 +88,9 @@ python3 squads/oratoria-avaliador/tasks/test_epic_3.py
 
 # Epic 4: Quality Gate + Calibration + End-to-end (14 testes)
 python3 squads/oratoria-avaliador/tasks/test_epic_4.py
+
+# Epic 6: Evolve Dimension playbook + tonality integration (10 testes)
+python3 squads/oratoria-avaliador/tasks/test_epic_6.py
 ```
 
 ### Rodar pipeline end-to-end

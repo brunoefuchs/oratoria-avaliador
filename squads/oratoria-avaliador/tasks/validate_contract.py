@@ -39,7 +39,8 @@ except ImportError:
     HAS_JSONSCHEMA = False
 
 SCHEMA_PATH = Path(__file__).parent.parent / "data" / "features_canonical.schema.json"
-EXPECTED_VERSION = "1.0.0"
+SUPPORTED_VERSIONS = {"1.0.0", "1.1.0"}  # minor bumps são aditivos (backward compat)
+EXPECTED_VERSION = "1.1.0"  # current canonical; 1.0.0 aceito mas não emitido
 
 
 def _load_schema() -> dict[str, Any]:
@@ -67,10 +68,14 @@ def validate_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "detail": "Campo schema_version é obrigatório (OAC_H04).",
             "path": "$.schema_version",
         })
-    elif payload["schema_version"] != EXPECTED_VERSION:
+    elif payload["schema_version"] not in SUPPORTED_VERSIONS:
         violations.append({
             "rule": "schema_version_mismatch",
-            "detail": f"Esperado {EXPECTED_VERSION}, recebido {payload['schema_version']!r}. Bump major exige migração.",
+            "detail": (
+                f"Versão não suportada: {payload['schema_version']!r}. "
+                f"Suportadas: {sorted(SUPPORTED_VERSIONS)}. "
+                f"Bump major exige migração."
+            ),
             "path": "$.schema_version",
         })
 

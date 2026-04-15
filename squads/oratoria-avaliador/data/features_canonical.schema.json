@@ -24,8 +24,8 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "1.0.0",
-      "description": "Versão do contrato. Qualquer mudança = novo major version + migração."
+      "enum": ["1.0.0", "1.1.0"],
+      "description": "Versão do contrato. Minor bumps são aditivos (backward compat). Major exige migração. Histórico: 1.0.0 (inicial) | 1.1.0 (tonality adicionada via wf-evolve-dimension)."
     },
     "extracted_at": {
       "type": "string",
@@ -117,6 +117,17 @@
               "type": "object",
               "description": "Hints para narrative-structure-expert (Epic 2)."
             }
+          }
+        },
+        "tonality": {
+          "type": "object",
+          "description": "Features de tonalidade (VAD: Valence/Arousal/Dominance) + variedade emocional. Adicionada em schema v1.1.0 via wf-evolve-dimension. Origem: ml-worker/workers/tonality_analyzer.py.",
+          "properties": {
+            "valence_mean": { "type": "number", "minimum": 0, "maximum": 1, "description": "Positividade afetiva média" },
+            "arousal_mean": { "type": "number", "minimum": 0, "maximum": 1, "description": "Energia afetiva média" },
+            "dominance_mean": { "type": "number", "minimum": 0, "maximum": 1, "description": "Controle/autoridade percebidos" },
+            "emotion_variety": { "type": "number", "minimum": 0, "maximum": 1, "description": "Entropia das emoções detectadas" },
+            "dominant_emotion": { "type": "string" }
           }
         }
       },

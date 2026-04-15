@@ -4,7 +4,7 @@
 pack:
   name: oratoria-avaliador
   title: "Oratória Avaliador — Meta-Squad de Governança"
-  version: "0.4.0"
+  version: "0.5.0"
   author: "Bruno (brunoefuchs@gmail.com)"
   description: "Meta-squad que governa o pipeline de avaliação de oratória em vídeo. Orquestra ml-worker (captura), scoring, congruência, narrativa de mentor (vinh/gui) e quality gate antes do release."
   icon: "🎤"
@@ -14,15 +14,26 @@ entry_agent: oratoria-avaliador-chief
 tested: false
 
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
   score: null
-  epic_delivered: 4
+  epic_delivered: 6
   roadmap_total_epics: 6
+  note: "Epic 5 (B2B aggregation) deferido — not_before=100+ avaliações PASS em produção"
   prd_source: "docs/projects/oratoria-avaliador/prd.md"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CHANGELOG
 # ═══════════════════════════════════════════════════════════════════════════════
+# v0.5.0 (2026-04-14) — Epic 6: Evolve Dimensions playbook
+#   - tasks/evolve_dimension.py (classify_change, bump_version, playbook runner)
+#   - wf-evolve-dimension.yaml (7 fases; additive vs breaking)
+#   - Schema features_canonical.json bumped 1.0.0 → 1.1.0 (tonality adicionada)
+#   - Scorer de tonality registrado (peso 0.0 default até calibração)
+#   - Exercise library gui + vinh × tonality adicionadas
+#   - Backward compat verified: v1.0.0 payloads continuam passando
+#   - Hierarchy ranker agora pula dims com weight=0 (não afeta outcome)
+#   - 10/10 novos smoke tests PASS; suite total 49 PASS
+#
 # v0.4.0 (2026-04-14) — Epic 4: Quality Gate + Calibration
 #   - quality-gate-keeper (Tier 0; combina G1-G6 → PASS/FAIL/WAIVED/INCOMPLETE)
 #   - calibration-keeper (Tier 0; append-only log G7_AUDIT_TRAIL)
@@ -190,6 +201,14 @@ workflows:
     phases: 5
     primary_agent: calibration-keeper
     epic_source: 4
+
+  - id: wf-evolve-dimension
+    name: "Evolve Dimension (additive or breaking)"
+    status: implemented
+    phases: 7
+    primary_agent: oratoria-avaliador-chief
+    epic_source: 6
+    demonstrated: "tonality v1.0.0 → v1.1.0 (2026-04-14)"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DATA & CONTRACTS

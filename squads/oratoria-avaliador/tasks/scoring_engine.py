@@ -45,6 +45,9 @@ PESOS_DEFAULT = {
     "body": 0.36,  # posture (0.18) + gesture (0.18)
     "face": 0.15,
     "storytelling": 0.25,
+    # tonality adicionada via wf-evolve-dimension em v1.1.0
+    # peso 0.0 default = neutro (não afeta overall até calibração explícita)
+    "tonality": 0.0,
 }
 
 PESOS_POR_CONTEXTO: dict[str, dict[str, float]] = {
@@ -246,11 +249,63 @@ def _score_storytelling(story: dict) -> tuple[float, list[dict]]:
 # PÚBLICO — API do módulo
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _score_tonality(tonality: dict) -> tuple[float, list[dict]]:
+    """Tonality score: VAD-based (Valence / Arousal / Dominance) + emotion variety.
+
+    Adicionada em schema v1.1.0 via wf-evolve-dimension. Peso default 0.0 —
+    precisa calibration precedent antes de pesar no overall.
+    """
+    evidence: list[dict] = []
+    components: list[tuple[float, float]] = []
+
+    valence = tonality.get("valence_mean")
+    arousal = tonality.get("arousal_mean")
+    dominance = tonality.get("dominance_mean")
+    variety = tonality.get("emotion_variety")
+
+    if valence is not None:
+        # Valence saudável 0.4-0.7 (ligeiramente positivo). Fora: penaliza.
+        if 0.4 <= valence <= 0.7:
+            s = 85.0
+        else:
+            s = _clamp(85 - abs(valence - 0.55) * 100)
+        components.append((s, 0.3))
+        evidence.append({"feature": "valence_mean", "value": valence, "score_contribution": s})
+
+    if arousal is not None:
+        # Arousal saudável 0.5-0.8 (energia sem hiperativação).
+        if 0.5 <= arousal <= 0.8:
+            s = 85.0
+        else:
+            s = _clamp(85 - abs(arousal - 0.65) * 100)
+        components.append((s, 0.3))
+        evidence.append({"feature": "arousal_mean", "value": arousal, "score_contribution": s})
+
+    if dominance is not None:
+        s = _clamp(30 + dominance * 60)
+        components.append((s, 0.2))
+        evidence.append({"feature": "dominance_mean", "value": dominance, "score_contribution": s})
+
+    if variety is not None:
+        # emotion_variety ∈ [0,1] — mais variedade = mais engajamento
+        s = _clamp(variety * 100)
+        components.append((s, 0.2))
+        evidence.append({"feature": "emotion_variety", "value": variety, "score_contribution": s})
+
+    if not components:
+        return (50.0, [{"note": "tonality: sem features suficientes"}])
+
+    total_w = sum(w for _, w in components)
+    score = sum(s * w for s, w in components) / total_w
+    return (round(score, 1), evidence)
+
+
 SCORE_FUNCTIONS = {
     "voice": _score_voice,
     "body": _score_body,
     "face": _score_face,
     "storytelling": _score_storytelling,
+    "tonality": _score_tonality,  # v1.1.0
 }
 
 

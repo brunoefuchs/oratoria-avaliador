@@ -84,6 +84,22 @@ EXERCISES: dict[str, dict[str, list[dict[str, Any]]]] = {
                 "mentor_voice": "Sua história tem que SERVIR quem ouve, não você.",
             },
         ],
+        "tonality": [
+            {
+                "id": "gui_tonality_01",
+                "name": "Senoide Emocional — Calibrar Picos e Vales",
+                "duration_weeks": 2,
+                "steps": [
+                    "Grava 60s falando sobre um tema que te mexe de verdade.",
+                    "Ouça sem ver: onde está o pico emocional? Onde está o vale?",
+                    "Se a curva é plana: você está no piloto automático. Essa é a raiz do 'monótono'.",
+                    "Regrava forçando UM pico alto (entusiasmo) e UM vale baixo (sussurro reflexivo).",
+                    "Encantamento > persuasão. O ouvinte sente a senoide antes de entender as palavras.",
+                ],
+                "source": "Método comuniCAR — Senoide Emocional + 5 Canais de Autoridade",
+                "mentor_voice": "Voz plana não converte. Você precisa criar a experiência emocional.",
+            },
+        ],
     },
     "vinh-giang": {
         "voice": [
@@ -141,6 +157,22 @@ EXERCISES: dict[str, dict[str, list[dict[str, Any]]]] = {
                 ],
                 "source": "thinking_dna.yaml — Bridge Structure + 4 Storytelling Chemicals",
                 "mentor_voice": "Your story serves them, not you.",
+            },
+        ],
+        "tonality": [
+            {
+                "id": "vinh_tonality_01",
+                "name": "Emotional Range — Play More Keys",
+                "duration_weeks": 3,
+                "steps": [
+                    "Record yourself speaking about something you actually care about.",
+                    "Listen audio-only: what's your emotional register? Mostly one note?",
+                    "Map the 4 archetypes to emotional tones — Coach (sharp), Friend (warm), Educator (curious), Motivator (uplifting).",
+                    "Re-record cycling through at least 3 archetypes in 60 seconds.",
+                    "The most inauthentic thing you can do is only play these keys over here.",
+                ],
+                "source": "thinking_dna.yaml — 4 Archetypes + 88 Keys",
+                "mentor_voice": "Anytime anything becomes default, it becomes non-functional.",
             },
         ],
     },

@@ -1,0 +1,52 @@
+{
+  "evaluation_id": "b2c3d4e5-0110-4000-8000-000000000110",
+  "schema_version": "1.1.0",
+  "extracted_at": "2026-04-14T20:00:00Z",
+  "video_ref": {
+    "storage_path": "evaluations/b2c3d4e5-0110/video.mp4",
+    "duration_seconds": 195.0,
+    "fps": 30,
+    "audio_sample_rate": 44100
+  },
+  "ml_worker_versions": {
+    "voice_analyzer": "0.3.1",
+    "tonality_analyzer": "0.1.0"
+  },
+  "dimensions": {
+    "voice": {
+      "prosody": {
+        "pitch_mean_hz": 148.0,
+        "pitch_std_hz": 32.0,
+        "speaking_rate_wpm": 155.0
+      }
+    },
+    "body": {
+      "posture_score": 70.0,
+      "gesture_amplitude": 0.55,
+      "gesture_variety": 0.5,
+      "movement_std": 0.11
+    },
+    "face": {
+      "aus_active_pct": 45.0,
+      "smile_frequency": 0.22,
+      "gaze_variance": 0.32,
+      "expression_entropy": 1.9
+    },
+    "storytelling": {
+      "transcript": "Hoje eu quero falar sobre como a comunicação mudou a minha vida.",
+      "emotional_arc": [0.3, 0.5, 0.7, 0.8, 0.6, 0.9],
+      "narrative_structure_hints": {
+        "has_opening_hook": true,
+        "has_personal_story": true,
+        "has_call_to_action": true
+      }
+    },
+    "tonality": {
+      "valence_mean": 0.55,
+      "arousal_mean": 0.65,
+      "dominance_mean": 0.7,
+      "emotion_variety": 0.58,
+      "dominant_emotion": "enthusiasm"
+    }
+  }
+}

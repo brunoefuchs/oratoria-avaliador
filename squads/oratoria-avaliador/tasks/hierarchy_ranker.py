@@ -59,6 +59,8 @@ def rank_problems(
 
         if gap < 1:
             continue  # dimensão já está ótima — não entra no ranking
+        if weight == 0:
+            continue  # dimensão sem peso no contexto não afeta outcome → não rankeia
 
         why = _explain(dim, entry, weight)
         candidates.append({
