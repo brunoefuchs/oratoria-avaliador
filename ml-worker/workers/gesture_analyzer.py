@@ -291,19 +291,35 @@ def analyze_gestures(video_path: str) -> dict:
     # =============================================
 
     # 1. Contato visual com qualidade — peso 35%
-    #    Penaliza olhar baixo, premia contato visual sem ser fixo demais
-    contato_base = min(100, eye_contact_pct * 1.1)
+    # Story 7.1 AC-3: bell curve com banda ideal 70-90%.
+    # 100% contato continuo e penalizado como "staring" (~50).
+    # 85% = 100 (zona ideal). 40% = ~57. 0% = 0.
+    if 70 <= eye_contact_pct <= 90:
+        contato_base = 100.0
+    elif eye_contact_pct < 70:
+        contato_base = max(0.0, (eye_contact_pct / 70.0) * 100)
+    else:  # > 90
+        contato_base = max(0.0, 100 - (eye_contact_pct - 90) * 5)
     penalidade_olhar_baixo = min(30, olhar_baixo_pct * 0.6)
     contato_score = max(0, contato_base - penalidade_olhar_baixo)
 
     # 2. Gesticulacao com qualidade — peso 30%
-    #    Nao e so "tem gesto", e "tem gesto variado e com proposito"
-    if gesticulation_pct < 15:
-        gesto_base = 30  # Muito pouco gesto
-    elif gesticulation_pct > 85:
-        gesto_base = 70  # Demais pode ser nervoso
+    # Story 7.1 AC-4: bidirectional bell curve. Pouco gesto E excesso sao ruins.
+    # Banda ideal: 40-70% do tempo gesticulando (calibrado em 2026-04 com video
+    # de referencia — ajustar se feedback do user divergir).
+    IDEAL_GESTURES_MIN = 40.0
+    IDEAL_GESTURES_MAX = 70.0
+    if IDEAL_GESTURES_MIN <= gesticulation_pct <= IDEAL_GESTURES_MAX:
+        gesto_base = 100.0
+        gesto_zona = "ideal"
+    elif gesticulation_pct < IDEAL_GESTURES_MIN:
+        # Pouca variacao: 0% → 0, 40% → 100, linear
+        gesto_base = max(0.0, (gesticulation_pct / IDEAL_GESTURES_MIN) * 100)
+        gesto_zona = "pouca_variacao"
     else:
-        gesto_base = min(100, 40 + gesticulation_pct * 0.7)
+        # Excesso: 70% → 100, 100% → ~50, linear decay
+        gesto_base = max(0.0, 100 - (gesticulation_pct - IDEAL_GESTURES_MAX) * (50 / 30))
+        gesto_zona = "excesso"
 
     # Bonus vocabulario (mais posicoes = mais expressivo)
     bonus_vocabulario = min(20, vocabulario_gestos * 3)
@@ -370,6 +386,7 @@ def analyze_gestures(video_path: str) -> dict:
             "zona_ideal_pct": zona_ideal_pct,
             "distribuicao_olhar": distribuicao_olhar,
             "gesto_repetitivo": gesto_repetitivo,
+            "gesto_zona": gesto_zona,  # Story 7.1 AC-4: ideal | pouca_variacao | excesso
             "hand_detected_frames": hand_detected_count,
             "face_detected_frames": face_detected_count,
             "total_frames": total_frames,

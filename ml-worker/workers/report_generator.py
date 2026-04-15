@@ -78,6 +78,20 @@ Voce deve gerar o feedback seguindo EXATAMENTE estas regras:
 - O plano de 12 semanas deve focar UMA habilidade por semana
 - NUNCA diga "voce e monotono" — diga "sua fala ficou previsivel em alguns trechos, e podemos adicionar mais variedade"
 
+## Story 7.1 fix — INTERPRETACAO DE METRICAS COM BANDA IDEAL
+
+Algumas metricas usam **banda ideal** (zona certa entre dois extremos), NAO sao "quanto mais melhor".
+NUNCA elogie valores extremos. Use sub_scores como verdade, NAO porcentagens brutas.
+
+- **Contato visual:** banda ideal **70-90%**. Acima de 90% = "olhar fixo demais" (intimida). Abaixo de 70% = "pouco contato" (parece evitar).
+  - Se eye_contact_pct > 90 OU < 70 → mencionar como melhoria, NAO como forca
+  - Se sub_scores.contato_visual >= 80 → forca real
+- **Gesticulacao:** banda ideal **40-70%** do tempo. Pouco = sem expressividade. Excesso = distrai.
+  - gesto_zona "ideal" → forca. "pouca_variacao" ou "excesso" → melhoria
+- **Diversidade arquetipos:** 1 arquetipo em 100% = lock-in (ruim). Variedade entre 4 arquetipos = bom.
+
+Use **sub_scores** para avaliar, NAO valores brutos com pct elevados.
+
 Responda EXCLUSIVAMENTE em JSON valido com esta estrutura:
 {{
   "resumo": "Resumo de 3-4 frases: contexto geral, principal forca, principal oportunidade de crescimento. Tom encorajador.",
@@ -347,76 +361,17 @@ def _build_cross_insights(aggregated: dict) -> list[str]:
 def _rank_problems(aggregated: dict) -> list[dict]:
     """Rankeia problemas do orador por impacto real (weight × severity)."""
     PROBLEM_DEFS = [
-        {
-            "key": "voice.cv_volume",
-            "threshold": 0.05,
-            "op": "<",
-            "weight": 10,
-            "label": "Volume uniforme (sem peaks and troughs)",
-        },
-        {
-            "key": "variety.pct_tempo_monotono",
-            "threshold": 50,
-            "op": ">",
-            "weight": 10,
-            "label": "Fala previsivel/monotona",
-        },
-        {
-            "key": "voice.cv_pitch",
-            "threshold": 0.08,
-            "op": "<",
-            "weight": 9,
-            "label": "Tom de voz sem variacao",
-        },
-        {
-            "key": "archetypes.lock_in",
-            "threshold": True,
-            "op": "==",
-            "weight": 8,
-            "label": "Lock-in em 1 arquetipo vocal",
-        },
-        {
-            "key": "voice.wpm",
-            "threshold": 170,
-            "op": ">",
-            "weight": 7,
-            "label": "Velocidade de fala acima do ideal",
-        },
-        {
-            "key": "gesture.zona_ideal_pct",
-            "threshold": 30,
-            "op": "<",
-            "weight": 6,
-            "label": "Gestos fora da zona de poder",
-        },
-        {
-            "key": "voice.pausas.ratio_estrategicas",
-            "threshold": 0.2,
-            "op": "<",
-            "weight": 6,
-            "label": "Poucas pausas estrategicas",
-        },
-        {
-            "key": "gesture.gesto_repetitivo",
-            "threshold": True,
-            "op": "==",
-            "weight": 5,
-            "label": "Gesto repetitivo (default gestual)",
-        },
-        {
-            "key": "fillers.fillers_per_minute",
-            "threshold": 4,
-            "op": ">",
-            "weight": 5,
-            "label": "Vicios de linguagem frequentes",
-        },
-        {
-            "key": "posture.grounding_score",
-            "threshold": 50,
-            "op": "<",
-            "weight": 4,
-            "label": "Instabilidade corporal",
-        },
+        {"key": "voice.cv_volume", "threshold": 0.05, "op": "<", "weight": 10, "label": "Volume uniforme (sem peaks and troughs)"},
+        {"key": "variety.pct_tempo_monotono", "threshold": 50, "op": ">", "weight": 10, "label": "Fala previsivel/monotona"},
+        {"key": "voice.cv_pitch", "threshold": 0.08, "op": "<", "weight": 9, "label": "Tom de voz sem variacao"},
+        {"key": "archetypes.lock_in", "threshold": True, "op": "==", "weight": 8, "label": "Lock-in em 1 arquetipo vocal"},
+        {"key": "voice.wpm", "threshold": 170, "op": ">", "weight": 7, "label": "Velocidade de fala acima do ideal"},
+        {"key": "temporal.por_terco.abertura.score", "threshold": 50, "op": "<", "weight": 7, "label": "Abertura fraca (perde audiencia logo no inicio)"},
+        {"key": "gesture.zona_ideal_pct", "threshold": 30, "op": "<", "weight": 6, "label": "Gestos fora da zona de poder"},
+        {"key": "voice.pausas.ratio_estrategicas", "threshold": 0.2, "op": "<", "weight": 6, "label": "Poucas pausas estrategicas"},
+        {"key": "gesture.gesto_repetitivo", "threshold": True, "op": "==", "weight": 5, "label": "Gesto repetitivo (default gestual)"},
+        {"key": "fillers.fillers_per_minute", "threshold": 4, "op": ">", "weight": 5, "label": "Vicios de linguagem frequentes"},
+        {"key": "posture.grounding_score", "threshold": 50, "op": "<", "weight": 4, "label": "Instabilidade corporal"},
     ]
 
     metrics = aggregated.get("detailed_metrics", {})
