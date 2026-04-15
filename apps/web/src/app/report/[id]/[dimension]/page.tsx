@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchDimensionDetail } from "@/lib/api-client";
 import { AppShell } from "@/components/app-shell";
+import { ZONA_LABELS } from "@/lib/report-labels";
 
 const DIMENSION_LABELS: Record<string, string> = {
   variety: "Variedade Vocal",
@@ -72,9 +73,13 @@ const METRIC_LABELS: Record<
     padrao_movimento: { label: "Padrão de movimento" },
   },
   gesture: {
-    eye_contact_pct: { label: "% contato visual" },
+    eye_contact_pct: { label: "% contato visual", reference: "Zona ideal: 70-90%" },
     olhar_baixo_pct: { label: "% olhar para baixo", reference: "< 10% ideal" },
-    gesticulation_pct: { label: "% tempo gesticulando" },
+    gesticulation_pct: {
+      label: "% tempo gesticulando",
+      reference: "Zona ideal: 40-70%",
+    },
+    gesto_zona: { label: "Zona de gesticulação" },
     duas_maos_pct: {
       label: "% gestos com duas mãos",
       reference: "30%+ = mais expressivo",
@@ -250,7 +255,13 @@ export default function DimensionDetailPage() {
                 } else if (typeof value === "number") {
                   displayValue = String(Math.round(value * 100) / 100);
                 } else {
-                  displayValue = String(value);
+                  // Story 7.1 AC-4 fix QA — traduzir gesto_zona via ZONA_LABELS
+                  if (key === "gesto_zona" && typeof value === "string") {
+                    displayValue =
+                      ZONA_LABELS[value as keyof typeof ZONA_LABELS] ?? String(value);
+                  } else {
+                    displayValue = String(value);
+                  }
                 }
 
                 return (
