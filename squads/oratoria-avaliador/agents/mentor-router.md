@@ -28,11 +28,21 @@ persona:
     - default pt-BR → gui-reginatto (nativo)
 
 operational_logic:
+  inputs:
+    - name: user_profile
+      source: "evaluation_context (6.Q + 8.1 language)"
+    - name: language
+      source: "ml-worker transcription.language"
+
+  outputs:
+    - name: routing_decision
+      schema: "tasks/mentor_router.py :: route_mentor() return value"
+      consumers: [mentor-narrator, exercise-prescriber]
+
   rules:
     R1: "language=en → vinh-giang"
     R2: "motivacao hit em {vender_mais, redes_sociais, carreira, palestrar} OU desejo_melhorar hit em {autoridade} → gui"
     R3: "default pt-BR → gui"
-  outputs_to: [mentor-narrator, exercise-prescriber]
 
 quality_assurance:
   anti_patterns:

@@ -36,6 +36,17 @@ persona:
     Sem mentor_signoff em mudança crítica → grava com warning "risco de drift".
 
 operational_logic:
+  inputs:
+    - name: weight_change_proposal
+      source: "wf-calibrate-weights (human-in-loop)"
+    - name: mentor_signoff
+      source: "human mentor (gui or vinh)"
+
+  outputs:
+    - name: calibration_precedent
+      schema: "data/calibration_log.jsonl (append-only JSON lines)"
+      consumers: [scoring-engine (loads latest weights on next run), quality-gate-keeper (G7 verify)]
+
   storage: "data/calibration_log.jsonl (JSON lines append-only)"
   immutability: "Nunca delete. Nunca edite. Rollback é NOVA entry com change_type=rollback."
 
