@@ -1,0 +1,202 @@
+workflow:
+  id: wf-evaluate-pipeline
+  name: "Evaluate Pipeline"
+  version: "0.1.0"
+  status: stub
+  type: orchestration
+  owner: oratoria-avaliador-chief
+  purpose: >-
+    Orquestrar o pipeline end-to-end de avaliação de oratória.
+    Recebe features canônicas de ml-worker, aplica scoring/congruência/narrativa,
+    passa por quality gate e entrega relatório ao usuário (ou escala para humano).
+  epic_source: 1
+  prd_ref: "docs/projects/oratoria-avaliador/prd.md#101-epic-overview"
+
+  inputs:
+    - name: evaluation_id
+      type: uuid
+      required: true
+      description: "FK para Supabase evaluations.id"
+    - name: features_canonical
+      type: object
+      schema: "data/features_canonical.schema.json"
+      required: true
+      description: "Output dos ml-workers conforme contract."
+    - name: evaluation_context
+      type: object
+      required: false
+      description: "Respostas do questionário 6.Q (opcional em Epic 1; obrigatório em Epic 2+)."
+
+  outputs:
+    - name: evaluation_report
+      type: object
+      required: false
+      description: "Relatório final (não gerado em Epic 1 — stub retorna passthrough)."
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SEQUENCE — Epic 1 entrega STUB. Fases 2-6 são placeholders com NOT_IMPLEMENTED.
+  # ─────────────────────────────────────────────────────────────────────────────
+  sequence:
+    - phase: 1
+      id: ingest-contract
+      name: "Ingest & Contract Validation"
+      status: implemented
+      agent: oratoria-avaliador-chief
+      action: "validate_features_against_schema"
+      inputs: [features_canonical]
+      outputs: [contract_validation_result]
+      checkpoint:
+        gate: G1_CONTRACT_VALIDITY
+        blocking: true
+        pass_when: "JSON schema validation PASS + required fields present"
+        fail_action: "abort pipeline + log + escalate"
+      handoff_prompts:
+        success: "Contract válido. Prossiga para scoring (Epic 2)."
+        failure: "Contract inválido. Bloquear release e investigar ml-worker output."
+
+    - phase: 2
+      id: scoring
+      name: "Contextual Scoring"
+      status: not_implemented
+      epic_delivery: 2
+      planned_agent: scoring-engine
+      action: "apply_contextual_weights_per_dimension"
+      inputs: [features_canonical, evaluation_context]
+      outputs: [scores_by_dimension]
+      checkpoint:
+        gate: G2_COMPLETUDE
+        blocking: true
+        pass_when: "Todas as dimensões esperadas têm score emitido"
+
+    - phase: 3
+      id: congruence
+      name: "Cross-Dimension Congruence Check"
+      status: not_implemented
+      epic_delivery: 2
+      planned_agent: congruence-auditor
+      action: "detect_contradictions_across_dimensions"
+      inputs: [scores_by_dimension]
+      outputs: [congruence_report]
+      checkpoint:
+        gate: G3_CONGRUENCE
+        blocking: true
+        pass_when: "Sem contradições críticas entre dimensões"
+
+    - phase: 4
+      id: hierarchy
+      name: "Problem Hierarchy Ranking"
+      status: not_implemented
+      epic_delivery: 3
+      planned_agent: hierarchy-ranker
+      action: "rank_problems_by_impact"
+      inputs: [scores_by_dimension, congruence_report, evaluation_context]
+      outputs: [problem_hierarchy]
+      checkpoint:
+        gate: G5_HIERARCHY_VALIDITY
+        blocking: true
+
+    - phase: 5
+      id: mentor-narrative
+      name: "Mentor Narrative Generation"
+      status: not_implemented
+      epic_delivery: 3
+      planned_agents: [mentor-router, mentor-narrator, exercise-prescriber]
+      action: "generate_narrative_with_voice_dna"
+      inputs: [problem_hierarchy, evaluation_context]
+      outputs: [mentor_narrative, exercises]
+      checkpoint:
+        gate: G4_VOICE_DNA_FIDELITY
+        blocking: true
+        pass_when: "Fidelity ≥85%"
+
+    - phase: 6
+      id: quality-gate
+      name: "Quality Gate (release decision)"
+      status: not_implemented
+      epic_delivery: 4
+      planned_agent: quality-gate-keeper
+      action: "apply_deterministic_gates_G1_G6"
+      inputs:
+        - contract_validation_result
+        - scores_by_dimension
+        - congruence_report
+        - problem_hierarchy
+        - mentor_narrative
+        - exercises
+      outputs: [quality_gate_decision, evaluation_report]
+      checkpoint:
+        gate: FINAL_RELEASE_DECISION
+        blocking: true
+        pass_action: "return evaluation_report → user"
+        fail_action: "handoff to wf-audit-outlier"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # AGENT COVERAGE
+  # ─────────────────────────────────────────────────────────────────────────────
+  agents_required:
+    epic_1:
+      - oratoria-avaliador-chief
+    epic_2_blocked:
+      - scoring-engine
+      - speech-prosody-expert
+      - face-gesture-expert
+      - narrative-structure-expert
+      - psychometry-calibrator
+      - congruence-auditor
+    epic_3_blocked:
+      - hierarchy-ranker
+      - mentor-router
+      - mentor-narrator
+      - exercise-prescriber
+    epic_4_blocked:
+      - quality-gate-keeper
+      - calibration-keeper
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # NOT_BEFORE / DEPENDENCIES
+  # ─────────────────────────────────────────────────────────────────────────────
+  not_before:
+    phase_2: ["Epic 1 DONE", "questionário 6.Q em produção"]
+    phase_3: ["phase 2 DONE"]
+    phase_4: ["phase 2 DONE", "phase 3 DONE"]
+    phase_5: ["phase 4 DONE", "DNA vinh/gui com smoke test PASS"]
+    phase_6: ["phase 5 DONE"]
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # FAILURE HANDLING
+  # ─────────────────────────────────────────────────────────────────────────────
+  failure_modes:
+    - signal: "contract_validation_result.PASS == false"
+      mitigation: "Log evidence + abort + alert @data-engineer"
+      rollback: "none (fail-closed)"
+    - signal: "scoring dimension missing"
+      mitigation: "Check ml-worker inventory; fallback to reduced dimensions with warning"
+      rollback: "none (partial output marked explicitly)"
+    - signal: "congruence critical FAIL"
+      mitigation: "handoff to wf-audit-outlier (Epic 4)"
+      rollback: "block release"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # SMOKE TESTS (Epic 1 scope)
+  # ─────────────────────────────────────────────────────────────────────────────
+  smoke_tests:
+    - id: SMOKE_CONTRACT_VALID
+      scenario: "features_canonical válido entra no pipeline"
+      fixture: "data/fixtures/features_valid_v1.json"
+      runner: "tasks/validate_contract.py"
+      expected: "phase 1 PASS; phases 2-6 retornam NOT_IMPLEMENTED com referência ao Epic responsável"
+      validated_at: "2026-04-14"
+
+    - id: SMOKE_CONTRACT_INVALID
+      scenario: "features_canonical com campo obrigatório faltando"
+      fixture: "data/fixtures/features_invalid_missing_required.json"
+      runner: "tasks/validate_contract.py"
+      expected: "phase 1 FAIL; G1 gate bloqueia; log de evidence gerado"
+      validated_at: "2026-04-14"
+
+    - id: SMOKE_SCHEMA_VERSION_MISMATCH
+      scenario: "features_canonical com schema_version incorreto"
+      fixture: "data/fixtures/features_v2_incompatible.json"
+      runner: "tasks/validate_contract.py"
+      expected: "phase 1 FAIL; mensagem clara pedindo migração ou rollback ml-worker"
+      validated_at: "2026-04-14"

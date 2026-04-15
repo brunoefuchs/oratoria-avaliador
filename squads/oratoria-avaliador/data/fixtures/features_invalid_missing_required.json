@@ -1,0 +1,16 @@
+{
+  "evaluation_id": "a1b2c3d4-0002-4000-8000-000000000002",
+  "extracted_at": "2026-04-14T18:35:00Z",
+  "video_ref": {
+    "storage_path": "evaluations/a1b2c3d4-0002/video.mp4",
+    "duration_seconds": 95.0
+  },
+  "dimensions": {
+    "voice": {
+      "prosody": {
+        "pitch_mean_hz": 138.0
+      }
+    }
+  },
+  "_note_for_humans": "Falta schema_version — deve ser bloqueado por G1_CONTRACT_VALIDITY. Fixture para SMOKE_02."
+}

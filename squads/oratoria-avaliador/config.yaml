@@ -1,0 +1,112 @@
+# Oratória Avaliador — Meta-Squad de Governança
+# Squad Configuration
+
+pack:
+  name: oratoria-avaliador
+  title: "Oratória Avaliador — Meta-Squad de Governança"
+  version: "0.1.0"
+  author: "Bruno (brunoefuchs@gmail.com)"
+  description: "Meta-squad que governa o pipeline de avaliação de oratória em vídeo. Orquestra ml-worker (captura), scoring, congruência, narrativa de mentor (vinh/gui) e quality gate antes do release."
+  icon: "🎤"
+  slash_prefix: "oratoria-avaliador"
+
+entry_agent: oratoria-avaliador-chief
+tested: false
+
+metadata:
+  version: "0.1.0"
+  score: null
+  epic_delivered: 1
+  roadmap_total_epics: 6
+  prd_source: "docs/projects/oratoria-avaliador/prd.md"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CHANGELOG
+# ═══════════════════════════════════════════════════════════════════════════════
+# v0.1.0 (2026-04-14) — Epic 1: Foundation + Contract
+#   - Orchestrator chief criado
+#   - Contract features_canonical.schema.json definido
+#   - Stub workflow wf-evaluate-pipeline
+#   - Sem scoring, sem narrativa, sem gate — entregas de Epic 2-4
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# AGENTS (Epic 1 delivery: só orchestrator)
+# ═══════════════════════════════════════════════════════════════════════════════
+agents:
+  - id: oratoria-avaliador-chief
+    executor_profile:
+      sinkra_type: Agent
+      human_in_the_loop: true
+      output_schema: "quality_gate_decision.json"
+      story_role: executor
+      can_execute: true
+      work_contexts: ["general"]
+      can_review: ["evaluation_pipeline_output"]
+    name: "Oratória Avaliador Chief"
+    role: "Orquestrador do pipeline de avaliação — roteia fases C1-C6 e aplica quality gate"
+    tier: orchestrator
+    is_orchestrator: true
+    purpose: "Governar o pipeline end-to-end de avaliação de oratória. Recebe features de ml-worker, orquestra scoring → congruência → narrativa → gate, entrega relatório ou escala para humano."
+
+# Agents planejados (futuros epics):
+# Epic 2: scoring-engine, speech-prosody-expert, face-gesture-expert,
+#         narrative-structure-expert, psychometry-calibrator, congruence-auditor
+# Epic 3: mentor-router, mentor-narrator, hierarchy-ranker, exercise-prescriber
+# Epic 4: quality-gate-keeper, calibration-keeper
+# Epic 5: team-aggregator
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# WORKFLOWS (Epic 1 delivery: stub)
+# ═══════════════════════════════════════════════════════════════════════════════
+workflows:
+  - id: wf-evaluate-pipeline
+    name: "Evaluate Pipeline (stub)"
+    status: stub
+    phases: 1
+    primary_agent: oratoria-avaliador-chief
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# DATA & CONTRACTS
+# ═══════════════════════════════════════════════════════════════════════════════
+data:
+  - id: features-canonical-schema
+    name: "Contract: features_canonical.json schema"
+    location: "data/features_canonical.schema.json"
+    status: draft_v1
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# EXTERNAL REFERENCES (não agents — referências cruzadas)
+# ═══════════════════════════════════════════════════════════════════════════════
+external_references:
+  mentor_minds:
+    - "squads/squad-creator-pro/minds/vinh_giang/"   # Tier 1 (en, vocal/performance)
+    - "squads/squad-creator-pro/minds/gui_reginatto/"  # Tier 1 (pt-BR, identidade/vendas)
+  ml_workers:
+    path: "ml-worker/workers/"
+    contract: "data/features_canonical.schema.json"
+  architecture_spec:
+    path: "docs/architecture/epic-6-architectural-spec.md"
+  prd:
+    path: "docs/projects/oratoria-avaliador/prd.md"
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SUPPORTED MODES
+# ═══════════════════════════════════════════════════════════════════════════════
+supported_modes:
+  - EVALUATE     # Pipeline de avaliação de vídeo (principal)
+  - CALIBRATE    # Ajuste de pesos via feedback mentor (human-in-loop)
+  - AUDIT        # Investigação de outlier
+  - EVOLVE       # Integração de nova dimensão (Epic futuro)
+
+dependencies:
+  - aiox-core
+
+tags:
+  - meta-squad
+  - governance
+  - oratoria
+  - video-analysis
+  - quality-gate
+  - pipeline-orchestration
+  - pt-br
+  - product-governance

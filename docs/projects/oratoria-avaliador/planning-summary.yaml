@@ -1,0 +1,134 @@
+planning_summary:
+  domain: oratoria-avaliador
+  depth_class: DEEP
+  planning_mode: deep
+  created: 2026-04-14
+  owner: squad-chief
+
+contract:
+  purpose: "Meta-squad de governança do produto oratoria-avaliador"
+  target_user: "Bruno (dev/founder)"
+  output: "Relatório por dimensão com feedback + exercícios"
+  business:
+    thesis: "+10% comunicação = +10% lucro"
+    products:
+      b2c: "Indivíduos (vendedores, diretores, cargos de comunicação)"
+      b2b: "Empresas que querem melhorar comunicação da equipe"
+  references_accepted:
+    - squad_data (como inspiração técnica, não agents diretos)
+    - state_of_the_art_tech (Praat, OpenSMILE, MediaPipe, FACS, IRT, Cronbach)
+    - existing_minds (vinh_giang, gui_reginatto)
+  app: "Next.js + Python (ml-worker) + Supabase"
+
+phases_executed:
+  - phase: plan-squad-contract
+    status: done
+  - phase: plan-squad-depth-calibration
+    status: done
+    depth: DEEP
+  - phase: plan-squad-domain-mapping
+    status: done
+    capabilities: 8
+  - phase: plan-squad-architecture
+    status: done
+    agents: 13
+    tiers: 3
+  - phase: plan-squad-challenge-reorder
+    status: done
+    alternatives_considered: 5
+    alternatives_rejected: 4
+    feedback_reopen_events: 1
+  - phase: plan-squad-roadmap
+    status: done
+    epics: 6
+    critical_path_length: 5
+  - phase: plan-squad-prd-assembly
+    status: done
+    output_file: "docs/projects/oratoria-avaliador/prd.md"
+
+architecture_snapshot:
+  orchestrator: oratoria-avaliador-chief
+  tier_0_governance:
+    - quality-gate-keeper
+    - congruence-auditor
+  tier_1_technical:
+    - speech-prosody-expert
+    - face-gesture-expert
+    - narrative-structure-expert
+    - psychometry-calibrator
+    - scoring-engine
+  tier_1_mentor:
+    - mentor-router
+    - mentor-narrator
+  tier_2_derivative:
+    - hierarchy-ranker
+    - exercise-prescriber
+    - team-aggregator
+    - calibration-keeper
+
+workflows:
+  core:
+    - wf-evaluate-pipeline
+    - wf-quality-gate
+    - wf-mentor-narrative
+    - wf-problem-hierarchy
+  support:
+    - wf-calibrate-weights
+  b2b:
+    - wf-team-aggregate
+  governance:
+    - wf-audit-outlier
+  meta:
+    - wf-evolve-dimension
+
+quality_gates:
+  count: 8
+  blocking: 8
+  deterministic: true
+
+roadmap:
+  epic_1:
+    title: "Foundation + Contract"
+    ready_to_start: true
+    not_before: "Inventário ml-worker completo"
+  epic_2:
+    title: "Scoring + Congruence"
+    not_before: "Epic 1 + questionário 6.Q live"
+  epic_3:
+    title: "Mentor Narrative"
+    not_before: "Epic 2 + DNA vinh/gui validado"
+  epic_4:
+    title: "Quality Gate + Calibration"
+    not_before: "Epic 3"
+  epic_5:
+    title: "B2B Team Aggregation"
+    not_before: "Epic 4 + 100+ avaliações G-PASS"
+  epic_6:
+    title: "Evolve Dimensions"
+    not_before: "Epic 4"
+
+rejected_paths:
+  - option: "A. Expandir gui/vinh agents para cobrir governança"
+    reason: "Violaria single responsibility; agents são mentor DNA puros"
+  - option: "B. Squad puramente técnico (sem mentor)"
+    reason: "Perde diferencial; contradiz feedback mentor 'falta camada humana'"
+  - option: "D. Terceirizar gate ao mentor humano"
+    reason: "Não escala; contradiz tese de produto"
+  - option: "E. Pipeline serverless event-driven"
+    reason: "Rewrite fora de escopo v1; incremental primeiro"
+
+open_questions:
+  - "Tese '+10% comunicação = +10% lucro' tem referência externa defensável?"
+  - "B2B prioridade antes ou depois de 100 B2C estáveis?"
+  - "Mentor humano no loop = Bruno ou externo?"
+  - "Periodicidade de smoke test Voice DNA em produção?"
+  - "Plug-and-play de novos mentores ou cada mentor = Epic?"
+
+handoff:
+  ready: true
+  next_command: "*create-squad oratoria-avaliador"
+  required_context:
+    - "docs/projects/oratoria-avaliador/prd.md"
+    - "docs/architecture/epic-6-architectural-spec.md"
+    - "squads/squad-creator-pro/minds/{vinh_giang,gui_reginatto}/"
+    - "ml-worker/workers/"

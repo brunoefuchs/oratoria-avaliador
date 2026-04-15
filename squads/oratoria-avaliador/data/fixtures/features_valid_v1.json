@@ -1,0 +1,78 @@
+{
+  "evaluation_id": "a1b2c3d4-0001-4000-8000-000000000001",
+  "schema_version": "1.0.0",
+  "extracted_at": "2026-04-14T18:30:00Z",
+  "video_ref": {
+    "storage_path": "evaluations/a1b2c3d4-0001/video.mp4",
+    "duration_seconds": 180.5,
+    "fps": 30,
+    "audio_sample_rate": 44100
+  },
+  "ml_worker_versions": {
+    "voice_analyzer": "0.3.1",
+    "filler_detector": "0.2.0",
+    "posture_analyzer": "0.3.0",
+    "gesture_analyzer": "0.2.1",
+    "variety_analyzer": "0.1.0",
+    "facial_analyzer": "0.1.0"
+  },
+  "dimensions": {
+    "voice": {
+      "prosody": {
+        "pitch_mean_hz": 142.3,
+        "pitch_std_hz": 28.7,
+        "pitch_range_hz": 95.4,
+        "volume_mean_db": -18.2,
+        "volume_std_db": 4.1,
+        "speaking_rate_wpm": 148.0
+      },
+      "filler_words": {
+        "count": 12,
+        "per_minute": 3.98,
+        "timestamps": [
+          { "word": "tipo", "start_s": 14.2, "end_s": 14.5 },
+          { "word": "ah", "start_s": 28.1, "end_s": 28.3 },
+          { "word": "né", "start_s": 47.8, "end_s": 48.0 }
+        ]
+      },
+      "vad": {
+        "speech_ratio": 0.78,
+        "silence_segments": [
+          { "start_s": 0.0, "end_s": 1.5 },
+          { "start_s": 89.2, "end_s": 90.8 }
+        ]
+      }
+    },
+    "body": {
+      "posture_score": 72.0,
+      "gesture_amplitude": 0.64,
+      "gesture_variety": 0.55,
+      "movement_std": 0.12
+    },
+    "face": {
+      "aus_active_pct": 42.5,
+      "smile_frequency": 0.18,
+      "gaze_variance": 0.31,
+      "expression_entropy": 1.84
+    },
+    "storytelling": {
+      "transcript": "Hoje eu quero falar sobre como a comunicação mudou a minha vida. Quando eu comecei, eu travava...",
+      "segments": [
+        { "start_s": 0.0, "end_s": 15.0, "type": "opening" },
+        { "start_s": 15.0, "end_s": 160.0, "type": "development" },
+        { "start_s": 160.0, "end_s": 180.5, "type": "closing" }
+      ],
+      "emotional_arc": [0.3, 0.4, 0.6, 0.5, 0.7, 0.8, 0.65, 0.9],
+      "narrative_structure_hints": {
+        "has_opening_hook": true,
+        "has_personal_story": true,
+        "has_call_to_action": false
+      }
+    }
+  },
+  "metadata": {
+    "processing_time_ms": 45320,
+    "warnings": [],
+    "fallbacks_applied": []
+  }
+}

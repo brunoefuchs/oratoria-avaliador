@@ -1,0 +1,17 @@
+{
+  "evaluation_id": "a1b2c3d4-0003-4000-8000-000000000003",
+  "schema_version": "2.0.0",
+  "extracted_at": "2026-04-14T18:40:00Z",
+  "video_ref": {
+    "storage_path": "evaluations/a1b2c3d4-0003/video.mp4",
+    "duration_seconds": 120.0
+  },
+  "dimensions": {
+    "voice": {
+      "prosody": {
+        "pitch_mean_hz": 150.0
+      }
+    }
+  },
+  "_note_for_humans": "schema_version == 2.0.0 (rejeitado pelo contrato atual que é 1.0.0). Fixture para SMOKE_SCHEMA_VERSION_MISMATCH."
+}

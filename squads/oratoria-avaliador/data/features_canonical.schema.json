@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oratoria-avaliador.local/schemas/features_canonical.v1.json",
+  "title": "features_canonical",
+  "description": "Contrato de features brutas extraídas pelos ml-workers. Input canônico do pipeline do squad oratoria-avaliador. Versionar estritamente — breaking change derruba pipeline inteiro.",
+  "type": "object",
+  "version": "1.0.0",
+  "required": ["evaluation_id", "video_ref", "schema_version", "extracted_at", "dimensions"],
+  "properties": {
+    "evaluation_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "FK para Supabase evaluations.id"
+    },
+    "video_ref": {
+      "type": "object",
+      "required": ["storage_path", "duration_seconds"],
+      "properties": {
+        "storage_path": { "type": "string", "description": "Supabase storage path" },
+        "duration_seconds": { "type": "number", "minimum": 0 },
+        "fps": { "type": "number" },
+        "audio_sample_rate": { "type": "integer" }
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Versão do contrato. Qualquer mudança = novo major version + migração."
+    },
+    "extracted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ml_worker_versions": {
+      "type": "object",
+      "description": "Map worker_name → version (git sha ou semver). Necessário para auditabilidade e rollback.",
+      "additionalProperties": { "type": "string" }
+    },
+    "dimensions": {
+      "type": "object",
+      "description": "Features agrupadas por dimensão de análise. Cada dimensão é opcional no Epic 1, mas será obrigatória conforme o pipeline evolui.",
+      "properties": {
+        "voice": {
+          "type": "object",
+          "description": "Features de voz: prosódia, pitch, volume, filler words, ritmo.",
+          "properties": {
+            "prosody": {
+              "type": "object",
+              "properties": {
+                "pitch_mean_hz": { "type": "number" },
+                "pitch_std_hz": { "type": "number" },
+                "pitch_range_hz": { "type": "number" },
+                "volume_mean_db": { "type": "number" },
+                "volume_std_db": { "type": "number" },
+                "speaking_rate_wpm": { "type": "number" }
+              }
+            },
+            "filler_words": {
+              "type": "object",
+              "properties": {
+                "count": { "type": "integer", "minimum": 0 },
+                "per_minute": { "type": "number", "minimum": 0 },
+                "timestamps": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "word": { "type": "string" },
+                      "start_s": { "type": "number" },
+                      "end_s": { "type": "number" }
+                    }
+                  }
+                }
+              }
+            },
+            "vad": {
+              "type": "object",
+              "description": "Voice Activity Detection — segmentos de fala vs silêncio.",
+              "properties": {
+                "speech_ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+                "silence_segments": { "type": "array" }
+              }
+            }
+          }
+        },
+        "body": {
+          "type": "object",
+          "description": "Features de corpo/gesto via MediaPipe pose.",
+          "properties": {
+            "posture_score": { "type": "number" },
+            "gesture_amplitude": { "type": "number" },
+            "gesture_variety": { "type": "number" },
+            "movement_std": { "type": "number" }
+          }
+        },
+        "face": {
+          "type": "object",
+          "description": "Features faciais (FACS Action Units, gaze, expression).",
+          "properties": {
+            "aus_active_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+            "smile_frequency": { "type": "number" },
+            "gaze_variance": { "type": "number" },
+            "expression_entropy": { "type": "number" }
+          }
+        },
+        "storytelling": {
+          "type": "object",
+          "description": "Features narrativas extraídas do transcript.",
+          "properties": {
+            "transcript": { "type": "string" },
+            "segments": { "type": "array" },
+            "emotional_arc": {
+              "type": "array",
+              "description": "Sequence of emotion intensities (Reagan et al). Usado em Epic 2."
+            },
+            "narrative_structure_hints": {
+              "type": "object",
+              "description": "Hints para narrative-structure-expert (Epic 2)."
+            }
+          }
+        }
+      },
+      "additionalProperties": {
+        "type": "object",
+        "description": "Dimensões futuras adicionadas via wf-evolve-dimension (Epic 6)."
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadados opcionais — processing time, confidence scores, warnings.",
+      "properties": {
+        "processing_time_ms": { "type": "integer" },
+        "warnings": { "type": "array", "items": { "type": "string" } },
+        "fallbacks_applied": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "additionalProperties": false
+}
