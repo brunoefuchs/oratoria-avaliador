@@ -211,9 +211,7 @@ def _detect_chemicals(text: str, variety_metrics: dict | None) -> dict:
     }
 
 
-def _compute_score(
-    bridge: dict, hook: dict, cta: dict, chemicals: dict
-) -> tuple[int, str]:
+def _compute_score(bridge: dict, hook: dict, cta: dict, chemicals: dict) -> tuple[int, str]:
     """Score 0-100 + diagnostico textual."""
     score = 20  # base
 
@@ -249,9 +247,7 @@ def _compute_score(
     return score, diagnostico
 
 
-def _generate_suggestions(
-    bridge: dict, hook: dict, cta: dict, chemicals: dict
-) -> list[str]:
+def _generate_suggestions(bridge: dict, hook: dict, cta: dict, chemicals: dict) -> list[str]:
     """Sugestoes acionaveis se score < 70."""
     suggestions = []
     if not bridge["detected"]:

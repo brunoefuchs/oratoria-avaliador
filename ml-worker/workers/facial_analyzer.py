@@ -10,7 +10,6 @@ Output alimentado para `congruence_analyzer` (cruzamento voz-corpo-rosto).
 """
 
 import time
-from collections import deque
 from pathlib import Path
 
 import mediapipe as mp
@@ -101,6 +100,7 @@ def _eye_aspect_ratio(landmarks, side: str) -> float:
 def _extract_frames_facial(video_path: str, fps: int) -> list[str]:
     """Extrai frames com FFmpeg — mesma implementacao de posture/gesture."""
     import subprocess
+
     output_dir = Path(video_path).parent / "frames_facial"
     output_dir.mkdir(exist_ok=True)
     pattern = str(output_dir / "frame_%04d.jpg")

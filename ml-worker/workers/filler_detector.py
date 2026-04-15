@@ -161,8 +161,10 @@ def detect_fillers(transcription: dict) -> dict:
             normalized = word.lower().strip().rstrip(".,!?;:").strip()
             # Remove acentos para agrupar 'aí' com 'ai', 'né' com 'ne'
             import unicodedata
+
             normalized = "".join(
-                c for c in unicodedata.normalize("NFD", normalized)
+                c
+                for c in unicodedata.normalize("NFD", normalized)
                 if unicodedata.category(c) != "Mn"
             )
             filler_counts[normalized] = filler_counts.get(normalized, 0) + 1

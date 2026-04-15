@@ -39,7 +39,9 @@ MOTIVACAO_TO_CONTEXTO = {
 }
 
 
-def _get_pesos(contexto: str | None = None, motivacao: list | None = None) -> tuple[dict, str | None]:
+def _get_pesos(
+    contexto: str | None = None, motivacao: list | None = None
+) -> tuple[dict, str | None]:
     """Retorna (pesos, contexto_resolvido).
 
     Prioridade: contexto direto > primeira motivacao com mapeamento > default.

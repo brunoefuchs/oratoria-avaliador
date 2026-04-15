@@ -37,9 +37,7 @@ PITCH_MIN_HZ = 75
 PITCH_MAX_HZ = 500
 
 
-def _extract_features_window(
-    sound: parselmouth.Sound, t_start: float, t_end: float
-) -> dict | None:
+def _extract_features_window(sound: parselmouth.Sound, t_start: float, t_end: float) -> dict | None:
     """Extrai features acusticas de uma janela temporal.
 
     Retorna None se janela muito curta ou sem voiced frames.
@@ -126,10 +124,14 @@ def _compute_vad(features: dict, global_baseline: dict) -> dict:
     intensity_rel = (features["intensity_mean"] - i_baseline) / max(i_baseline, 1)
     pitch_range_norm = min(1.0, features["pitch_range"] / 250)  # 250Hz = range expressivo
     intensity_var = min(1.0, features["intensity_std"] / 10)
-    arousal = max(0.0, min(1.0, 0.4 + intensity_rel * 0.3 + pitch_range_norm * 0.4 + intensity_var * 0.2))
+    arousal = max(
+        0.0, min(1.0, 0.4 + intensity_rel * 0.3 + pitch_range_norm * 0.4 + intensity_var * 0.2)
+    )
 
     # Dominance: pitch medio (mais baixo = mais dominante) + intensidade estavel + HNR alto
-    pitch_low_score = max(0.0, min(0.4, (p_baseline - features["pitch_mean"]) / max(p_baseline, 1) + 0.2))
+    pitch_low_score = max(
+        0.0, min(0.4, (p_baseline - features["pitch_mean"]) / max(p_baseline, 1) + 0.2)
+    )
     intensity_stable = max(0.0, min(0.3, 0.3 - intensity_var * 0.3))
     hnr_dominance = max(0.0, min(0.3, features["hnr"] / 30))
     dominance = max(0.0, min(1.0, pitch_low_score + intensity_stable + hnr_dominance))
@@ -257,14 +259,16 @@ def analyze_tonality(audio_path: str) -> dict:
         textura = _classify_textura(vad)
         texturas_count[textura] += 1
         successful_windows += 1
-        vad_temporal.append({
-            "start": round(t_start, 1),
-            "end": round(t_end, 1),
-            "v": vad["v"],
-            "a": vad["a"],
-            "d": vad["d"],
-            "textura": textura,
-        })
+        vad_temporal.append(
+            {
+                "start": round(t_start, 1),
+                "end": round(t_end, 1),
+                "v": vad["v"],
+                "a": vad["a"],
+                "d": vad["d"],
+                "textura": textura,
+            }
+        )
 
     if successful_windows == 0:
         return _disponivel_false("Nenhuma janela de audio teve features extraiveis")
@@ -356,8 +360,12 @@ def _disponivel_false(motivo: str) -> dict:
         "vad_medio": {"valence": 0.0, "arousal": 0.0, "dominance": 0.0},
         "vad_temporal": [],
         "textura_distribuicao": {
-            "neutro": 0, "entusiasmado": 0, "confiante": 0,
-            "apatico": 0, "tenso": 0, "hesitante": 0,
+            "neutro": 0,
+            "entusiasmado": 0,
+            "confiante": 0,
+            "apatico": 0,
+            "tenso": 0,
+            "hesitante": 0,
         },
         "textura_dominante": "indisponivel",
         "feedback": motivo,
