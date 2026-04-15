@@ -1,0 +1,37 @@
+schema: 1
+story: "7.4"
+gate: PASS
+status_reason: "Re-review pos-smoke 2026-04-14 com fix de threshold aplicado. MediaPipe Face Mesh funcional, diagnostico facial usa frequency ao inves de variability."
+reviewer: "Quinn"
+updated: "2026-04-15T11:45:00Z"
+top_issues:
+  - id: "PERF-001"
+    severity: medium
+    finding: "MediaPipe Face Mesh adiciona ~2-3s ao pipeline (nao-bloqueante, degrada gracefully para {disponivel: false})"
+    suggested_action: "Benchmark formal em video de 10min; se >10% overhead, considerar sampling temporal (a cada N frames)"
+  - id: "MNT-003"
+    severity: low
+    finding: "Calibracao dos thresholds smile/brow/eye_openness baseada em 1 video. Pode precisar ajuste com dataset maior"
+    suggested_action: "Coletar feedback de usuarios sobre accuracy do diagnostico facial; ajustar constants conforme necessario"
+waiver: { active: false }
+
+quality_checks:
+  code_review: PASS
+  unit_tests: CONCERN  # dependencia externa MediaPipe dificulta unit test puro
+  acceptance_criteria: PASS
+  no_regressions: PASS  # try/except isolado, nao quebra pipeline se MediaPipe falha
+  performance: CONCERN  # overhead mensuravel, aceitavel
+  security: PASS
+  documentation: PASS
+
+ac_coverage:
+  AC-1_smile_detection: VERIFIED
+  AC-2_brow_analysis: VERIFIED
+  AC-3_eye_openness: VERIFIED
+  AC-4_diagnostico_facial: VERIFIED_POS_FIX
+  AC-5_integration_report: VERIFIED_POS_SMOKE
+  AC-6_graceful_degradation: VERIFIED
+
+files_created:
+  - ml-worker/workers/facial_analyzer.py
+  - apps/web/src/components/facial-card.tsx
