@@ -1,7 +1,7 @@
 # 🎤 Oratória Avaliador — Meta-Squad de Governança
 
-> **Status:** Epic 1 delivered — Foundation + Contract
-> **Versão:** 0.1.0
+> **Status:** Epic 2 delivered — Scoring + Congruence
+> **Versão:** 0.2.0
 > **PRD canônico:** [`docs/projects/oratoria-avaliador/prd.md`](../../docs/projects/oratoria-avaliador/prd.md)
 
 ## O que este squad é
@@ -21,14 +21,18 @@ A inteligência do produto está na orquestração, não na captura.
 
 | Artefato | Status |
 |----------|--------|
-| `oratoria-avaliador-chief` (orchestrator) | ✅ Delivered |
-| `features_canonical.schema.json` (contract v1.0.0) | ✅ Delivered |
-| `wf-evaluate-pipeline` (stub) | ✅ Delivered |
-| `ml_worker_adapter.py` (legado → canonical) | ✅ Delivered |
-| `validate_contract.py` (G1 gate enforcer) | ✅ Delivered |
-| 3 fixtures + 3 smoke tests + 3 adapter tests | ✅ PASS |
-| Scoring engine | ⏳ Epic 2 |
-| Congruence auditor | ⏳ Epic 2 |
+| `oratoria-avaliador-chief` (orchestrator) | ✅ Epic 1 |
+| `features_canonical.schema.json` (contract v1.0.0) | ✅ Epic 1 |
+| `ml_worker_adapter.py` (legado → canonical) | ✅ Epic 1 |
+| `validate_contract.py` (G1 gate) | ✅ Epic 1 |
+| `scoring-engine` + `tasks/scoring_engine.py` | ✅ Epic 2 |
+| `congruence-auditor` + `tasks/congruence_auditor.py` (G3 gate) | ✅ Epic 2 |
+| `speech-prosody-expert` (lean reference) | ✅ Epic 2 |
+| `face-gesture-expert` (lean reference) | ✅ Epic 2 |
+| `narrative-structure-expert` (lean reference) | ✅ Epic 2 |
+| `wf-evaluate-pipeline` (phases 1-3 implemented; 4-6 stub) | ✅ Epic 2 |
+| 11 smoke tests total (3 contract + 8 scoring/congruence) | ✅ PASS |
+| `psychometry-calibrator` | ⏳ Epic 2b (deferred) |
 | Mentor narrative | ⏳ Epic 3 |
 | Quality gate keeper | ⏳ Epic 4 |
 | B2B team aggregation | ⏳ Epic 5 |
@@ -36,12 +40,15 @@ A inteligência do produto está na orquestração, não na captura.
 ### Rodar smoke tests
 
 ```bash
-# Validar fixtures contra contract
+# Epic 1: Validar fixtures contra contract (G1)
 python3 squads/oratoria-avaliador/tasks/validate_contract.py \
   squads/oratoria-avaliador/data/fixtures/features_valid_v1.json
 
-# Testar adapter (ml-worker legado → canonical)
+# Epic 1: Adapter (ml-worker legado → canonical)
 python3 squads/oratoria-avaliador/tasks/test_adapter.py
+
+# Epic 2: Scoring + Congruence (8 testes)
+python3 squads/oratoria-avaliador/tasks/test_scoring_congruence.py
 ```
 
 ## Ativação

@@ -57,30 +57,34 @@ workflow:
     - phase: 2
       id: scoring
       name: "Contextual Scoring"
-      status: not_implemented
+      status: implemented
       epic_delivery: 2
-      planned_agent: scoring-engine
+      agent: scoring-engine
+      implementation: "tasks/scoring_engine.py :: score_evaluation()"
       action: "apply_contextual_weights_per_dimension"
       inputs: [features_canonical, evaluation_context]
       outputs: [scores_by_dimension]
       checkpoint:
         gate: G2_COMPLETUDE
-        blocking: true
-        pass_when: "Todas as dimensões esperadas têm score emitido"
+        blocking: false
+        pass_when: "incomplete_dimensions registrado; scoring parcial permitido"
+        note: "Completude total é requisito Epic 4 (quality-gate-keeper). Epic 2 aceita scoring parcial com flag."
 
     - phase: 3
       id: congruence
       name: "Cross-Dimension Congruence Check"
-      status: not_implemented
+      status: implemented
       epic_delivery: 2
-      planned_agent: congruence-auditor
+      agent: congruence-auditor
+      implementation: "tasks/congruence_auditor.py :: audit_congruence()"
       action: "detect_contradictions_across_dimensions"
       inputs: [scores_by_dimension]
       outputs: [congruence_report]
       checkpoint:
         gate: G3_CONGRUENCE
         blocking: true
-        pass_when: "Sem contradições críticas entre dimensões"
+        pass_when: "Sem violations com severity=critical"
+        fail_action: "abort pipeline + escalate to wf-audit-outlier (Epic 4 stub)"
 
     - phase: 4
       id: hierarchy

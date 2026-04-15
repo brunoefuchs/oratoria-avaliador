@@ -4,7 +4,7 @@
 pack:
   name: oratoria-avaliador
   title: "Oratória Avaliador — Meta-Squad de Governança"
-  version: "0.1.0"
+  version: "0.2.0"
   author: "Bruno (brunoefuchs@gmail.com)"
   description: "Meta-squad que governa o pipeline de avaliação de oratória em vídeo. Orquestra ml-worker (captura), scoring, congruência, narrativa de mentor (vinh/gui) e quality gate antes do release."
   icon: "🎤"
@@ -14,15 +14,22 @@ entry_agent: oratoria-avaliador-chief
 tested: false
 
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
   score: null
-  epic_delivered: 1
+  epic_delivered: 2
   roadmap_total_epics: 6
   prd_source: "docs/projects/oratoria-avaliador/prd.md"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CHANGELOG
 # ═══════════════════════════════════════════════════════════════════════════════
+# v0.2.0 (2026-04-14) — Epic 2: Scoring + Congruence
+#   - scoring-engine agent + tasks/scoring_engine.py (pesos contextuais)
+#   - congruence-auditor agent + tasks/congruence_auditor.py (G3 gate)
+#   - 3 technical experts lean-reference (speech, face-gesture, narrative)
+#   - Workflow phase 2-3 agora "implemented"
+#   - 8/8 novos smoke tests PASS
+#
 # v0.1.0 (2026-04-14) — Epic 1: Foundation + Contract
 #   - Orchestrator chief criado
 #   - Contract features_canonical.schema.json definido
@@ -43,14 +50,51 @@ agents:
       work_contexts: ["general"]
       can_review: ["evaluation_pipeline_output"]
     name: "Oratória Avaliador Chief"
-    role: "Orquestrador do pipeline de avaliação — roteia fases C1-C6 e aplica quality gate"
+    role: "Orquestrador do pipeline — roteia fases e aplica gate"
     tier: orchestrator
     is_orchestrator: true
-    purpose: "Governar o pipeline end-to-end de avaliação de oratória. Recebe features de ml-worker, orquestra scoring → congruência → narrativa → gate, entrega relatório ou escala para humano."
+    epic_source: 1
+
+  # ─── Epic 2: Scoring + Congruence ───
+  - id: scoring-engine
+    name: "Scoring Engine"
+    role: "Aplica pesos contextuais (6.Q) e emite scores 0-100 por dimensão"
+    tier: 1
+    agent_type: "functional-deterministic"
+    implementation: "tasks/scoring_engine.py"
+    epic_source: 2
+
+  - id: congruence-auditor
+    name: "Congruence Auditor"
+    role: "Detecta contradições entre dimensões — G3 gate"
+    tier: 0
+    agent_type: "functional-deterministic"
+    implementation: "tasks/congruence_auditor.py"
+    epic_source: 2
+
+  - id: speech-prosody-expert
+    name: "Speech & Prosody Expert"
+    role: "Consultor de estado da arte em análise de fala (Praat, Parselmouth, Whisper, GeMAPS)"
+    tier: 1
+    agent_type: "technical-reference"
+    epic_source: 2
+
+  - id: face-gesture-expert
+    name: "Face & Gesture Expert"
+    role: "Consultor em FACS/MediaPipe/OpenFace para análise visual"
+    tier: 1
+    agent_type: "technical-reference"
+    epic_source: 2
+
+  - id: narrative-structure-expert
+    name: "Narrative Structure Expert"
+    role: "Consultor em storytelling computacional (Freytag, Harmon, Reagan arcs)"
+    tier: 1
+    agent_type: "technical-reference"
+    epic_source: 2
 
 # Agents planejados (futuros epics):
-# Epic 2: scoring-engine, speech-prosody-expert, face-gesture-expert,
-#         narrative-structure-expert, psychometry-calibrator, congruence-auditor
+# Epic 2b (deferred): psychometry-calibrator (não urgente; exige dataset ≥500)
 # Epic 3: mentor-router, mentor-narrator, hierarchy-ranker, exercise-prescriber
 # Epic 4: quality-gate-keeper, calibration-keeper
 # Epic 5: team-aggregator
