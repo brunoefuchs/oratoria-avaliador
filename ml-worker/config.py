@@ -16,6 +16,4 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
 # Quando true, o squad roda em paralelo ao report_generator existente.
 # Não altera comportamento user-facing — só loga decisões para comparação.
 # Default false. Ativar via env var ORATORIA_SHADOW_MODE_ENABLED=true.
-ORATORIA_SHADOW_MODE_ENABLED = (
-    os.getenv("ORATORIA_SHADOW_MODE_ENABLED", "false").lower() == "true"
-)
+ORATORIA_SHADOW_MODE_ENABLED = os.getenv("ORATORIA_SHADOW_MODE_ENABLED", "false").lower() == "true"

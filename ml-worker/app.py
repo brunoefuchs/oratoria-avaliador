@@ -91,6 +91,7 @@ def _run_squad_shadow(
     # Lazy import + sys.path extension (squad mora fora de ml-worker/)
     import sys as _sys
     from pathlib import Path as _Path
+
     _parent_dir = _Path(__file__).resolve().parents[1]
     _squad_dir = _parent_dir / "squads" / "oratoria-avaliador"
     squad_tasks = _squad_dir / "tasks"
@@ -249,8 +250,11 @@ async def _run_pipeline(req: ProcessRequest):
         except Exception as e:
             logger.error("tonality_analysis_failed", error=str(e))
             tonality_result = {
-                "disponivel": False, "score": 0, "diagnostico": "failed",
-                "feedback": str(e), "warnings": [str(e)],
+                "disponivel": False,
+                "score": 0,
+                "diagnostico": "failed",
+                "feedback": str(e),
+                "warnings": [str(e)],
             }
 
         # Step 6: Deteccao de vicios de linguagem
@@ -310,9 +314,7 @@ async def _run_pipeline(req: ProcessRequest):
             from workers.storytelling_analyzer import analyze_storytelling
 
             variety_metrics = (
-                variety_result.get("metrics")
-                if isinstance(variety_result, dict)
-                else None
+                variety_result.get("metrics") if isinstance(variety_result, dict) else None
             )
             # Story 7.3 fix QA — consistencia hook
             storytelling_result = analyze_storytelling(
@@ -323,7 +325,9 @@ async def _run_pipeline(req: ProcessRequest):
         except Exception as e:
             logger.error("storytelling_analysis_failed", error=str(e))
             storytelling_result = {
-                "disponivel": False, "score": 0, "diagnostico": "failed",
+                "disponivel": False,
+                "score": 0,
+                "diagnostico": "failed",
                 "suggestions": [str(e)],
             }
 
@@ -512,7 +516,9 @@ async def _run_pipeline(req: ProcessRequest):
                     evaluation_context={
                         "motivacao": eval_motivacao,
                         "contexto_v1": eval_contexto,
-                    } if (eval_motivacao or eval_contexto) else None,
+                    }
+                    if (eval_motivacao or eval_contexto)
+                    else None,
                 )
             except Exception as e:
                 # Shadow NUNCA derruba pipeline real.
