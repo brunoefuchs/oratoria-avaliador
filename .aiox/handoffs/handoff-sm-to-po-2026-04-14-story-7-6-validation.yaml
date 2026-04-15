@@ -1,0 +1,65 @@
+handoff:
+  from_agent: sm
+  to_agent: po
+  timestamp: "2026-04-14T16:35:00-03:00"
+  consumed: true
+  consumed_at: "2026-04-14T17:00:00-03:00"
+  consumed_by: "@po Pax (validated 7.6, score 9.8/10, GO)"
+
+  story_context:
+    story_id: "7.6"
+    story_path: "docs/stories/7.6.convergence-harness.story.md"
+    story_status: "Draft"
+    epic_id: "7.0"
+    epic_path: "docs/stories/7.0.epic-report-precision.md"
+    branch: "main"
+    current_task: "Aguardando *validate-story-draft (10-point checklist)"
+
+  decisions:
+    - "10 AC rastreados ao Epic 7 (art. IV Constitution — No Invention)"
+    - "8 tasks com esforco estimado total 16h (2-3 dias corridos)"
+    - "Scope IN inclui tools/convergence/, migrations Supabase, dashboard /dev/convergence"
+    - "Scope OUT exclui ml-worker e report_generator.py (isolado)"
+    - "Executor: @dev com consult @architect para decisoes de schema"
+
+  files_modified:
+    - "docs/stories/7.6.convergence-harness.story.md (446 linhas, NOVO)"
+
+  blockers: []
+
+  next_action: |
+    @po Pax deve executar *validate-story-draft 7.6 aplicando 10-point checklist:
+    1. Clear and objective title ✓ ("Harness de Convergencia Multi-IA")
+    2. Complete description ✓ (Contexto explica gap e motivacao)
+    3. Testable AC ✓ (10 AC com metricas quantitativas e validacao)
+    4. Well-defined scope ✓ (IN/OUT explicitos)
+    5. Dependencies mapped ✓ (Epic 7 + handoff docs)
+    6. Complexity estimate ✓ (M, 16h, 8 tasks)
+    7. Business value ✓ (norte tecnico do Epic 7)
+    8. Risks documented ✓ (7 riscos com mitigacao)
+    9. Criteria of Done ✓ (Task 8 + QA Results)
+    10. Alignment with Epic ✓ (rastreado a criterios Epic 7)
+
+    Score esperado: 10/10 — GO para Ready.
+
+    Se validacao PASS, @po atualiza status Draft → Ready e proximo agent e @dev Dex.
+
+  context_for_po:
+    pareto_zone: "0,8% Genialidade — bloqueante pra Wave 3 do Epic 7"
+    trace_to_constitution: "Art. IV No Invention — cada AC linka a FR/criterio do Epic 7"
+    critical_observations:
+      - "AC-9 garante zero impacto em producao (story roda em path separado)"
+      - "Risco conhecido: convergencia alta nao significa precisao alta (resolve em 7.7)"
+      - "Custo LLM estimado: ~$0.50/video nos 3 LLMs combinados"
+
+  source_documents:
+    - "docs/stories/7.0.epic-report-precision.md (Epic atualizado 2026-04-14)"
+    - ".aiox/handoffs/handoff-pm-to-sm-2026-04-14-epic7-new-stories.yaml (origem)"
+    - "docs/stories/7.6.convergence-harness.story.md (output)"
+
+  open_questions_for_po:
+    - "AC-4 top-3 concordance threshold 0.75 — aceitar default ou pedir calibracao formal?"
+    - "AC-9 dashboard feature-flag: aceitar `NEXT_PUBLIC_ENABLE_DEV_ROUTES` ou preferir middleware mais robusto?"
+    - "Custo LLM estimado em $0.50/video — confirmar orcamento ok pra 10-20 videos de baseline"
+
+  last_command: "*draft 7.6"

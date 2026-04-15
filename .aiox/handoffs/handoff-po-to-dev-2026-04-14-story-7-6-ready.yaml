@@ -1,0 +1,98 @@
+handoff:
+  from_agent: po
+  to_agent: dev
+  timestamp: "2026-04-14T17:05:00-03:00"
+  consumed: false
+
+  story_context:
+    story_id: "7.6"
+    story_path: "docs/stories/7.6.convergence-harness.story.md"
+    story_status: "Ready"
+    epic_id: "7.0"
+    epic_path: "docs/stories/7.0.epic-report-precision.md"
+    branch: "main"
+    current_task: "Aguardando @dev *develop-story 7.6"
+    suggested_branch: "feature/7.6-convergence-harness"
+
+  validation_results:
+    checklist: "10-point validate-story-draft"
+    score: "9.8/10"
+    verdict: "GO (PASS)"
+    score_detail:
+      clear_title: 1.0
+      complete_description: 1.0
+      testable_ac: 0.8 # formato prosa, nao G/W/T (cosmetico)
+      well_defined_scope: 1.0
+      dependencies_mapped: 1.0
+      complexity_estimate: 1.0
+      business_value: 1.0
+      risks_documented: 1.0
+      criteria_of_done: 1.0
+      alignment_with_epic: 1.0
+
+  decisions:
+    - "Story aprovada Draft → Ready sem fixes obrigatorios"
+    - "3 open questions do @sm River respondidas (veredicto PO em cada)"
+    - "4 observacoes nao-bloqueantes registradas para @dev resolver durante implementacao"
+
+  non_blocking_observations:
+    - id: "Obs-1"
+      severity: "media"
+      topic: "Disponibilidade de GPT-5"
+      action: "Confirmar com Bruno se GPT-5 esta disponivel na conta OpenAI antes de Task 2. Fallback ja sugerido em Dev Notes (gpt-5-mini ou gpt-4o)."
+    - id: "Obs-2"
+      severity: "media"
+      topic: "RLS policy em convergence_runs"
+      action: "Consultar @architect na Task 1 sobre: (a) existe tabela profiles? (b) owner_id por FK ou auth.uid() direto?"
+    - id: "Obs-3"
+      severity: "baixa"
+      topic: "Nome exato do modelo Gemini"
+      action: "Task 2 confirmar: gemini-2.5-flash-001, gemini-2.0-flash-001 ou gemini-2.5-flash-preview? Ajuste trivial no client."
+    - id: "Obs-4"
+      severity: "cosmetico"
+      topic: "AC em formato G/W/T vs prosa"
+      action: "Nao retrabalhar. Testabilidade garantida no formato atual."
+
+  resolved_user_decisions:
+    - topic: "Orcamento LLM"
+      question: "$5 em 10 videos de baseline e aceitavel?"
+      answered_by: "Bruno"
+      answered_at: "2026-04-14T17:10:00-03:00"
+      answer: "SIM (opcao 1) — prosseguir com 10 videos. Orcamento $5 aprovado."
+
+  blockers: []
+
+  next_action: |
+    @dev Dex deve executar *develop-story 7.6 seguindo as 8 tasks na ordem sugerida:
+    1. Design + Schema Supabase (1.5h) — CONSULTAR @architect
+    2. LLM Clients (3h) — resolve Obs-1 e Obs-3
+    3. Prompt unificado + versionamento (1h) — CUIDADO alinhar com report_generator.py (Risco #2)
+    4. Correlator (2.5h)
+    5. CLI + persistence (2h)
+    6. Dashboard /dev/convergence (3h)
+    7. Documentacao (1h)
+    8. CodeRabbit + Tests + Done (1h)
+
+    Total estimado: 15h (2-3 dias corridos).
+
+    Modo sugerido: Interactive (decisoes arquiteturais importantes em Task 1 e Task 3).
+
+    Branch: criar `feature/7.6-convergence-harness` antes de comecar.
+
+  source_documents:
+    - "docs/stories/7.6.convergence-harness.story.md (story Ready)"
+    - "docs/stories/7.0.epic-report-precision.md (epic origem)"
+    - ".aiox/handoffs/handoff-sm-to-po-2026-04-14-story-7-6-validation.yaml (handoff previo)"
+
+  answered_open_questions:
+    threshold_075_top3:
+      question: "Threshold 0.75 de concordancia top-3 — default ou calibracao formal?"
+      verdict: "DEFAULT. Risco #6 documenta como calibravel + review manual via dashboard. Iterar se feedback negativo em primeiros 5 videos."
+    dashboard_feature_flag:
+      question: "Feature-flag NEXT_PUBLIC_ENABLE_DEV_ROUTES ou middleware mais robusto?"
+      verdict: "Feature-flag primeiro (MVP). Adicionar middleware como follow-up se vazar em preview builds. Registrar como backlog."
+    llm_budget:
+      question: "Custo LLM ~$0.50/video em 10-20 videos — orcamento aceitavel?"
+      verdict: "Pergunta pendente para Bruno. Default SIM ($5 total) ate Bruno confirmar ou negar."
+
+  last_command: "*validate-story-draft 7.6"
