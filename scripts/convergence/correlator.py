@@ -184,6 +184,17 @@ def build_report(evaluations: dict) -> ConvergenceReport:
                     "detalhes": {"pair": pair, "concordance": count},
                 }
             )
+    for pair, count in fracos_conc.items():
+        if count < TOP3_TARGET:
+            alerts.append(
+                {
+                    "dimensao": "pontos_fracos",
+                    "r_calculado": count,
+                    "r_esperado": TOP3_TARGET,
+                    "severidade": "warning",
+                    "detalhes": {"pair": pair, "concordance": count},
+                }
+            )
 
     return ConvergenceReport(
         pairwise_r_overall=pair_r_overall,
@@ -191,5 +202,71 @@ def build_report(evaluations: dict) -> ConvergenceReport:
         pairwise_r_per_dimension=per_dim_r,
         top3_fortes_concordance=fortes_conc,
         top3_fracos_concordance=fracos_conc,
+        alerts=alerts,
+    )
+
+
+def build_batch_report(
+    scores_overall_per_llm: dict[str, list[float]],
+    scores_dim_per_llm: dict[str, dict[str, list[float]]],
+    n_videos: int,
+) -> ConvergenceReport:
+    """Aggregate batch report — real Pearson r over N videos.
+
+    Unlike build_report() (single video, proximity proxy), this computes true
+    pairwise Pearson across the N-video vectors. Top-3 concordance is not
+    meaningful at batch level (points are per-video) so it's zeroed.
+
+    Args:
+        scores_overall_per_llm: {llm: [score_v1, score_v2, ...]} length N
+        scores_dim_per_llm: {llm: {dim: [score_v1, score_v2, ...]}} length N
+        n_videos: N (for validation + alert detail)
+    """
+    if n_videos < 2:
+        raise ValueError(f"build_batch_report needs N>=2 videos, got {n_videos}")
+    llms = list(scores_overall_per_llm.keys())
+    for llm in llms:
+        if len(scores_overall_per_llm[llm]) != n_videos:
+            raise ValueError(
+                f"{llm} has {len(scores_overall_per_llm[llm])} overall scores, expected {n_videos}"
+            )
+
+    pair_r_overall = pairwise_r(scores_overall_per_llm)
+    mean_r = _mean(list(pair_r_overall.values()))
+
+    per_dim_r: dict[str, dict[str, float]] = {}
+    for dim in DIMENSIONS:
+        vectors = {llm: scores_dim_per_llm[llm].get(dim, []) for llm in llms}
+        if all(len(v) >= 2 for v in vectors.values()) and all(len(v) == n_videos for v in vectors.values()):
+            per_dim_r[dim] = pairwise_r(vectors)
+        else:
+            per_dim_r[dim] = {f"{a}-{b}": 0.0 for a, b in _pairs(llms)}
+
+    alerts: list[dict] = []
+    if mean_r < R_TARGET_OVERALL:
+        alerts.append({
+            "dimensao": None,
+            "r_calculado": mean_r,
+            "r_esperado": R_TARGET_OVERALL,
+            "severidade": "warning",
+            "detalhes": {"pairwise": pair_r_overall, "n_videos": n_videos},
+        })
+    for dim, pair_map in per_dim_r.items():
+        dim_mean = _mean(list(pair_map.values()))
+        if dim_mean < R_TARGET_DIMENSION:
+            alerts.append({
+                "dimensao": dim,
+                "r_calculado": dim_mean,
+                "r_esperado": R_TARGET_DIMENSION,
+                "severidade": "warning",
+                "detalhes": {"pairwise": pair_map, "n_videos": n_videos},
+            })
+
+    return ConvergenceReport(
+        pairwise_r_overall=pair_r_overall,
+        mean_r_overall=mean_r,
+        pairwise_r_per_dimension=per_dim_r,
+        top3_fortes_concordance={f"{a}-{b}": 0 for a, b in _pairs(llms)},
+        top3_fracos_concordance={f"{a}-{b}": 0 for a, b in _pairs(llms)},
         alerts=alerts,
     )

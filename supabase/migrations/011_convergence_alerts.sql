@@ -1,9 +1,11 @@
 -- Story 7.6 AC-6: convergence_alerts table
 -- Logs disagreements (r < target) for triage.
+--
+-- Note on `video_id`: FK points to `evaluations(id)` (see 010_convergence_runs.sql).
 
 CREATE TABLE IF NOT EXISTS convergence_alerts (
   id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  video_id      uuid NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+  video_id      uuid NOT NULL REFERENCES evaluations(id) ON DELETE CASCADE,
   dimensao      text,  -- NULL = overall; otherwise dimension name or "pontos_fortes"/"pontos_fracos"
   r_calculado   numeric NOT NULL,
   r_esperado    numeric NOT NULL,
@@ -21,6 +23,8 @@ CREATE INDEX IF NOT EXISTS idx_convergence_alerts_video_id
 
 ALTER TABLE convergence_alerts ENABLE ROW LEVEL SECURITY;
 
+-- Idempotent: drop before create so migration can be re-applied safely.
+DROP POLICY IF EXISTS convergence_alerts_service_role_all ON convergence_alerts;
 CREATE POLICY convergence_alerts_service_role_all ON convergence_alerts
   FOR ALL
   USING (auth.role() = 'service_role')

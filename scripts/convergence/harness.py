@@ -27,7 +27,7 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
-from .correlator import build_report
+from .correlator import build_batch_report, build_report
 from .llm_client import evaluate_all
 from .prompts import PROMPT_VERSION, REPORT_EVAL_PROMPT_V1
 
@@ -151,6 +151,8 @@ def main() -> int:
 
     if args.batch:
         results: list[dict] = []
+        overall_per_llm: dict[str, list[float]] = {}
+        dim_per_llm: dict[str, dict[str, list[float]]] = {}
         lines = [line.strip() for line in args.batch.read_text().splitlines() if line.strip()]
         for i, line in enumerate(lines, 1):
             parts = line.split("|", 1)
@@ -161,9 +163,31 @@ def main() -> int:
                 out = run_once(vid, None, url, args.dry_run, args.persist)
                 results.append(out)
                 _print_human_from_out(out)
+                for llm, ev in out["evaluations"].items():
+                    overall_per_llm.setdefault(llm, []).append(float(ev["score_geral"]))
+                    dim_acc = dim_per_llm.setdefault(llm, {})
+                    for dim, v in ev.get("scores_por_dimensao", {}).items():
+                        dim_acc.setdefault(dim, []).append(float(v))
             except Exception as exc:
                 print(f"  ✗ ERROR: {exc}")
                 results.append({"video_id": vid, "error": str(exc)})
+
+        successful_n = len(next(iter(overall_per_llm.values()), []))
+        if successful_n >= 2:
+            print(f"\n=== BATCH AGGREGATE (N={successful_n}) ===")
+            batch_report = build_batch_report(overall_per_llm, dim_per_llm, successful_n)
+            print(f"mean_r_overall across batch: {batch_report.mean_r_overall:.3f}")
+            print(f"pairwise_r_overall: {batch_report.pairwise_r_overall}")
+            if batch_report.alerts:
+                print(f"⚠️  {len(batch_report.alerts)} batch-level alert(s)")
+            results.append({
+                "batch_aggregate": _report_to_dict(batch_report),
+                "n_videos": successful_n,
+                "n_attempted": len(lines),
+            })
+        else:
+            print(f"\n⚠️  Only {successful_n} successful runs — need >=2 for batch Pearson. Skipping aggregate.")
+
         if args.output_json:
             args.output_json.write_text(json.dumps(results, indent=2, ensure_ascii=False))
         return 0

@@ -83,20 +83,26 @@ def load_gui_scores(csv_path: str) -> dict[str, dict[str, float]]:
 
 
 def load_app_scores(supabase_url: str, supabase_key: str, video_ids: list[str]) -> dict[str, dict[str, float]]:
-    """Returns {video_id: {dimension: score}}"""
+    """Returns {video_id: {dimension: score}}.
+
+    Note: the rubric's `video_id` column holds the Supabase `evaluations.id`
+    UUID (1 video upload = 1 evaluation row). Scores live in
+    `aggregated_metrics`, which has a UNIQUE `evaluation_id` FK to
+    `evaluations.id`, so a single query by `evaluation_id` returns the
+    canonical scoring row for that video.
+    """
     client = create_client(supabase_url, supabase_key)
     result = {}
     for vid in video_ids:
         res = (
-            client.table("evaluations")
-            .select("video_id, overall_score, dimension_scores")
-            .eq("video_id", vid)
-            .order("created_at", desc=True)
+            client.table("aggregated_metrics")
+            .select("overall_score, dimension_scores")
+            .eq("evaluation_id", vid)
             .limit(1)
             .execute()
         )
         if not res.data:
-            print(f"WARN: no evaluation found for video {vid}", file=sys.stderr)
+            print(f"WARN: no aggregated_metrics for evaluation {vid}", file=sys.stderr)
             continue
         row = res.data[0]
         scores = dict(row.get("dimension_scores") or {})

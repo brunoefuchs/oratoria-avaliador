@@ -24,7 +24,7 @@ OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 # Model mapping — ajuste via env vars se nomes mudarem.
 MODELS = {
     "gemini": os.environ.get("CONVERGENCE_GEMINI_MODEL", "google/gemini-2.5-flash"),
-    "claude": os.environ.get("CONVERGENCE_CLAUDE_MODEL", "anthropic/claude-opus-4.1"),
+    "claude": os.environ.get("CONVERGENCE_CLAUDE_MODEL", "anthropic/claude-opus-4.6"),
     "gpt": os.environ.get("CONVERGENCE_GPT_MODEL", "openai/gpt-5"),
 }
 
@@ -101,8 +101,8 @@ def evaluate_with_llm(
     """
     if llm not in MODELS:
         raise ValueError(f"Unknown LLM {llm!r}. Options: {list(MODELS)}")
-    if not (video_path or video_url):
-        raise ValueError("Provide either video_path or video_url")
+    if bool(video_path) == bool(video_url):
+        raise ValueError("Provide exactly one of video_path or video_url (not neither, not both)")
 
     key = api_key or os.environ.get("OPENROUTER_API_KEY")
     if not key:
