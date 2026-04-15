@@ -114,7 +114,9 @@ def _selecionar_exercicios(aggregated: dict) -> list:
     sub_scores_voz = voice_metrics.get("sub_scores", {})
 
     if sub_scores_voz.get("velocidade_score", 100) < 50:
-        exercicios_selecionados.append(("velocidade_travada", sub_scores_voz.get("velocidade_score", 0)))
+        exercicios_selecionados.append(
+            ("velocidade_travada", sub_scores_voz.get("velocidade_score", 0))
+        )
     if sub_scores_voz.get("volume_score", 100) < 50:
         exercicios_selecionados.append(("volume_travado", sub_scores_voz.get("volume_score", 0)))
     if sub_scores_voz.get("pitch_score", 100) < 50:
@@ -122,9 +124,13 @@ def _selecionar_exercicios(aggregated: dict) -> list:
     if sub_scores_voz.get("pausa_score", 100) < 40:
         pausas = voice_metrics.get("pausas", {})
         if pausas.get("hesitacao_por_min", 0) > 4:
-            exercicios_selecionados.append(("pausas_excessivas", sub_scores_voz.get("pausa_score", 0)))
+            exercicios_selecionados.append(
+                ("pausas_excessivas", sub_scores_voz.get("pausa_score", 0))
+            )
         else:
-            exercicios_selecionados.append(("pausas_ausentes", sub_scores_voz.get("pausa_score", 0)))
+            exercicios_selecionados.append(
+                ("pausas_ausentes", sub_scores_voz.get("pausa_score", 0))
+            )
 
     # Gestual
     gesture_metrics = detailed.get("gesture", {})
@@ -139,7 +145,9 @@ def _selecionar_exercicios(aggregated: dict) -> list:
 
     if gesture_sub.get("gesticulacao", 100) < 50:
         if gesture_metrics.get("gesto_repetitivo", False):
-            exercicios_selecionados.append(("gestos_repetitivos", gesture_sub.get("gesticulacao", 0)))
+            exercicios_selecionados.append(
+                ("gestos_repetitivos", gesture_sub.get("gesticulacao", 0))
+            )
         else:
             exercicios_selecionados.append(("gestos_ausentes", gesture_sub.get("gesticulacao", 0)))
 
@@ -192,12 +200,14 @@ def generate_coaching_plan(aggregated: dict) -> list:
     exercicios = _selecionar_exercicios(aggregated)
 
     if not exercicios:
-        return [{
-            "semana": "1-12",
-            "foco": "Pratica de manutencao",
-            "exercicio": "Continue gravando e revisando suas apresentacoes semanalmente. Mantenha a variedade em todas as dimensoes.",
-            "meta": "Manter scores acima de 70 em todas as dimensoes.",
-        }]
+        return [
+            {
+                "semana": "1-12",
+                "foco": "Pratica de manutencao",
+                "exercicio": "Continue gravando e revisando suas apresentacoes semanalmente. Mantenha a variedade em todas as dimensoes.",
+                "meta": "Manter scores acima de 70 em todas as dimensoes.",
+            }
+        ]
 
     plano = []
     semana_atual = 1
@@ -227,30 +237,36 @@ def generate_coaching_plan(aggregated: dict) -> list:
         if "{arquetipo}" in exercicio_texto:
             arch_metrics = aggregated.get("detailed_metrics", {}).get("archetypes", {})
             ausentes = arch_metrics.get("ausentes", ["motivador"])
-            exercicio_texto = exercicio_texto.replace("{arquetipo}", ausentes[0] if ausentes else "motivador")
+            exercicio_texto = exercicio_texto.replace(
+                "{arquetipo}", ausentes[0] if ausentes else "motivador"
+            )
 
         if semana_inicio == semana_fim:
             label_semana = f"{semana_inicio}"
         else:
             label_semana = f"{semana_inicio}-{semana_fim}"
 
-        plano.append({
-            "semana": label_semana,
-            "foco": titulo,
-            "exercicio": exercicio_texto,
-            "meta": exercicio_info["meta"],
-        })
+        plano.append(
+            {
+                "semana": label_semana,
+                "foco": titulo,
+                "exercicio": exercicio_texto,
+                "meta": exercicio_info["meta"],
+            }
+        )
 
         semana_atual = semana_fim + 1
 
     # Se sobrou espaco, preencher com pratica integrada
     if semana_atual <= 12:
-        plano.append({
-            "semana": f"{semana_atual}-12",
-            "foco": "Integracao e Pratica Completa",
-            "exercicio": "Grave uma apresentacao de 5 minutos e revise com foco em TODAS as dimensoes trabalhadas. Uma dimensao por dia: segunda=voz, terca=gestual, quarta=postura, quinta=arquetipos, sexta=apresentacao completa.",
-            "meta": "Conseguir manter todas as melhorias simultaneamente por 5 minutos sem perder naturalidade.",
-        })
+        plano.append(
+            {
+                "semana": f"{semana_atual}-12",
+                "foco": "Integracao e Pratica Completa",
+                "exercicio": "Grave uma apresentacao de 5 minutos e revise com foco em TODAS as dimensoes trabalhadas. Uma dimensao por dia: segunda=voz, terca=gestual, quarta=postura, quinta=arquetipos, sexta=apresentacao completa.",
+                "meta": "Conseguir manter todas as melhorias simultaneamente por 5 minutos sem perder naturalidade.",
+            }
+        )
 
     logger.info(
         "coaching_plan_generated",

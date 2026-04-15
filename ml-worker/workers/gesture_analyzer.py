@@ -14,7 +14,7 @@ FACE_MODEL_PATH = "/tmp/mediapipe_models/face_landmarker.task"
 # Limiar para considerar gaze centrado (nariz alinhado entre olhos)
 GAZE_THRESHOLD = 0.35
 # Duracao ideal de contato visual por "fixacao" (segundos entre frames a 2fps)
-FIXACAO_MIN_FRAMES = 2   # 1s minimo
+FIXACAO_MIN_FRAMES = 2  # 1s minimo
 FIXACAO_MAX_FRAMES = 10  # 5s maximo antes de ficar desconfortavel
 
 
@@ -40,8 +40,10 @@ def _estimar_direcao_olhar(face_landmarks) -> dict:
     offset_normalizado_x = offset[0] / (dist_olhos + 1e-8)
     offset_normalizado_y = offset[1] / (dist_olhos + 1e-8)
 
-    centrado = (abs(offset_normalizado_x) < GAZE_THRESHOLD and
-                abs(offset_normalizado_y) < GAZE_THRESHOLD * 1.2)
+    centrado = (
+        abs(offset_normalizado_x) < GAZE_THRESHOLD
+        and abs(offset_normalizado_y) < GAZE_THRESHOLD * 1.2
+    )
 
     # Angulo vertical da cabeca (inclinacao)
     vetor_face = testa - queixo
@@ -158,7 +160,7 @@ def analyze_gestures(video_path: str) -> dict:
     maos_abertas_count = 0
     maos_fechadas_count = 0
     frames_com_mao_detectada = 0  # maos visiveis no frame
-    frames_com_gesto_ativo = 0    # maos COM MOVIMENTO significativo
+    frames_com_gesto_ativo = 0  # maos COM MOVIMENTO significativo
 
     # Tracking de posicao para medir MOVIMENTO real (nao so presenca)
     prev_wrist_positions = []  # posicoes do frame anterior
@@ -245,7 +247,9 @@ def analyze_gestures(video_path: str) -> dict:
     # =============================================
 
     # gesticulation_pct mede MOVIMENTO ATIVO das maos, nao apenas deteccao/presenca
-    gesticulation_pct = round(frames_com_gesto_ativo / max(1, total_frames) * 100, 1) if total_frames > 0 else 0.0
+    gesticulation_pct = (
+        round(frames_com_gesto_ativo / max(1, total_frames) * 100, 1) if total_frames > 0 else 0.0
+    )
     hand_visible_pct = round(frames_com_mao_detectada / max(1, total_frames) * 100, 1)
     eye_contact_pct = round(contato_visual_frames / max(1, face_detected_count) * 100, 1)
     olhar_baixo_pct = round(olhar_baixo_frames / max(1, face_detected_count) * 100, 1)
@@ -257,6 +261,7 @@ def analyze_gestures(video_path: str) -> dict:
     # Distribuicao do olhar (entropia — quao bem distribui entre direcoes)
     if direcoes_olhar:
         from collections import Counter
+
         contagem_direcoes = Counter(direcoes_olhar)
         total_direcoes = len(direcoes_olhar)
         probs = [c / total_direcoes for c in contagem_direcoes.values()]
@@ -332,9 +337,7 @@ def analyze_gestures(video_path: str) -> dict:
 
     # Confianca
     detection_rate = (
-        (hand_detected_count + face_detected_count) / (total_frames * 2)
-        if total_frames > 0
-        else 0
+        (hand_detected_count + face_detected_count) / (total_frames * 2) if total_frames > 0 else 0
     )
     if detection_rate > 0.5:
         confidence = "high"

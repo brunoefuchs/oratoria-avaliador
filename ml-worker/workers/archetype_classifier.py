@@ -213,10 +213,7 @@ def classify_archetypes(audio_path: str) -> dict:
     total = len(arquetipos_usados)
 
     # Distribuicao percentual
-    distribuicao = {
-        arq: round(count / total * 100, 1)
-        for arq, count in contagem.items()
-    }
+    distribuicao = {arq: round(count / total * 100, 1) for arq, count in contagem.items()}
 
     # Garantir todos os 4 presentes
     for arq in ["educador", "coach", "motivador", "amigo"]:
@@ -260,7 +257,9 @@ def classify_archetypes(audio_path: str) -> dict:
     elif trocas_por_minuto <= 5:
         cycling_score = 80 + (trocas_por_minuto - 2) * 7
     else:
-        cycling_score = max(60, 100 - (trocas_por_minuto - 5) * 10)  # Demais trocas = inconsistencia
+        cycling_score = max(
+            60, 100 - (trocas_por_minuto - 5) * 10
+        )  # Demais trocas = inconsistencia
 
     # 3. Anti-lock-in — peso 30%
     #    Penaliza concentracao excessiva em um arquetipo
@@ -275,11 +274,7 @@ def classify_archetypes(audio_path: str) -> dict:
     else:
         lockin_score = 100  # Distribuicao equilibrada
 
-    archetype_score = round(
-        diversidade_score * 0.40
-        + cycling_score * 0.30
-        + lockin_score * 0.30
-    )
+    archetype_score = round(diversidade_score * 0.40 + cycling_score * 0.30 + lockin_score * 0.30)
     archetype_score = max(0, min(100, archetype_score))
 
     logger.info(

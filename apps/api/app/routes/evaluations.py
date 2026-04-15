@@ -88,9 +88,7 @@ async def create_evaluation(video: UploadFile):
     # Dispatch to ML worker (fire-and-forget)
     import asyncio
 
-    asyncio.create_task(
-        dispatch_to_ml_worker(evaluation["id"], evaluation["video_url"])
-    )
+    asyncio.create_task(dispatch_to_ml_worker(evaluation["id"], evaluation["video_url"]))
 
     return JSONResponse(
         status_code=201,
@@ -154,12 +152,7 @@ async def get_evaluation_report(evaluation_id: str):
     )
 
     # Get report
-    report = (
-        supabase.table("reports")
-        .select("*")
-        .eq("evaluation_id", evaluation_id)
-        .execute()
-    )
+    report = supabase.table("reports").select("*").eq("evaluation_id", evaluation_id).execute()
 
     report_data = report.data[0] if report.data else {}
     agg_data = agg.data[0] if agg.data else {}
@@ -374,12 +367,14 @@ async def get_replay_data(evaluation_id: str):
         for cluster in metrics.get("clusters", []):
             start = cluster.get("inicio", 0)
             end = cluster.get("fim", start + 5)
-            events.append({
-                "type": "cluster",
-                "start": start,
-                "end": end,
-                "label": f"{cluster.get('quantidade', 3)} vicios em {round(end - start, 1)}s",
-            })
+            events.append(
+                {
+                    "type": "cluster",
+                    "start": start,
+                    "end": end,
+                    "label": f"{cluster.get('quantidade', 3)} vicios em {round(end - start, 1)}s",
+                }
+            )
             stats["total_clusters"] += 1
             # Marcar timestamps cobertos pelo cluster pra nao duplicar como filler isolado
             for t in range(int(start), int(end) + 1):
@@ -393,12 +388,14 @@ async def get_replay_data(evaluation_id: str):
             if int(ts) in cluster_timestamps:
                 continue
             word = filler.get("word", "?")
-            events.append({
-                "type": "filler",
-                "start": ts,
-                "end": ts + 0.5,
-                "label": f'"{word}"',
-            })
+            events.append(
+                {
+                    "type": "filler",
+                    "start": ts,
+                    "end": ts + 0.5,
+                    "label": f'"{word}"',
+                }
+            )
             stats["total_fillers"] += 1
 
     # ============================================================
@@ -418,23 +415,27 @@ async def get_replay_data(evaluation_id: str):
         for pausa in pausas.get("estrategicas", []):
             start = pausa.get("start", 0)
             end = pausa.get("end", start + 1)
-            events.append({
-                "type": "pausa_estrategica",
-                "start": start,
-                "end": end,
-                "label": f"Pausa estrategica ({round(end - start, 1)}s)",
-            })
+            events.append(
+                {
+                    "type": "pausa_estrategica",
+                    "start": start,
+                    "end": end,
+                    "label": f"Pausa estrategica ({round(end - start, 1)}s)",
+                }
+            )
             stats["pausas_estrategicas"] += 1
 
         for pausa in pausas.get("hesitacao", []):
             start = pausa.get("start", 0)
             end = pausa.get("end", start + 1)
-            events.append({
-                "type": "pausa_hesitacao",
-                "start": start,
-                "end": end,
-                "label": f"Hesitacao ({round(end - start, 1)}s)",
-            })
+            events.append(
+                {
+                    "type": "pausa_hesitacao",
+                    "start": start,
+                    "end": end,
+                    "label": f"Hesitacao ({round(end - start, 1)}s)",
+                }
+            )
             stats["pausas_hesitacao"] += 1
 
     # ============================================================
@@ -486,13 +487,12 @@ async def create_share(evaluation_id: str):
     )
 
     if existing.data:
-        return {"share_token": existing.data[0]["share_token"], "expires_at": existing.data[0]["expires_at"]}
+        return {
+            "share_token": existing.data[0]["share_token"],
+            "expires_at": existing.data[0]["expires_at"],
+        }
 
-    result = (
-        supabase.table("report_shares")
-        .insert({"evaluation_id": evaluation_id})
-        .execute()
-    )
+    result = supabase.table("report_shares").insert({"evaluation_id": evaluation_id}).execute()
 
     share = result.data[0]
     return {"share_token": share["share_token"], "expires_at": share["expires_at"]}
@@ -558,11 +558,13 @@ async def list_evaluations(user_token: str | None = None):
             .execute()
         )
         agg_data = agg.data[0] if agg.data else {}
-        results.append({
-            "id": ev["id"],
-            "created_at": ev["created_at"],
-            "overall_score": agg_data.get("overall_score", 0),
-            "dimension_scores": agg_data.get("dimension_scores", {}),
-        })
+        results.append(
+            {
+                "id": ev["id"],
+                "created_at": ev["created_at"],
+                "overall_score": agg_data.get("overall_score", 0),
+                "dimension_scores": agg_data.get("dimension_scores", {}),
+            }
+        )
 
     return {"evaluations": results}

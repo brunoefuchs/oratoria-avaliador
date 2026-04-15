@@ -29,32 +29,54 @@ TECNICAS = [
         "id": "dado_chocante",
         "label": "Dado / Estatistica",
         "descricao": "Voce usou dados numericos para gerar impacto na abertura",
-        "patterns": [r'\b\d+[%]?\b', r'\b\d+[\.,]\d+\b'],
-        "keywords": [r'por ?cento', r'porcento', r'bilh[oõ]', r'milh[oõ]', r'mil\b', r'metade', r'dobro', r'triplo'],
+        "patterns": [r"\b\d+[%]?\b", r"\b\d+[\.,]\d+\b"],
+        "keywords": [
+            r"por ?cento",
+            r"porcento",
+            r"bilh[oõ]",
+            r"milh[oõ]",
+            r"mil\b",
+            r"metade",
+            r"dobro",
+            r"triplo",
+        ],
     },
     {
         "id": "quebra_gelo",
         "label": "Quebra-Gelo",
         "descricao": "Voce interagiu diretamente com a audiencia — gera conexao imediata",
-        "patterns": [r'quem aqui', r'levant[ae]m?\s+a\s+m[aã]o', r'voc[eê]s j[aá]', r'quantos de voc[eê]s'],
+        "patterns": [
+            r"quem aqui",
+            r"levant[ae]m?\s+a\s+m[aã]o",
+            r"voc[eê]s j[aá]",
+            r"quantos de voc[eê]s",
+        ],
     },
     {
         "id": "gancho_historia",
         "label": "Gancho com Historia",
         "descricao": "Voce abriu com uma narrativa — historias ativam oxitocina (confianca)",
-        "patterns": [r'quando eu', r'h[aá] \d+ anos', r'um dia', r'lembro quando', r'imagine', r'era uma vez', r'deixa eu te contar'],
+        "patterns": [
+            r"quando eu",
+            r"h[aá] \d+ anos",
+            r"um dia",
+            r"lembro quando",
+            r"imagine",
+            r"era uma vez",
+            r"deixa eu te contar",
+        ],
     },
     {
         "id": "conexao_audiencia",
         "label": "Conexao Direta",
         "descricao": "Voce falou diretamente PARA a audiencia — cria sensacao de conversa pessoal",
-        "patterns": [r'voc[eê] que est[aá]', r'voc[eê]s que', r'pra voc[eê] que', r'voce que ta'],
+        "patterns": [r"voc[eê] que est[aá]", r"voc[eê]s que", r"pra voc[eê] que", r"voce que ta"],
     },
     {
         "id": "citacao_autoridade",
         "label": "Citacao de Autoridade",
         "descricao": "Voce referenciou uma autoridade — transfere credibilidade",
-        "patterns": [r'como disse', r'segundo\s+\w+', r'nas palavras de'],
+        "patterns": [r"como disse", r"segundo\s+\w+", r"nas palavras de"],
     },
 ]
 
@@ -91,13 +113,21 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
     # Reflexiva: faz o ouvinte PENSAR ("ja parou pra pensar...", "por que sera que...")
     # Casual: pergunta factual simples ("voce sabe...", "como funciona...")
     PATTERNS_REFLEXIVA = [
-        r'j[aá] parou', r'j[aá] pensou', r'j[aá] se perguntou',
-        r'ser[aá] que', r'por que ser[aá]', r'imagine', r'e se',
-        r'o que aconteceria', r'como seria',
+        r"j[aá] parou",
+        r"j[aá] pensou",
+        r"j[aá] se perguntou",
+        r"ser[aá] que",
+        r"por que ser[aá]",
+        r"imagine",
+        r"e se",
+        r"o que aconteceria",
+        r"como seria",
     ]
     PATTERNS_CASUAL = [
-        r'voc[eê] sabe', r'como funciona', r'voc[eê] conhece',
-        r'sab[ei]a que',
+        r"voc[eê] sabe",
+        r"como funciona",
+        r"voc[eê] conhece",
+        r"sab[ei]a que",
     ]
 
     has_question = "?" in opening_text
@@ -121,26 +151,32 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
             label = "Pergunta"
             descricao = "Voce usou uma pergunta na abertura"
 
-        tecnicas_detectadas.append({
-            "tecnica": "pergunta_reflexiva" if is_reflexiva else "pergunta_casual",
-            "label": label,
-            "descricao": descricao,
-            "exemplo": exemplo,
-            "qualidade": qualidade,
-        })
+        tecnicas_detectadas.append(
+            {
+                "tecnica": "pergunta_reflexiva" if is_reflexiva else "pergunta_casual",
+                "label": label,
+                "descricao": descricao,
+                "exemplo": exemplo,
+                "qualidade": qualidade,
+            }
+        )
         tecnicas_ids.add("pergunta_reflexiva" if is_reflexiva else "pergunta_casual")
 
     # 2. Dado chocante
-    numeros = re.findall(r'\b\d+[%]?\b|\b\d+[\.,]\d+\b', opening_text)
-    palavras_impacto = re.findall(r'por ?cento|porcento|bilh[oõ]|milh[oõ]|mil\b|metade|dobro|triplo', opening_text)
+    numeros = re.findall(r"\b\d+[%]?\b|\b\d+[\.,]\d+\b", opening_text)
+    palavras_impacto = re.findall(
+        r"por ?cento|porcento|bilh[oõ]|milh[oõ]|mil\b|metade|dobro|triplo", opening_text
+    )
     if numeros or palavras_impacto:
-        tecnicas_detectadas.append({
-            "tecnica": "dado_chocante",
-            "label": "Dado / Estatistica",
-            "descricao": "Voce usou dados numericos para gerar impacto na abertura",
-            "exemplo": f"Numeros usados: {', '.join(numeros[:3])}",
-            "qualidade": "boa",
-        })
+        tecnicas_detectadas.append(
+            {
+                "tecnica": "dado_chocante",
+                "label": "Dado / Estatistica",
+                "descricao": "Voce usou dados numericos para gerar impacto na abertura",
+                "exemplo": f"Numeros usados: {', '.join(numeros[:3])}",
+                "qualidade": "boa",
+            }
+        )
         tecnicas_ids.add("dado_chocante")
 
     # 3-6. Pattern-based tecnicas
@@ -153,13 +189,15 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
         for pattern in tecnica_def["patterns"]:
             match = re.search(pattern, opening_text, re.IGNORECASE)
             if match:
-                tecnicas_detectadas.append({
-                    "tecnica": tecnica_def["id"],
-                    "label": tecnica_def["label"],
-                    "descricao": tecnica_def["descricao"],
-                    "exemplo": match.group()[:80],
-                    "qualidade": "boa",
-                })
+                tecnicas_detectadas.append(
+                    {
+                        "tecnica": tecnica_def["id"],
+                        "label": tecnica_def["label"],
+                        "descricao": tecnica_def["descricao"],
+                        "exemplo": match.group()[:80],
+                        "qualidade": "boa",
+                    }
+                )
                 tecnicas_ids.add(tecnica_def["id"])
                 break
 
@@ -171,20 +209,21 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
             if volume_windows and len(volume_windows) > 1:
                 media_vol = sum(volume_windows) / len(volume_windows)
                 if volume_windows[0] >= media_vol:
-                    tecnicas_detectadas.append({
-                        "tecnica": "frase_impacto",
-                        "label": "Frase de Impacto",
-                        "descricao": "Voce abriu com uma frase curta e forte — captura atencao imediata",
-                        "exemplo": primeira_frase[:80],
-                        "qualidade": "boa",
-                    })
+                    tecnicas_detectadas.append(
+                        {
+                            "tecnica": "frase_impacto",
+                            "label": "Frase de Impacto",
+                            "descricao": "Voce abriu com uma frase curta e forte — captura atencao imediata",
+                            "exemplo": primeira_frase[:80],
+                            "qualidade": "boa",
+                        }
+                    )
                     tecnicas_ids.add("frase_impacto")
 
     # Score de abertura — distinguir qualidade das tecnicas
     n = len(tecnicas_detectadas)
     n_boas = sum(1 for t in tecnicas_detectadas if t.get("qualidade") == "boa")
     n_fracas = sum(1 for t in tecnicas_detectadas if t.get("qualidade") == "fraca")
-    has_casual_only = "pergunta_casual" in tecnicas_ids and "pergunta_reflexiva" not in tecnicas_ids
 
     if n == 0:
         score = 20
@@ -198,7 +237,7 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
     elif n_boas == 1:
         score = 60
         diagnostico = "abertura_razoavel"
-        feedback = f"Voce usou 1 tecnica forte ({[t['label'] for t in tecnicas_detectadas if t.get('qualidade')=='boa'][0]}). Bom começo, mas ha espaco pra mais impacto."
+        feedback = f"Voce usou 1 tecnica forte ({[t['label'] for t in tecnicas_detectadas if t.get('qualidade') == 'boa'][0]}). Bom começo, mas ha espaco pra mais impacto."
     elif n_boas == 2:
         score = 85
         diagnostico = "abertura_forte"
@@ -214,13 +253,23 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
 
     # Sugestoes para tecnicas nao usadas
     tecnicas_ausentes = []
-    todas_tecnicas = {"pergunta_reflexiva", "dado_chocante", "quebra_gelo", "gancho_historia", "conexao_audiencia", "frase_impacto", "citacao_autoridade"}
+    todas_tecnicas = {
+        "pergunta_reflexiva",
+        "dado_chocante",
+        "quebra_gelo",
+        "gancho_historia",
+        "conexao_audiencia",
+        "frase_impacto",
+        "citacao_autoridade",
+    }
     for t_id in todas_tecnicas - tecnicas_ids:
         if t_id in SUGESTOES and len(tecnicas_ausentes) < 3:
-            tecnicas_ausentes.append({
-                "tecnica": t_id,
-                "sugestao": SUGESTOES[t_id],
-            })
+            tecnicas_ausentes.append(
+                {
+                    "tecnica": t_id,
+                    "sugestao": SUGESTOES[t_id],
+                }
+            )
 
     logger.info(
         "opening_analysis_complete",

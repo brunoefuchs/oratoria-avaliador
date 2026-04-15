@@ -84,29 +84,35 @@ def _detectar_trechos_monotonos(
     inicio_monotono = None
 
     for i in range(1, len(valores_janela)):
-        variacao = abs(valores_janela[i] - valores_janela[i - 1]) / (abs(valores_janela[i - 1]) + 1e-8)
+        variacao = abs(valores_janela[i] - valores_janela[i - 1]) / (
+            abs(valores_janela[i - 1]) + 1e-8
+        )
 
         if variacao < limiar_cv:
             if inicio_monotono is None:
                 inicio_monotono = i - 1
         else:
             if inicio_monotono is not None and (i - inicio_monotono) >= 3:
-                trechos.append({
-                    "inicio_segundos": inicio_monotono * janela_segundos,
-                    "fim_segundos": i * janela_segundos,
-                    "duracao_segundos": (i - inicio_monotono) * janela_segundos,
-                    "num_janelas": i - inicio_monotono,
-                })
+                trechos.append(
+                    {
+                        "inicio_segundos": inicio_monotono * janela_segundos,
+                        "fim_segundos": i * janela_segundos,
+                        "duracao_segundos": (i - inicio_monotono) * janela_segundos,
+                        "num_janelas": i - inicio_monotono,
+                    }
+                )
             inicio_monotono = None
 
     # Checar se terminou monotono
     if inicio_monotono is not None and (len(valores_janela) - inicio_monotono) >= 3:
-        trechos.append({
-            "inicio_segundos": inicio_monotono * janela_segundos,
-            "fim_segundos": len(valores_janela) * janela_segundos,
-            "duracao_segundos": (len(valores_janela) - inicio_monotono) * janela_segundos,
-            "num_janelas": len(valores_janela) - inicio_monotono,
-        })
+        trechos.append(
+            {
+                "inicio_segundos": inicio_monotono * janela_segundos,
+                "fim_segundos": len(valores_janela) * janela_segundos,
+                "duracao_segundos": (len(valores_janela) - inicio_monotono) * janela_segundos,
+                "num_janelas": len(valores_janela) - inicio_monotono,
+            }
+        )
 
     return trechos
 
@@ -156,17 +162,13 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> dict:
     trechos_monotonos_pitch = _detectar_trechos_monotonos(pitch_janelas, 0.03, janela_segundos)
 
     todos_trechos = (
-        trechos_monotonos_velocidade
-        + trechos_monotonos_volume
-        + trechos_monotonos_pitch
+        trechos_monotonos_velocidade + trechos_monotonos_volume + trechos_monotonos_pitch
     )
 
     # Tempo total monotono (segundos)
     tempo_monotono_total = sum(t["duracao_segundos"] for t in todos_trechos)
     duracao_audio = voice.get("audio_duration_seconds", 1)
-    pct_tempo_monotono = round(
-        min(100, tempo_monotono_total / max(1, duracao_audio) * 100), 1
-    )
+    pct_tempo_monotono = round(min(100, tempo_monotono_total / max(1, duracao_audio) * 100), 1)
 
     # =============================================
     # SCORE GERAL DE VARIEDADE (0-100)
@@ -175,9 +177,9 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> dict:
     # Esse score mede quantas teclas voce esta usando.
 
     variety_score = round(
-        variacao_velocidade["score"] * 0.30   # Velocidade e o mais perceptivel
-        + variacao_volume["score"] * 0.25     # Volume cria peaks and troughs
-        + variacao_pitch["score"] * 0.25      # Entonacao da vida a fala
+        variacao_velocidade["score"] * 0.30  # Velocidade e o mais perceptivel
+        + variacao_volume["score"] * 0.25  # Volume cria peaks and troughs
+        + variacao_pitch["score"] * 0.25  # Entonacao da vida a fala
         + variacao_gesticulacao["score"] * 0.20  # Gestual complementa
     )
 

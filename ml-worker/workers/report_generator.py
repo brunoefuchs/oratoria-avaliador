@@ -165,35 +165,73 @@ def _build_context_section(context: dict | None) -> str:
     if not context:
         return ""
 
-    sentimento_map = {1: "muito nervoso", 2: "nervoso", 3: "neutro", 4: "confiante", 5: "muito confiante"}
+    sentimento_map = {
+        1: "muito nervoso",
+        2: "nervoso",
+        3: "neutro",
+        4: "confiante",
+        5: "muito confiante",
+    }
 
     lines = ["\n\n## CONTEXTO DO ORADOR (questionario pre-avaliacao)"]
 
     if context.get("sentimento"):
-        lines.append(f"- Sentimento ao gravar: {sentimento_map.get(context['sentimento'], 'desconhecido')} ({context['sentimento']}/5)")
+        lines.append(
+            f"- Sentimento ao gravar: {sentimento_map.get(context['sentimento'], 'desconhecido')} ({context['sentimento']}/5)"
+        )
     if context.get("maior_medo"):
-        medos = context["maior_medo"] if isinstance(context["maior_medo"], list) else [context["maior_medo"]]
+        medos = (
+            context["maior_medo"]
+            if isinstance(context["maior_medo"], list)
+            else [context["maior_medo"]]
+        )
         lines.append(f"- Maiores medos: {', '.join(medos)}")
     if context.get("motivacao"):
-        motivacoes = context["motivacao"] if isinstance(context["motivacao"], list) else [context["motivacao"]]
+        motivacoes = (
+            context["motivacao"]
+            if isinstance(context["motivacao"], list)
+            else [context["motivacao"]]
+        )
         lines.append(f"- Motivacao para melhorar: {', '.join(motivacoes)}")
     if context.get("avaliado_antes") is not None:
-        lines.append(f"- Ja se avaliou antes: {'sim' if context['avaliado_antes'] else 'nao, primeira vez'}")
+        lines.append(
+            f"- Ja se avaliou antes: {'sim' if context['avaliado_antes'] else 'nao, primeira vez'}"
+        )
     if context.get("desejo_transmitir"):
-        desejos = context["desejo_transmitir"] if isinstance(context["desejo_transmitir"], list) else [context["desejo_transmitir"]]
+        desejos = (
+            context["desejo_transmitir"]
+            if isinstance(context["desejo_transmitir"], list)
+            else [context["desejo_transmitir"]]
+        )
         lines.append(f"- Deseja transmitir: {', '.join(desejos)}")
     if context.get("desejo_melhorar"):
-        melhorar = context["desejo_melhorar"] if isinstance(context["desejo_melhorar"], list) else [context["desejo_melhorar"]]
+        melhorar = (
+            context["desejo_melhorar"]
+            if isinstance(context["desejo_melhorar"], list)
+            else [context["desejo_melhorar"]]
+        )
         lines.append(f"- Quer melhorar: {', '.join(melhorar)}")
 
     lines.append("")
     lines.append("INSTRUCOES DE ADAPTACAO:")
-    lines.append("1. SENTIMENTO: Se nervoso (1-2), tom EXTRA encorajador. Se confiante (4-5), mais direto/desafiador.")
-    lines.append("2. MEDOS: Enderece pelo menos 1 medo mencionado no feedback — mostre que a avaliacao ajuda a superar.")
-    lines.append("3. MOTIVACAO: Conecte o feedback ao MOTIVO do orador. Se quer 'vender mais', linke melhoria a resultado.")
-    lines.append("4. PRIMEIRA VEZ: Se nao se avaliou antes, explique brevemente o que cada metrica significa.")
-    lines.append("5. DESEJO_TRANSMITIR: Avalie se a comunicacao REALMENTE transmite o que o orador quer. Se quer 'autoridade' mas usa linguagem hesitante, aponte o gap.")
-    lines.append("6. DESEJO_MELHORAR: Priorize feedback nas dimensoes que o orador PEDIU. Comece por elas.")
+    lines.append(
+        "1. SENTIMENTO: Se nervoso (1-2), tom EXTRA encorajador. Se confiante (4-5), mais direto/desafiador."
+    )
+    lines.append(
+        "2. MEDOS: Enderece pelo menos 1 medo mencionado no feedback — mostre que a avaliacao ajuda a superar."
+    )
+    lines.append(
+        "3. MOTIVACAO: Conecte o feedback ao MOTIVO do orador. Se quer 'vender mais', linke melhoria a resultado."
+    )
+    lines.append(
+        "4. PRIMEIRA VEZ: Se nao se avaliou antes, explique brevemente o que cada metrica significa."
+    )
+    lines.append(
+        "5. DESEJO_TRANSMITIR: Avalie se a comunicacao REALMENTE transmite o que o orador quer. Se quer 'autoridade' mas usa linguagem hesitante, aponte o gap."
+    )
+    lines.append(
+        "6. DESEJO_MELHORAR: Priorize feedback nas dimensoes que o orador PEDIU. Comece por elas."
+    )
 
     return "\n".join(lines)
 
@@ -309,16 +347,76 @@ def _build_cross_insights(aggregated: dict) -> list[str]:
 def _rank_problems(aggregated: dict) -> list[dict]:
     """Rankeia problemas do orador por impacto real (weight × severity)."""
     PROBLEM_DEFS = [
-        {"key": "voice.cv_volume", "threshold": 0.05, "op": "<", "weight": 10, "label": "Volume uniforme (sem peaks and troughs)"},
-        {"key": "variety.pct_tempo_monotono", "threshold": 50, "op": ">", "weight": 10, "label": "Fala previsivel/monotona"},
-        {"key": "voice.cv_pitch", "threshold": 0.08, "op": "<", "weight": 9, "label": "Tom de voz sem variacao"},
-        {"key": "archetypes.lock_in", "threshold": True, "op": "==", "weight": 8, "label": "Lock-in em 1 arquetipo vocal"},
-        {"key": "voice.wpm", "threshold": 170, "op": ">", "weight": 7, "label": "Velocidade de fala acima do ideal"},
-        {"key": "gesture.zona_ideal_pct", "threshold": 30, "op": "<", "weight": 6, "label": "Gestos fora da zona de poder"},
-        {"key": "voice.pausas.ratio_estrategicas", "threshold": 0.2, "op": "<", "weight": 6, "label": "Poucas pausas estrategicas"},
-        {"key": "gesture.gesto_repetitivo", "threshold": True, "op": "==", "weight": 5, "label": "Gesto repetitivo (default gestual)"},
-        {"key": "fillers.fillers_per_minute", "threshold": 4, "op": ">", "weight": 5, "label": "Vicios de linguagem frequentes"},
-        {"key": "posture.grounding_score", "threshold": 50, "op": "<", "weight": 4, "label": "Instabilidade corporal"},
+        {
+            "key": "voice.cv_volume",
+            "threshold": 0.05,
+            "op": "<",
+            "weight": 10,
+            "label": "Volume uniforme (sem peaks and troughs)",
+        },
+        {
+            "key": "variety.pct_tempo_monotono",
+            "threshold": 50,
+            "op": ">",
+            "weight": 10,
+            "label": "Fala previsivel/monotona",
+        },
+        {
+            "key": "voice.cv_pitch",
+            "threshold": 0.08,
+            "op": "<",
+            "weight": 9,
+            "label": "Tom de voz sem variacao",
+        },
+        {
+            "key": "archetypes.lock_in",
+            "threshold": True,
+            "op": "==",
+            "weight": 8,
+            "label": "Lock-in em 1 arquetipo vocal",
+        },
+        {
+            "key": "voice.wpm",
+            "threshold": 170,
+            "op": ">",
+            "weight": 7,
+            "label": "Velocidade de fala acima do ideal",
+        },
+        {
+            "key": "gesture.zona_ideal_pct",
+            "threshold": 30,
+            "op": "<",
+            "weight": 6,
+            "label": "Gestos fora da zona de poder",
+        },
+        {
+            "key": "voice.pausas.ratio_estrategicas",
+            "threshold": 0.2,
+            "op": "<",
+            "weight": 6,
+            "label": "Poucas pausas estrategicas",
+        },
+        {
+            "key": "gesture.gesto_repetitivo",
+            "threshold": True,
+            "op": "==",
+            "weight": 5,
+            "label": "Gesto repetitivo (default gestual)",
+        },
+        {
+            "key": "fillers.fillers_per_minute",
+            "threshold": 4,
+            "op": ">",
+            "weight": 5,
+            "label": "Vicios de linguagem frequentes",
+        },
+        {
+            "key": "posture.grounding_score",
+            "threshold": 50,
+            "op": "<",
+            "weight": 4,
+            "label": "Instabilidade corporal",
+        },
     ]
 
     metrics = aggregated.get("detailed_metrics", {})
@@ -357,17 +455,27 @@ def _rank_problems(aggregated: dict) -> list[dict]:
                 severity = 1.0
 
             priority = defn["weight"] * severity
-            level = "CRITICO" if priority > 8 else "ALTO" if priority > 5 else "MEDIO" if priority > 3 else "BAIXO"
+            level = (
+                "CRITICO"
+                if priority > 8
+                else "ALTO"
+                if priority > 5
+                else "MEDIO"
+                if priority > 3
+                else "BAIXO"
+            )
 
-            problems.append({
-                "label": defn["label"],
-                "value": value,
-                "threshold": threshold,
-                "weight": defn["weight"],
-                "severity": round(severity, 2),
-                "priority": round(priority, 2),
-                "level": level,
-            })
+            problems.append(
+                {
+                    "label": defn["label"],
+                    "value": value,
+                    "threshold": threshold,
+                    "weight": defn["weight"],
+                    "severity": round(severity, 2),
+                    "priority": round(priority, 2),
+                    "level": level,
+                }
+            )
 
     problems.sort(key=lambda p: p["priority"], reverse=True)
     return problems[:6]
@@ -417,7 +525,9 @@ def generate_report(aggregated: dict, context: dict | None = None) -> dict:
     if problems:
         prompt += "\n\n## HIERARQUIA DE PROBLEMAS (rankeados por impacto — 80/20)\n"
         for i, p in enumerate(problems, 1):
-            prompt += f"#{i} {p['level']} — {p['label']} (valor: {p['value']}, ideal: {p['threshold']})\n"
+            prompt += (
+                f"#{i} {p['level']} — {p['label']} (valor: {p['value']}, ideal: {p['threshold']})\n"
+            )
         prompt += "\nINSTRUCAO: concentre 80% do feedback nos problemas #1 e #2. O orador SAI com 1 prioridade: o problema #1.\n"
 
     # Insights cruzados
@@ -432,7 +542,9 @@ def generate_report(aggregated: dict, context: dict | None = None) -> dict:
     identity = aggregated.get("identity", {})
     if identity.get("score") is not None and identity.get("diagnostico") != "failed":
         prompt += "\n\n## IDENTIDADE COMUNICATIVA DO ORADOR\n"
-        prompt += f"Score de identidade: {identity['score']}/100 ({identity.get('diagnostico', '')})\n"
+        prompt += (
+            f"Score de identidade: {identity['score']}/100 ({identity.get('diagnostico', '')})\n"
+        )
         prompt += f"Linguagem de autoridade: {identity.get('autoridade_count', 0)} marcadores ({identity.get('autoridade_ratio', 0):.0%})\n"
         prompt += f"Linguagem de vitima: {identity.get('vitima_count', 0)} marcadores\n"
         total_vicios = identity.get("total_vicios", 0)

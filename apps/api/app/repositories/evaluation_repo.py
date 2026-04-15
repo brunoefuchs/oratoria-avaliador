@@ -46,15 +46,11 @@ async def get_evaluation(evaluation_id: str) -> dict | None:
 
 async def update_evaluation(evaluation_id: str, updates: dict) -> dict | None:
     supabase = _get_supabase()
-    result = (
-        supabase.table("evaluations").update(updates).eq("id", evaluation_id).execute()
-    )
+    result = supabase.table("evaluations").update(updates).eq("id", evaluation_id).execute()
     return result.data[0] if result.data else None
 
 
 def upload_video(file_bytes: bytes, path: str, content_type: str) -> str:
     supabase = _get_supabase()
-    supabase.storage.from_("videos").upload(
-        path, file_bytes, {"content-type": content_type}
-    )
+    supabase.storage.from_("videos").upload(path, file_bytes, {"content-type": content_type})
     return path

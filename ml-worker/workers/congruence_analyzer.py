@@ -40,7 +40,9 @@ CONTRADICOES = [
 ]
 
 
-def _check_condition(metrics: dict, dimension: str, metric_key: str, op: str, threshold: float) -> bool:
+def _check_condition(
+    metrics: dict, dimension: str, metric_key: str, op: str, threshold: float
+) -> bool:
     """Verifica se uma condicao e atendida nas metricas."""
     dim_metrics = metrics.get(dimension, {})
     value = dim_metrics.get(metric_key)
@@ -71,11 +73,13 @@ def analyze_congruence(detailed_metrics: dict) -> dict:
         c2_match = _check_condition(detailed_metrics, c2_dim, c2_key, c2_op, c2_thresh)
 
         if c1_match and c2_match:
-            contradicoes_detectadas.append({
-                "id": regra["id"],
-                "descricao": regra["descricao"],
-                "penalidade": regra["penalidade"],
-            })
+            contradicoes_detectadas.append(
+                {
+                    "id": regra["id"],
+                    "descricao": regra["descricao"],
+                    "penalidade": regra["penalidade"],
+                }
+            )
             total_penalidade += regra["penalidade"]
 
     score = max(0, min(100, 100 - total_penalidade))

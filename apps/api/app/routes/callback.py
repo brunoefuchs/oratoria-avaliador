@@ -26,9 +26,7 @@ async def status_update(
     if x_callback_secret != settings.callback_secret:
         raise HTTPException(status_code=403, detail="Invalid callback secret")
 
-    await evaluation_repo.update_evaluation(
-        evaluation_id, {"substatus": body.substatus}
-    )
+    await evaluation_repo.update_evaluation(evaluation_id, {"substatus": body.substatus})
     return {"ok": True}
 
 

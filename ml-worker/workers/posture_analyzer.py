@@ -165,7 +165,7 @@ def analyze_posture(video_path: str) -> dict:
             right_hip = np.array([lm[24].x, lm[24].y])
 
             # Visibilidade do quadril (detecta video de busto)
-            hip_vis = (getattr(lm[23], 'visibility', 0) + getattr(lm[24], 'visibility', 0)) / 2
+            hip_vis = (getattr(lm[23], "visibility", 0) + getattr(lm[24], "visibility", 0)) / 2
             hip_visibility_scores.append(hip_vis)
             nose = np.array([lm[0].x, lm[0].y])
 
