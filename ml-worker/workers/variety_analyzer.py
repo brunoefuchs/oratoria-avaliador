@@ -316,13 +316,19 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> WorkerResult:
             return WorkerFailure(
                 dimension="variety",
                 dimension_status="skipped",
-                failure_reason="upstream_dependency_failed: voice_analyzer nao produziu dados validos",
+                failure_reason=(
+                    "upstream_dependency_failed: "
+                    "voice_analyzer nao produziu dados validos"
+                ),
             )
         if _upstream_failed(gesture_result):
             return WorkerFailure(
                 dimension="variety",
                 dimension_status="skipped",
-                failure_reason="upstream_dependency_failed: gesture_analyzer nao produziu dados validos",
+                failure_reason=(
+                    "upstream_dependency_failed: "
+                    "gesture_analyzer nao produziu dados validos"
+                ),
             )
 
         voice = voice_result.get("metrics", voice_result)
@@ -331,7 +337,10 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> WorkerResult:
             return WorkerFailure(
                 dimension="variety",
                 dimension_status="insufficient_data",
-                failure_reason="audio_duration_seconds ausente ou zero — analise temporal impossivel",
+                failure_reason=(
+                    "audio_duration_seconds ausente ou zero "
+                    "— analise temporal impossivel"
+                ),
             )
 
         result_dict = _compute_variety_metrics(voice_result, gesture_result)

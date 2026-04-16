@@ -4,6 +4,8 @@ import mediapipe as mp
 import numpy as np
 import structlog
 
+from contracts import WorkerResult
+from workers._truth_contract_helpers import wrap_worker_result
 from workers.posture_analyzer import extract_frames
 
 logger = structlog.get_logger()
@@ -432,7 +434,6 @@ def _compute_gesture_metrics(video_path: str) -> dict:
 
 
 # Story 8.2 — Truth Contract
-from workers._truth_contract_helpers import wrap_worker_result
 
 
 def analyze_gestures_legacy(video_path: str) -> dict:

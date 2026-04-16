@@ -2,6 +2,9 @@ import re
 
 import structlog
 
+from contracts import WorkerResult
+from workers._truth_contract_helpers import wrap_worker_result
+
 logger = structlog.get_logger()
 
 # Muletas retoticas (fim de frase, habito social — menos graves)
@@ -287,7 +290,6 @@ def _compute_filler_metrics(transcription: dict) -> dict:
 
 
 # Story 8.2 — Truth Contract
-from workers._truth_contract_helpers import wrap_worker_result
 
 
 def detect_fillers_legacy(transcription: dict) -> dict:
