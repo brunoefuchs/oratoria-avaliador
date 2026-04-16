@@ -808,10 +808,12 @@ async def _run_pipeline(req: ProcessRequest):
         await _notify_complete(req.callback_url, req.evaluation_id, "completed")
 
     except Exception as e:
+        import traceback
         logger.error(
             "pipeline_error",
             evaluation_id=req.evaluation_id,
             error=str(e),
+            traceback=traceback.format_exc(),
         )
         await _notify_complete(req.callback_url, req.evaluation_id, "error", error_message=str(e))
 
