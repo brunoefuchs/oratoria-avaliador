@@ -40,7 +40,15 @@ def make_metrics(
     """Factory para AggregatedMetrics de teste."""
     return AggregatedMetrics(
         overall_score=overall_score,
-        dimension_scores=dimension_scores or {"variety": 70, "voice": 65, "gesture": 80, "posture": 75, "fillers": 60, "archetypes": 55},
+        dimension_scores=dimension_scores
+        or {
+            "variety": 70,
+            "voice": 65,
+            "gesture": 80,
+            "posture": 75,
+            "fillers": 60,
+            "archetypes": 55,
+        },
         detailed_metrics={},
         incomplete_dimensions=incomplete_dimensions or [],
         partial_aggregation=partial_aggregation,
@@ -105,7 +113,9 @@ class TestAggregatedMetricsValidation:
         assert m.overall_score is None
 
     def test_partial_aggregation_true(self):
-        m = AggregatedMetrics(overall_score=60, incomplete_dimensions=["gesture"], partial_aggregation=True)
+        m = AggregatedMetrics(
+            overall_score=60, incomplete_dimensions=["gesture"], partial_aggregation=True
+        )
         assert m.partial_aggregation is True
 
     def test_extra_fields_allowed(self):
@@ -114,6 +124,7 @@ class TestAggregatedMetricsValidation:
 
     def test_missing_required_raises(self):
         from pydantic import ValidationError
+
         with pytest.raises(ValidationError):
             AggregatedMetrics()
 
@@ -152,7 +163,14 @@ class TestBuildPromptHonestScores:
         """V9: overall_score=None → prompt NAO diz '0/100'."""
         m = make_metrics(
             overall_score=None,
-            incomplete_dimensions=["variety", "voice", "gesture", "posture", "fillers", "archetypes"],
+            incomplete_dimensions=[
+                "variety",
+                "voice",
+                "gesture",
+                "posture",
+                "fillers",
+                "archetypes",
+            ],
         )
         prompt = _build_prompt(m)
         assert "INDISPONIVEL" in prompt
@@ -168,7 +186,13 @@ class TestBuildPromptHonestScores:
         """Dimensao faltante → INDISPONIVEL, NAO 0/100."""
         m = AggregatedMetrics(
             overall_score=60,
-            dimension_scores={"voice": 65, "gesture": 80, "posture": 75, "fillers": 60, "archetypes": 55},
+            dimension_scores={
+                "voice": 65,
+                "gesture": 80,
+                "posture": 75,
+                "fillers": 60,
+                "archetypes": 55,
+            },
             incomplete_dimensions=["variety"],
             partial_aggregation=True,
         )
@@ -181,7 +205,14 @@ class TestBuildPromptHonestScores:
         m = AggregatedMetrics(
             overall_score=70,
             dimension_scores={},
-            incomplete_dimensions=["variety", "voice", "gesture", "posture", "fillers", "archetypes"],
+            incomplete_dimensions=[
+                "variety",
+                "voice",
+                "gesture",
+                "posture",
+                "fillers",
+                "archetypes",
+            ],
             partial_aggregation=True,
         )
         prompt = _build_prompt(m)
@@ -244,9 +275,13 @@ class TestGeminiJsonModeAndRetry:
         return {
             "resumo": "Resumo teste",
             "forcas": [{"titulo": "Forca 1", "descricao": "desc", "impacto": "impacto"}],
-            "melhorias_80_20": [{"titulo": "Melhoria 1", "descricao": "desc", "exercicio": "ex", "prioridade": 1}],
+            "melhorias_80_20": [
+                {"titulo": "Melhoria 1", "descricao": "desc", "exercicio": "ex", "prioridade": 1}
+            ],
             "dimensoes": {"variedade": {"label": "Bom", "feedback": "ok", "dica": "dica"}},
-            "plano_12_semanas": [{"semana": "1-2", "foco": "foco", "exercicio": "ex", "meta": "meta"}],
+            "plano_12_semanas": [
+                {"semana": "1-2", "foco": "foco", "exercicio": "ex", "meta": "meta"}
+            ],
             "mensagem_final": "Mensagem final",
         }
 
@@ -256,7 +291,9 @@ class TestGeminiJsonModeAndRetry:
         """V11+V13: JSON mode, sem retrocompat fields no novo path."""
         mock_model = MagicMock()
         mock_model_cls.return_value = mock_model
-        mock_model.generate_content.return_value = self._make_mock_response(self._make_valid_report())
+        mock_model.generate_content.return_value = self._make_mock_response(
+            self._make_valid_report()
+        )
 
         m = make_metrics()
         result = generate_report(m)
@@ -289,7 +326,7 @@ class TestGeminiJsonModeAndRetry:
         mock_model.generate_content.side_effect = side_effect
 
         m = make_metrics()
-        result = generate_report(m)
+        generate_report(m)
 
         assert call_count[0] == 3
         assert len(temperatures_used) == 3
@@ -332,7 +369,9 @@ class TestGeminiJsonModeAndRetry:
         """V11: generation_config tem response_mime_type=application/json."""
         mock_model = MagicMock()
         mock_model_cls.return_value = mock_model
-        mock_model.generate_content.return_value = self._make_mock_response(self._make_valid_report())
+        mock_model.generate_content.return_value = self._make_mock_response(
+            self._make_valid_report()
+        )
 
         m = make_metrics()
         generate_report(m)
@@ -346,7 +385,14 @@ class TestLegacyPathIntact:
     def _make_legacy_aggregated(self, overall_score=75):
         return {
             "overall_score": overall_score,
-            "dimension_scores": {"variety": 70, "voice": 65, "gesture": 80, "posture": 75, "fillers": 60, "archetypes": 55},
+            "dimension_scores": {
+                "variety": 70,
+                "voice": 65,
+                "gesture": 80,
+                "posture": 75,
+                "fillers": 60,
+                "archetypes": 55,
+            },
             "detailed_metrics": {},
             "incomplete_dimensions": [],
             "video_metadata": {},
@@ -361,7 +407,14 @@ class TestLegacyPathIntact:
     def test_legacy_accepts_dict(self, mock_model_cls, mock_configure):
         mock_model = MagicMock()
         mock_model_cls.return_value = mock_model
-        valid_report = {"resumo": "Resumo legacy", "forcas": [], "melhorias_80_20": [], "dimensoes": {}, "plano_12_semanas": [], "mensagem_final": "msg"}
+        valid_report = {
+            "resumo": "Resumo legacy",
+            "forcas": [],
+            "melhorias_80_20": [],
+            "dimensoes": {},
+            "plano_12_semanas": [],
+            "mensagem_final": "msg",
+        }
         mock_response = MagicMock()
         mock_response.text = json.dumps(valid_report)
         mock_model.generate_content.return_value = mock_response
@@ -374,7 +427,14 @@ class TestLegacyPathIntact:
     def test_legacy_has_retrocompat_fields(self, mock_model_cls, mock_configure):
         mock_model = MagicMock()
         mock_model_cls.return_value = mock_model
-        valid_report = {"resumo": "Resumo", "forcas": [], "melhorias_80_20": [], "dimensoes": {"variedade": {"label": "Bom", "feedback": "ok", "dica": "d"}}, "plano_12_semanas": [], "mensagem_final": "msg"}
+        valid_report = {
+            "resumo": "Resumo",
+            "forcas": [],
+            "melhorias_80_20": [],
+            "dimensoes": {"variedade": {"label": "Bom", "feedback": "ok", "dica": "d"}},
+            "plano_12_semanas": [],
+            "mensagem_final": "msg",
+        }
         mock_response = MagicMock()
         mock_response.text = json.dumps(valid_report)
         mock_model.generate_content.return_value = mock_response
@@ -388,7 +448,14 @@ class TestLegacyPathIntact:
     def test_legacy_cost_is_zero(self, mock_model_cls, mock_configure):
         mock_model = MagicMock()
         mock_model_cls.return_value = mock_model
-        valid_report = {"resumo": "ok", "forcas": [], "melhorias_80_20": [], "dimensoes": {}, "plano_12_semanas": [], "mensagem_final": "ok"}
+        valid_report = {
+            "resumo": "ok",
+            "forcas": [],
+            "melhorias_80_20": [],
+            "dimensoes": {},
+            "plano_12_semanas": [],
+            "mensagem_final": "ok",
+        }
         mock_response = MagicMock()
         mock_response.text = json.dumps(valid_report)
         mock_model.generate_content.return_value = mock_response
@@ -403,15 +470,25 @@ class TestVetoChecks:
         m = AggregatedMetrics(
             overall_score=None,
             dimension_scores={},
-            incomplete_dimensions=["variety", "voice", "gesture", "posture", "fillers", "archetypes"],
+            incomplete_dimensions=[
+                "variety",
+                "voice",
+                "gesture",
+                "posture",
+                "fillers",
+                "archetypes",
+            ],
         )
         prompt = _build_prompt(m)
-        lines_with_zero = [l for l in prompt.split("\n") if "Pontuacao" in l and "0/100" in l]
+        lines_with_zero = [
+            line for line in prompt.split("\n") if "Pontuacao" in line and "0/100" in line
+        ]
         assert len(lines_with_zero) == 0, f"Prompt contem '0/100' em: {lines_with_zero}"
 
     def test_veto_v10_identity_uses_dimension_status(self):
         """V10: _build_prompt usa dimension_status, nao score comparisons."""
         import inspect
+
         from workers import report_generator
 
         source = inspect.getsource(report_generator._build_prompt)
@@ -421,6 +498,7 @@ class TestVetoChecks:
     def test_veto_v11_json_mime_type_in_source(self):
         """V11: generate_report usa response_mime_type='application/json'."""
         import inspect
+
         from workers import report_generator
 
         source = inspect.getsource(report_generator.generate_report)
@@ -429,6 +507,7 @@ class TestVetoChecks:
     def test_veto_v13_no_retrocompat_in_new_path(self):
         """V13: generate_report nao retorna 'summary' ou 'dimension_feedback'."""
         import inspect
+
         from workers import report_generator
 
         source = inspect.getsource(report_generator.generate_report)
@@ -438,6 +517,7 @@ class TestVetoChecks:
     def test_veto_v12_retry_temperatures_distinct(self):
         """V12: retry usa temperaturas distintas."""
         import inspect
+
         from workers import report_generator
 
         source = inspect.getsource(report_generator.generate_report)

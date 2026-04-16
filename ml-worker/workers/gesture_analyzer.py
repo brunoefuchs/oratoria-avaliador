@@ -165,7 +165,7 @@ def _compute_gesture_metrics(video_path: str) -> dict:
     olhar_baixo_frames = 0
     desvio_positivo_frames = 0  # MP-1: reflexivo (cima)
     desvio_negativo_frames = 0  # MP-1: evasivo (baixo)
-    desvio_neutro_frames = 0    # MP-1: lateral (scanning)
+    desvio_neutro_frames = 0  # MP-1: lateral (scanning)
     direcoes_olhar = []  # historico de direcoes para medir distribuicao
 
     # Gestos detalhados

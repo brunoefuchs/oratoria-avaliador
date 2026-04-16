@@ -238,12 +238,24 @@ def _build_context_section(context: dict | None) -> str:
 
     lines.append("")
     lines.append("INSTRUCOES DE ADAPTACAO:")
-    lines.append("1. SENTIMENTO: Se nervoso (1-2), tom EXTRA encorajador. Se confiante (4-5), mais direto/desafiador.")
-    lines.append("2. MEDOS: Enderece pelo menos 1 medo mencionado no feedback — mostre que a avaliacao ajuda a superar.")
-    lines.append("3. MOTIVACAO: Conecte o feedback ao MOTIVO do orador. Se quer 'vender mais', linke melhoria a resultado.")
-    lines.append("4. PRIMEIRA VEZ: Se nao se avaliou antes, explique brevemente o que cada metrica significa.")
-    lines.append("5. DESEJO_TRANSMITIR: Avalie se a comunicacao REALMENTE transmite o que o orador quer. Se quer 'autoridade' mas usa linguagem hesitante, aponte o gap.")
-    lines.append("6. DESEJO_MELHORAR: Priorize feedback nas dimensoes que o orador PEDIU. Comece por elas.")
+    lines.append(
+        "1. SENTIMENTO: Se nervoso (1-2), tom EXTRA encorajador. Se confiante (4-5), mais direto/desafiador."
+    )
+    lines.append(
+        "2. MEDOS: Enderece pelo menos 1 medo mencionado no feedback — mostre que a avaliacao ajuda a superar."
+    )
+    lines.append(
+        "3. MOTIVACAO: Conecte o feedback ao MOTIVO do orador. Se quer 'vender mais', linke melhoria a resultado."
+    )
+    lines.append(
+        "4. PRIMEIRA VEZ: Se nao se avaliou antes, explique brevemente o que cada metrica significa."
+    )
+    lines.append(
+        "5. DESEJO_TRANSMITIR: Avalie se a comunicacao REALMENTE transmite o que o orador quer. Se quer 'autoridade' mas usa linguagem hesitante, aponte o gap."
+    )
+    lines.append(
+        "6. DESEJO_MELHORAR: Priorize feedback nas dimensoes que o orador PEDIU. Comece por elas."
+    )
 
     return "\n".join(lines)
 
@@ -352,17 +364,83 @@ def _build_cross_insights(aggregated: dict) -> list[str]:
 def _rank_problems(aggregated: dict) -> list[dict]:
     """Rankeia problemas do orador por impacto real (weight x severity)."""
     PROBLEM_DEFS = [
-        {"key": "voice.cv_volume", "threshold": 0.05, "op": "<", "weight": 10, "label": "Volume uniforme (sem peaks and troughs)"},
-        {"key": "variety.pct_tempo_monotono", "threshold": 50, "op": ">", "weight": 10, "label": "Fala previsivel/monotona"},
-        {"key": "voice.cv_pitch", "threshold": 0.08, "op": "<", "weight": 9, "label": "Tom de voz sem variacao"},
-        {"key": "archetypes.lock_in", "threshold": True, "op": "==", "weight": 8, "label": "Lock-in em 1 arquetipo vocal"},
-        {"key": "voice.wpm", "threshold": 170, "op": ">", "weight": 7, "label": "Velocidade de fala acima do ideal"},
-        {"key": "temporal.por_terco.abertura.score", "threshold": 50, "op": "<", "weight": 7, "label": "Abertura fraca (perde audiencia logo no inicio)"},
-        {"key": "gesture.zona_ideal_pct", "threshold": 30, "op": "<", "weight": 6, "label": "Gestos fora da zona de poder"},
-        {"key": "voice.pausas.ratio_estrategicas", "threshold": 0.2, "op": "<", "weight": 6, "label": "Poucas pausas estrategicas"},
-        {"key": "gesture.gesto_repetitivo", "threshold": True, "op": "==", "weight": 5, "label": "Gesto repetitivo (default gestual)"},
-        {"key": "fillers.fillers_per_minute", "threshold": 4, "op": ">", "weight": 5, "label": "Vicios de linguagem frequentes"},
-        {"key": "posture.grounding_score", "threshold": 50, "op": "<", "weight": 4, "label": "Instabilidade corporal"},
+        {
+            "key": "voice.cv_volume",
+            "threshold": 0.05,
+            "op": "<",
+            "weight": 10,
+            "label": "Volume uniforme (sem peaks and troughs)",
+        },
+        {
+            "key": "variety.pct_tempo_monotono",
+            "threshold": 50,
+            "op": ">",
+            "weight": 10,
+            "label": "Fala previsivel/monotona",
+        },
+        {
+            "key": "voice.cv_pitch",
+            "threshold": 0.08,
+            "op": "<",
+            "weight": 9,
+            "label": "Tom de voz sem variacao",
+        },
+        {
+            "key": "archetypes.lock_in",
+            "threshold": True,
+            "op": "==",
+            "weight": 8,
+            "label": "Lock-in em 1 arquetipo vocal",
+        },
+        {
+            "key": "voice.wpm",
+            "threshold": 170,
+            "op": ">",
+            "weight": 7,
+            "label": "Velocidade de fala acima do ideal",
+        },
+        {
+            "key": "temporal.por_terco.abertura.score",
+            "threshold": 50,
+            "op": "<",
+            "weight": 7,
+            "label": "Abertura fraca (perde audiencia logo no inicio)",
+        },
+        {
+            "key": "gesture.zona_ideal_pct",
+            "threshold": 30,
+            "op": "<",
+            "weight": 6,
+            "label": "Gestos fora da zona de poder",
+        },
+        {
+            "key": "voice.pausas.ratio_estrategicas",
+            "threshold": 0.2,
+            "op": "<",
+            "weight": 6,
+            "label": "Poucas pausas estrategicas",
+        },
+        {
+            "key": "gesture.gesto_repetitivo",
+            "threshold": True,
+            "op": "==",
+            "weight": 5,
+            "label": "Gesto repetitivo (default gestual)",
+        },
+        {
+            "key": "fillers.fillers_per_minute",
+            "threshold": 4,
+            "op": ">",
+            "weight": 5,
+            "label": "Vicios de linguagem frequentes",
+        },
+        {
+            "key": "posture.grounding_score",
+            "threshold": 50,
+            "op": "<",
+            "weight": 4,
+            "label": "Instabilidade corporal",
+        },
     ]
 
     metrics = aggregated.get("detailed_metrics", {})
@@ -397,8 +475,26 @@ def _rank_problems(aggregated: dict) -> list[dict]:
             else:
                 severity = 1.0
             priority = defn["weight"] * severity
-            level = "CRITICO" if priority > 8 else "ALTO" if priority > 5 else "MEDIO" if priority > 3 else "BAIXO"
-            problems.append({"label": defn["label"], "value": value, "threshold": threshold, "weight": defn["weight"], "severity": round(severity, 2), "priority": round(priority, 2), "level": level})
+            level = (
+                "CRITICO"
+                if priority > 8
+                else "ALTO"
+                if priority > 5
+                else "MEDIO"
+                if priority > 3
+                else "BAIXO"
+            )
+            problems.append(
+                {
+                    "label": defn["label"],
+                    "value": value,
+                    "threshold": threshold,
+                    "weight": defn["weight"],
+                    "severity": round(severity, 2),
+                    "priority": round(priority, 2),
+                    "level": level,
+                }
+            )
 
     problems.sort(key=lambda p: p["priority"], reverse=True)
     return problems[:6]
@@ -474,7 +570,9 @@ def _build_prompt(metrics: AggregatedMetrics, context: dict | None = None) -> st
     if problems:
         prompt += "\n\n## HIERARQUIA DE PROBLEMAS (rankeados por impacto — 80/20)\n"
         for i, p in enumerate(problems, 1):
-            prompt += f"#{i} {p['level']} — {p['label']} (valor: {p['value']}, ideal: {p['threshold']})\n"
+            prompt += (
+                f"#{i} {p['level']} — {p['label']} (valor: {p['value']}, ideal: {p['threshold']})\n"
+            )
         prompt += "\nINSTRUCAO: concentre 80% do feedback nos problemas #1 e #2. O orador SAI com 1 prioridade: o problema #1.\n"
 
     insights = _build_cross_insights(_aggregated_dict)
@@ -487,7 +585,7 @@ def _build_prompt(metrics: AggregatedMetrics, context: dict | None = None) -> st
     identity = metrics.identity
     if identity is not None:
         _identity_status = identity.get("dimension_status", "")
-        _identity_ok = (_identity_status == "ok")
+        _identity_ok = _identity_status == "ok"
         if _identity_ok:
             _identity_score = identity.get("score")
             _identity_metrics = identity.get("metrics", {})
@@ -524,7 +622,9 @@ def _build_prompt(metrics: AggregatedMetrics, context: dict | None = None) -> st
                 prompt += f"Score de abertura: {opening_score}/100 ({opening_diag})\n"
                 tecnicas = _opening_metrics.get("tecnicas_detectadas", [])
                 if tecnicas:
-                    prompt += "Tecnicas detectadas: " + ", ".join(t["label"] for t in tecnicas) + "\n"
+                    prompt += (
+                        "Tecnicas detectadas: " + ", ".join(t["label"] for t in tecnicas) + "\n"
+                    )
                 else:
                     prompt += "Tecnicas detectadas: NENHUMA\n"
                 opening_feedback = _opening_metrics.get("feedback", "")
@@ -661,16 +761,25 @@ def generate_report(metrics: AggregatedMetrics, context: dict | None = None) -> 
             }
 
         except json.JSONDecodeError as e:
-            logger.warning("report_json_parse_failed_tc", attempt=attempt + 1, temperature=temp, error=str(e))
+            logger.warning(
+                "report_json_parse_failed_tc", attempt=attempt + 1, temperature=temp, error=str(e)
+            )
             last_error = e
         except Exception as e:
-            logger.warning("report_generation_attempt_failed_tc", attempt=attempt + 1, temperature=temp, error=str(e))
+            logger.warning(
+                "report_generation_attempt_failed_tc",
+                attempt=attempt + 1,
+                temperature=temp,
+                error=str(e),
+            )
             last_error = e
             if attempt < len(temperatures) - 1:
                 time.sleep(2**attempt)
 
     logger.error("report_generation_failed_tc", error=str(last_error))
-    raise RuntimeError(f"Geracao de relatorio falhou apos {len(temperatures)} tentativas: {last_error}")
+    raise RuntimeError(
+        f"Geracao de relatorio falhou apos {len(temperatures)} tentativas: {last_error}"
+    )
 
 
 def generate_report_legacy(aggregated: dict, context: dict | None = None) -> dict:
@@ -721,7 +830,9 @@ def generate_report_legacy(aggregated: dict, context: dict | None = None) -> dic
     if problems:
         prompt += "\n\n## HIERARQUIA DE PROBLEMAS (rankeados por impacto — 80/20)\n"
         for i, p in enumerate(problems, 1):
-            prompt += f"#{i} {p['level']} — {p['label']} (valor: {p['value']}, ideal: {p['threshold']})\n"
+            prompt += (
+                f"#{i} {p['level']} — {p['label']} (valor: {p['value']}, ideal: {p['threshold']})\n"
+            )
         prompt += "\nINSTRUCAO: concentre 80% do feedback nos problemas #1 e #2. O orador SAI com 1 prioridade: o problema #1.\n"
 
     insights = _build_cross_insights(aggregated)
@@ -823,7 +934,11 @@ def generate_report_legacy(aggregated: dict, context: dict | None = None) -> dic
             report = json.loads(text)
 
             elapsed = time.time() - start
-            logger.info("report_generation_complete", duration_seconds=round(elapsed, 2), attempt=attempt + 1)
+            logger.info(
+                "report_generation_complete",
+                duration_seconds=round(elapsed, 2),
+                attempt=attempt + 1,
+            )
 
             return {
                 "resumo": report.get("resumo", ""),

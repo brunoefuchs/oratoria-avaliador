@@ -374,7 +374,9 @@ async def _run_pipeline(req: ProcessRequest):
         if config.TRUTH_CONTRACT_ENABLED:
             from workers.opening_analyzer import analyze_opening
 
-            opening_result = analyze_opening(transcription, _voice_metrics_for_opening, _voice_duration)
+            opening_result = analyze_opening(
+                transcription, _voice_metrics_for_opening, _voice_duration
+            )
         else:
             try:
                 from workers.opening_analyzer import analyze_opening_legacy
@@ -430,7 +432,10 @@ async def _run_pipeline(req: ProcessRequest):
         if isinstance(opening_result, _WS):
             _opening_for_storytelling = {**opening_result.metrics, "disponivel": True}
         elif isinstance(opening_result, _WF_check):
-            _opening_for_storytelling = {"disponivel": False, "motivo": opening_result.failure_reason}
+            _opening_for_storytelling = {
+                "disponivel": False,
+                "motivo": opening_result.failure_reason,
+            }
         else:
             _opening_for_storytelling = opening_result
 
@@ -485,12 +490,18 @@ async def _run_pipeline(req: ProcessRequest):
         # voice_result pode ter formato nested {"score":..,"metrics":{...}}
         # (compat legacy: voice_result pode ser WorkerResult ou dict)
         _voice_metrics_raw = (
-            voice_result.metrics if isinstance(voice_result, _WS) else
-            voice_result.get("metrics", voice_result) if isinstance(voice_result, dict) else {}
+            voice_result.metrics
+            if isinstance(voice_result, _WS)
+            else voice_result.get("metrics", voice_result)
+            if isinstance(voice_result, dict)
+            else {}
         )
         _posture_frames = (
-            posture_result.metrics.get("total_frames", 0) if isinstance(posture_result, _WS) else
-            posture_result.get("metrics", {}).get("total_frames", 0) if isinstance(posture_result, dict) else 0
+            posture_result.metrics.get("total_frames", 0)
+            if isinstance(posture_result, _WS)
+            else posture_result.get("metrics", {}).get("total_frames", 0)
+            if isinstance(posture_result, dict)
+            else 0
         )
         video_metadata = {
             "duration_seconds": _voice_metrics_raw.get("audio_duration_seconds", 0),
@@ -559,13 +570,19 @@ async def _run_pipeline(req: ProcessRequest):
             # Temporal precisa de dicts com metricas brutas dos workers
             _voice_dict = {"metrics": _voice_metrics_raw} if _voice_metrics_raw else {}
             _variety_metrics_raw = (
-                variety_result.metrics if isinstance(variety_result, _WS) else
-                variety_result.get("metrics", variety_result) if isinstance(variety_result, dict) else {}
+                variety_result.metrics
+                if isinstance(variety_result, _WS)
+                else variety_result.get("metrics", variety_result)
+                if isinstance(variety_result, dict)
+                else {}
             )
             _variety_dict = {"metrics": _variety_metrics_raw}
             _filler_metrics_raw = (
-                filler_result.metrics if isinstance(filler_result, _WS) else
-                filler_result.get("metrics", filler_result) if isinstance(filler_result, dict) else {}
+                filler_result.metrics
+                if isinstance(filler_result, _WS)
+                else filler_result.get("metrics", filler_result)
+                if isinstance(filler_result, dict)
+                else {}
             )
             _filler_dict = {"metrics": _filler_metrics_raw}
             temporal_result = analyze_temporal(
@@ -623,7 +640,11 @@ async def _run_pipeline(req: ProcessRequest):
                 if isinstance(r, _WS):
                     return {"score": r.score, "confidence": "high", "metrics": r.metrics}
                 if isinstance(r, _WF_check):
-                    return {"score": 0, "confidence": "failed", "metrics": r.metrics if r.metrics else {}}
+                    return {
+                        "score": 0,
+                        "confidence": "failed",
+                        "metrics": r.metrics if r.metrics else {},
+                    }
                 return r
 
             from workers.aggregator import aggregate_metrics_legacy
@@ -820,6 +841,7 @@ async def _run_pipeline(req: ProcessRequest):
 
     except Exception as e:
         import traceback
+
         logger.error(
             "pipeline_error",
             evaluation_id=req.evaluation_id,

@@ -16,7 +16,6 @@ from contracts.worker_result import (
     WorkerSuccess,
 )
 
-
 # ---------- WorkerSuccess ----------
 
 
@@ -29,9 +28,7 @@ def test_success_happy_path():
 
 
 def test_success_explicit_confidence():
-    s = WorkerSuccess(
-        dimension="voice", score=50, metrics={}, confidence=0.7
-    )
+    s = WorkerSuccess(dimension="voice", score=50, metrics={}, confidence=0.7)
     assert s.confidence == 0.7
 
 
@@ -60,9 +57,7 @@ def test_success_rejects_invalid_dimension():
 def test_success_rejects_extra_field():
     """Veto T1.1 — extra='forbid' bloqueia chaves desconhecidas."""
     with pytest.raises(ValidationError):
-        WorkerSuccess(
-            dimension="voice", score=50, metrics={}, unexpected_key="boom"
-        )
+        WorkerSuccess(dimension="voice", score=50, metrics={}, unexpected_key="boom")
 
 
 def test_success_rejects_invalid_confidence():
@@ -129,16 +124,12 @@ def test_failure_rejects_empty_reason():
 def test_failure_rejects_ok_status():
     """Failure nao pode ter status='ok' — esse e o discriminador do Success."""
     with pytest.raises(ValidationError):
-        WorkerFailure(
-            dimension="voice", dimension_status="ok", failure_reason="x"
-        )
+        WorkerFailure(dimension="voice", dimension_status="ok", failure_reason="x")
 
 
 def test_failure_accepts_all_failure_statuses():
     for status in ("failed", "skipped", "insufficient_data", "crashed"):
-        f = WorkerFailure(
-            dimension="voice", dimension_status=status, failure_reason="reason"
-        )
+        f = WorkerFailure(dimension="voice", dimension_status=status, failure_reason="reason")
         assert f.dimension_status == status
 
 
@@ -186,9 +177,7 @@ def test_discriminated_union_dispatches_to_failure():
 def test_discriminated_union_rejects_unknown_status():
     adapter = TypeAdapter(WorkerResult)
     with pytest.raises(ValidationError):
-        adapter.validate_python(
-            {"dimension": "voice", "dimension_status": "unknown_status"}
-        )
+        adapter.validate_python({"dimension": "voice", "dimension_status": "unknown_status"})
 
 
 # ---------- DimensionStatus enum ----------

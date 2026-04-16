@@ -22,9 +22,7 @@ from typing import Any
 from contracts import WorkerFailure, WorkerResult, WorkerSuccess
 
 
-def save_analysis_result(
-    supabase: Any, evaluation_id: str, result: WorkerResult
-) -> dict:
+def save_analysis_result(supabase: Any, evaluation_id: str, result: WorkerResult) -> dict:
     """Persistir WorkerResult em analysis_results (Truth Contract path).
 
     Args:

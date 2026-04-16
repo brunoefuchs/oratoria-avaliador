@@ -141,9 +141,7 @@ def analyze_congruence(detailed_metrics: dict) -> "WorkerResult":
             confidence=1.0,
         )
     except Exception as e:
-        logger.error(
-            "congruence_crashed", error_type=type(e).__name__, error=str(e), exc_info=True
-        )
+        logger.error("congruence_crashed", error_type=type(e).__name__, error=str(e), exc_info=True)
         return WorkerFailure(
             dimension="congruence",
             dimension_status="crashed",

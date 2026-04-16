@@ -14,7 +14,6 @@ from repositories.analysis_result_repo import (
     save_analysis_result_legacy,
 )
 
-
 # ---------- Fake Supabase client ----------
 
 
@@ -173,9 +172,7 @@ def test_legacy_does_not_write_new_columns(supabase):
     """Legacy path NAO escreve dimension_status/failure_reason — deixa DB usar
     defaults ('ok' + NULL via migration 012). Isso permite backfill natural
     enquanto workers nao sao migrados."""
-    save_analysis_result_legacy(
-        supabase, "eval-10", "fillers", {"score": 80, "metrics": {}}
-    )
+    save_analysis_result_legacy(supabase, "eval-10", "fillers", {"score": 80, "metrics": {}})
     row = [c for c in supabase.calls if c[0] == "upsert"][0][1]
     assert "dimension_status" not in row
     assert "failure_reason" not in row
