@@ -253,7 +253,7 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
     }
 
 
-def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:
+def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
     """Calcula metricas de voz combinando transcricao e prosodia."""
     words = transcription.get("words", [])
     audio_duration = prosody.get("audio_duration_seconds", 0)
@@ -421,3 +421,22 @@ def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:
             "audio_duration_seconds": audio_duration,
         },
     }
+
+
+# Story 8.2 — Truth Contract
+from workers._truth_contract_helpers import wrap_worker_result
+
+
+def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false). Kept for backwards compat with app.py."""
+    return _compute_voice_metrics(transcription, prosody)
+
+
+def analyze_voice_legacy(transcription: dict, prosody: dict) -> dict:
+    """Legacy path alias (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_voice_metrics(transcription, prosody)
+
+
+def analyze_voice(transcription: dict, prosody: dict) -> "WorkerResult":
+    """Truth Contract path (TRUTH_CONTRACT_ENABLED=true)."""
+    return wrap_worker_result("voice", _compute_voice_metrics, transcription, prosody)

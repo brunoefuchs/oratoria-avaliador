@@ -202,26 +202,38 @@ async def _run_pipeline(req: ProcessRequest):
         )
 
         # Step 3: Analise de postura
+        # Story 8.2: dispatch via feature flag (same pattern as variety — Step 7).
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_posture")
-        try:
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.posture_analyzer import analyze_posture
 
             posture_result = analyze_posture(video_path)
-        except Exception as e:
-            logger.error("posture_analysis_failed", error=str(e))
-            posture_result = {"score": 0, "confidence": "failed", "metrics": {}}
+        else:
+            try:
+                from workers.posture_analyzer import analyze_posture_legacy
+
+                posture_result = analyze_posture_legacy(video_path)
+            except Exception as e:
+                logger.error("posture_analysis_failed", error=str(e))
+                posture_result = {"score": 0, "confidence": "failed", "metrics": {}}
 
         _save_analysis(supabase, req.evaluation_id, "posture", posture_result)
 
         # Step 4: Analise gestual e contato visual
+        # Story 8.2: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_gesture")
-        try:
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.gesture_analyzer import analyze_gestures
 
             gesture_result = analyze_gestures(video_path)
-        except Exception as e:
-            logger.error("gesture_analysis_failed", error=str(e))
-            gesture_result = {"score": 0, "confidence": "failed", "metrics": {}}
+        else:
+            try:
+                from workers.gesture_analyzer import analyze_gestures_legacy
+
+                gesture_result = analyze_gestures_legacy(video_path)
+            except Exception as e:
+                logger.error("gesture_analysis_failed", error=str(e))
+                gesture_result = {"score": 0, "confidence": "failed", "metrics": {}}
 
         _save_analysis(supabase, req.evaluation_id, "gesture", gesture_result)
 
@@ -241,17 +253,18 @@ async def _run_pipeline(req: ProcessRequest):
             }
 
         # Step 5: Analise de voz (Whisper + Parselmouth)
+        # Story 8.2: transcribe_audio + analyze_prosody are intermediates — kept as-is.
+        # Only the final voice metrics output is dispatched via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_voice")
+        _voice_ok = False
         try:
             from workers.voice_analyzer import (
                 analyze_prosody,
-                calculate_voice_metrics,
                 transcribe_audio,
             )
 
             transcription = transcribe_audio(audio_path, config.WHISPER_MODEL)
             prosody = analyze_prosody(audio_path)
-            voice_result = calculate_voice_metrics(transcription, prosody)
 
             # Salvar transcricao
             supabase.table("transcriptions").insert(
@@ -263,10 +276,26 @@ async def _run_pipeline(req: ProcessRequest):
                     "model": transcription["model"],
                 }
             ).execute()
+            _voice_ok = True
         except Exception as e:
             logger.error("voice_analysis_failed", error=str(e))
             voice_result = {"score": 0, "confidence": "failed", "metrics": {}}
             transcription = {"full_text": "", "words": []}
+            prosody = {}
+
+        if _voice_ok:
+            if config.TRUTH_CONTRACT_ENABLED:
+                from workers.voice_analyzer import analyze_voice
+
+                voice_result = analyze_voice(transcription, prosody)
+            else:
+                try:
+                    from workers.voice_analyzer import analyze_voice_legacy
+
+                    voice_result = analyze_voice_legacy(transcription, prosody)
+                except Exception as e:
+                    logger.error("voice_metrics_failed", error=str(e))
+                    voice_result = {"score": 0, "confidence": "failed", "metrics": {}}
 
         _save_analysis(supabase, req.evaluation_id, "voice", voice_result)
 
@@ -286,26 +315,38 @@ async def _run_pipeline(req: ProcessRequest):
             }
 
         # Step 6: Deteccao de vicios de linguagem
+        # Story 8.2: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_fillers")
-        try:
-            from workers.filler_detector import detect_fillers
+        if config.TRUTH_CONTRACT_ENABLED:
+            from workers.filler_detector import analyze_fillers
 
-            filler_result = detect_fillers(transcription)
-        except Exception as e:
-            logger.error("filler_detection_failed", error=str(e))
-            filler_result = {"score": 0, "confidence": "failed", "metrics": {}}
+            filler_result = analyze_fillers(transcription)
+        else:
+            try:
+                from workers.filler_detector import detect_fillers_legacy
+
+                filler_result = detect_fillers_legacy(transcription)
+            except Exception as e:
+                logger.error("filler_detection_failed", error=str(e))
+                filler_result = {"score": 0, "confidence": "failed", "metrics": {}}
 
         _save_analysis(supabase, req.evaluation_id, "fillers", filler_result)
 
         # Step 6.5: Analise de identidade comunicativa (Epic 6)
+        # Story 8.2: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_identity")
-        try:
-            from workers.identity_analyzer import analyze_identity
+        if config.TRUTH_CONTRACT_ENABLED:
+            from workers.identity_analyzer import analyze_identity_tc
 
-            identity_result = analyze_identity(transcription)
-        except Exception as e:
-            logger.error("identity_analysis_failed", error=str(e))
-            identity_result = {"score": 0, "diagnostico": "failed"}
+            identity_result = analyze_identity_tc(transcription)
+        else:
+            try:
+                from workers.identity_analyzer import analyze_identity_legacy
+
+                identity_result = analyze_identity_legacy(transcription)
+            except Exception as e:
+                logger.error("identity_analysis_failed", error=str(e))
+                identity_result = {"score": 0, "diagnostico": "failed"}
 
         _save_analysis(supabase, req.evaluation_id, "identity", identity_result)
 
@@ -381,14 +422,20 @@ async def _run_pipeline(req: ProcessRequest):
             }
 
         # Step 8: Classificacao de arquetipos vocais — NOVO
+        # Story 8.2: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_archetypes")
-        try:
-            from workers.archetype_classifier import classify_archetypes
+        if config.TRUTH_CONTRACT_ENABLED:
+            from workers.archetype_classifier import analyze_archetypes
 
-            archetype_result = classify_archetypes(audio_path)
-        except Exception as e:
-            logger.error("archetype_classification_failed", error=str(e))
-            archetype_result = {"score": 0, "confidence": "failed", "metrics": {}}
+            archetype_result = analyze_archetypes(audio_path)
+        else:
+            try:
+                from workers.archetype_classifier import classify_archetypes_legacy
+
+                archetype_result = classify_archetypes_legacy(audio_path)
+            except Exception as e:
+                logger.error("archetype_classification_failed", error=str(e))
+                archetype_result = {"score": 0, "confidence": "failed", "metrics": {}}
 
         _save_analysis(supabase, req.evaluation_id, "archetypes", archetype_result)
 

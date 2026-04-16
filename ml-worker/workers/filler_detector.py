@@ -127,7 +127,7 @@ def _has_hesitation_pause(words: list, filler: dict, all_fillers: list) -> bool:
     return False
 
 
-def detect_fillers(transcription: dict) -> dict:
+def _compute_filler_metrics(transcription: dict) -> dict:
     """Detecta vicios de linguagem com classificacao por gravidade e clusters."""
     words = transcription.get("words", [])
     audio_duration = 0.0
@@ -284,3 +284,22 @@ def detect_fillers(transcription: dict) -> dict:
         "clusters": clusters,
         "total_clusters": len(clusters),
     }
+
+
+# Story 8.2 — Truth Contract
+from workers._truth_contract_helpers import wrap_worker_result
+
+
+def detect_fillers_legacy(transcription: dict) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_filler_metrics(transcription)
+
+
+def detect_fillers(transcription: dict) -> dict:
+    """Legacy alias kept for backwards compat with app.py callers."""
+    return _compute_filler_metrics(transcription)
+
+
+def analyze_fillers(transcription: dict) -> "WorkerResult":
+    """Truth Contract path (TRUTH_CONTRACT_ENABLED=true)."""
+    return wrap_worker_result("fillers", _compute_filler_metrics, transcription)
