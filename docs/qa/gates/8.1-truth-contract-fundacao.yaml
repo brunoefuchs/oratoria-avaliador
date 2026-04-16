@@ -1,0 +1,88 @@
+storyId: "8.1"
+storyTitle: "Truth Contract — Fundacao (WorkerResult Schema + Validacao)"
+reviewer: "qa (Quinn)"
+date: "2026-04-15"
+branch: "feat/epic-8-truth-contract-fundacao"
+headCommit: "4420e8a"
+verdict: CONCERNS
+
+checks:
+  - name: "Code Review"
+    status: PASS
+    notes: >
+      Schema Pydantic bem desenhado (discriminated union, frozen, extra=forbid).
+      Separacao limpa: contracts/ (tipos), repositories/ (persistencia), workers/ (logica).
+      Dual-path pattern (Truth Contract + Legacy) aplicado consistentemente.
+      Dispatcher em app.py cobre 4 combinacoes (Flag x Tipo) com path defensivo.
+      Migration SQL corretamente estruturada (BEGIN/COMMIT, CHECK, backfill, partial index).
+
+  - name: "Unit Tests"
+    status: PASS
+    notes: >
+      78/78 tests passando. 100% coverage em contracts/ + repositories/.
+      5 test files cobrindo: schema validation (28), variety migration (21),
+      repo (13), dispatcher (7), E2E (9). Vetos T1.1-T8.2 cobertos por testes
+      especificos. FakeSupabase pra unit isolation. E2E contra Supabase real.
+
+  - name: "Acceptance Criteria"
+    status: PASS
+    notes: >
+      AC1-AC5 totalmente cobertos por testes automatizados.
+      AC6 (variety piloto E2E) parcial — DB writes validados via E2E,
+      pipeline full-flow (video → analyze → save) nao testado end-to-end
+      (aceitavel pra escopo MVP, pipeline test sera Story 8.2).
+      AC7 (migration reversivel) rollback SQL escrito mas nao testado
+      contra DB real nesta sessao (documentado como deploy-window task).
+
+  - name: "No Regressions"
+    status: PASS
+    notes: >
+      Legacy path intacto via analyze_variety_legacy() + save_analysis_result_legacy().
+      Feature flag OFF = zero mudanca comportamental. Path defensivo (WorkerResult +
+      flag OFF) loga warning + downgrade pra legacy sem quebrar. DB defaults atuam
+      em INSERT legacy (dimension_status='ok').
+
+  - name: "Performance"
+    status: PASS
+    notes: >
+      Partial index em dimension_status != 'ok' (zero custo em happy path).
+      Pydantic validation sub-ms. Migration usa NOT VALID + VALIDATE (sem table lock).
+      78 tests em ~3-8s.
+
+  - name: "Security"
+    status: PASS
+    notes: >
+      Zero secrets em codigo (grep limpo). Sem vetores de SQL injection
+      (supabase client parameterizado + psycopg2 %s). CHECK constraints no DB
+      (defense in depth). Coherence constraint impede estado inconsistente.
+
+  - name: "Documentation"
+    status: CONCERNS
+    notes: >
+      3 ruff E501 em variety_analyzer.py (failure_reason strings 102-105 chars,
+      limit 100). config.py tem doc inline da flag. Story Change Log com 10
+      entries detalhadas. File List completa. T6.3 deferred: feature-flags.md
+      nao criado (debt baixo, flag auto-documentada).
+
+issues:
+  - severity: low
+    category: code
+    description: "3 ruff E501 violations em workers/variety_analyzer.py (linhas 319, 325, 334)"
+    recommendation: "Quebrar failure_reason strings em variaveis intermediarias"
+
+  - severity: low
+    category: docs
+    description: "docs/architecture/feature-flags.md nao criado (T6.3 deferred)"
+    recommendation: "Criar quando houver 2+ flags (nao justifica doc dedicada pra 1 flag)"
+
+  - severity: low
+    category: tests
+    description: "Rollback migration nao testado contra DB real"
+    recommendation: "Testar na deploy window: apply → rollback → verify count preservation"
+
+summary: >
+  Story 8.1 entrega foundation solida do Truth Contract. Schema Pydantic
+  discriminated union, 13 dimensoes mapeadas, variety migrado como piloto,
+  migration SQL com coherence constraints, repo tipado, feature flag com
+  kill switch, 78 tests com 100% coverage. 3 issues LOW identificados —
+  nenhum bloqueia merge. Verdict: CONCERNS (aprovado com observacoes).
