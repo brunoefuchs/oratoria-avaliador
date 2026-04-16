@@ -100,7 +100,14 @@ def _classificar_movimento(centers_of_mass: list, detected_frames: int) -> dict:
         padrao = "proposital"
         grounding_score = 80
         proposital_score = 90
+    elif ratio_parado < 0.20 and deslocamento_medio > 0.025:
+        # BUG-MP-4: movimentos AMPLOS + pouco parado = energético, não ansioso
+        # Discriminador: deslocamento_medio alto = passos grandes/rítmicos
+        padrao = "energetico"
+        grounding_score = 60
+        proposital_score = 75
     elif ratio_parado < 0.20:
+        # Movimentos PEQUENOS + pouco parado = realmente ansioso/errático
         padrao = "ansioso"
         grounding_score = 30
         proposital_score = 20
@@ -120,7 +127,7 @@ def _classificar_movimento(centers_of_mass: list, detected_frames: int) -> dict:
     }
 
 
-def analyze_posture(video_path: str) -> dict:
+def _compute_posture_metrics(video_path: str) -> dict:
     """Analisa postura usando MediaPipe PoseLandmarker."""
     start = time.time()
     logger.info("posture_analysis_start", video_path=video_path)
@@ -282,3 +289,17 @@ def analyze_posture(video_path: str) -> dict:
             "total_frames": len(frames),
         },
     }
+
+
+# Story 8.2 — Truth Contract
+from workers._truth_contract_helpers import wrap_worker_result
+
+
+def analyze_posture_legacy(video_path: str) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_posture_metrics(video_path)
+
+
+def analyze_posture(video_path: str) -> "WorkerResult":
+    """Truth Contract path (TRUTH_CONTRACT_ENABLED=true)."""
+    return wrap_worker_result("posture", _compute_posture_metrics, video_path)

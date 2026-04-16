@@ -111,7 +111,7 @@ def _classificar_posicao_mao(hand_landmarks) -> dict:
     }
 
 
-def analyze_gestures(video_path: str) -> dict:
+def _compute_gesture_metrics(video_path: str) -> dict:
     """Analisa gestos, contato visual e linguagem corporal das maos."""
     start = time.time()
     logger.info("gesture_analysis_start", video_path=video_path)
@@ -399,3 +399,17 @@ def analyze_gestures(video_path: str) -> dict:
             },
         },
     }
+
+
+# Story 8.2 — Truth Contract
+from workers._truth_contract_helpers import wrap_worker_result
+
+
+def analyze_gestures_legacy(video_path: str) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_gesture_metrics(video_path)
+
+
+def analyze_gestures(video_path: str) -> "WorkerResult":
+    """Truth Contract path (TRUTH_CONTRACT_ENABLED=true)."""
+    return wrap_worker_result("gesture", _compute_gesture_metrics, video_path)
