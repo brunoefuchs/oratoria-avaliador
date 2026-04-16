@@ -12,9 +12,19 @@ Dimensoes avaliadas:
 - Variacao de pitch (Hz entre janelas)
 - Variacao de gesticulacao (presenca de gestos entre janelas)
 - Score de monotonia geral
+
+Story 8.1 (Truth Contract — Fundacao):
+- analyze_variety() retorna WorkerResult validado por Pydantic (path NOVO)
+- analyze_variety_legacy() retorna dict (path LEGADO, usado quando feature
+  flag TRUTH_CONTRACT_ENABLED=false)
+- Detecta falha upstream (voice/gesture failed) e retorna WorkerFailure
+  em vez de propagar score=0 fake
+- Captura excecoes e retorna WorkerFailure(crashed) em vez de quebrar pipeline
 """
 
 import structlog
+
+from contracts import WorkerFailure, WorkerResult, WorkerSuccess
 
 logger = structlog.get_logger()
 
@@ -117,15 +127,16 @@ def _detectar_trechos_monotonos(
     return trechos
 
 
-def analyze_variety(voice_result: dict, gesture_result: dict) -> dict:
-    """Analisa variacao temporal cruzando dados de voz e gestual.
+def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
+    """Core compute — extrai metricas de variacao. Compartilhado por
+    analyze_variety() (Truth Contract) e analyze_variety_legacy() (legacy).
 
     Args:
         voice_result: Resultado do voice_analyzer (com janelas temporais)
         gesture_result: Resultado do gesture_analyzer
 
     Returns:
-        Analise de variedade com score, diagnostico por dimensao e trechos monotonos
+        Dict com `score`, `confidence`, `metrics` (formato legacy compativel).
     """
     logger.info("variety_analysis_start")
 
@@ -249,3 +260,98 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> dict:
             },
         },
     }
+
+
+# ============================================================================
+# Story 8.1 — Truth Contract: entry points publicos
+# ============================================================================
+
+
+def analyze_variety_legacy(voice_result: dict, gesture_result: dict) -> dict:
+    """Path LEGADO — preserva comportamento pre-Truth-Contract.
+
+    Usado quando feature flag TRUTH_CONTRACT_ENABLED=false. Nao detecta
+    falha upstream nem captura excecoes — replica o pattern silencioso
+    documentado no Epic 8.0 (audit pedro-valerio).
+
+    Para codigo NOVO use analyze_variety() que retorna WorkerResult.
+    """
+    return _compute_variety_metrics(voice_result, gesture_result)
+
+
+def _upstream_failed(result: dict | None) -> bool:
+    """Detecta falha upstream em ambos os schemas legacy e novo.
+
+    Schema legacy: confidence == 'failed'
+    Schema novo (facial/tonality/opening): disponivel == False
+    Schema novissimo (Truth Contract): WorkerFailure ou dict com
+                                       dimension_status != 'ok'
+    """
+    if not result:
+        return True
+    if not isinstance(result, dict):
+        return True
+    if result.get("confidence") == "failed":
+        return True
+    if result.get("disponivel") is False:
+        return True
+    status = result.get("dimension_status")
+    if status and status != "ok":
+        return True
+    return False
+
+
+def analyze_variety(voice_result: dict, gesture_result: dict) -> WorkerResult:
+    """Truth Contract path — retorna WorkerResult validado por Pydantic.
+
+    Failure conditions:
+    - voice_result ou gesture_result indica falha (qualquer schema) → SKIPPED
+    - audio_duration_seconds ausente ou <= 0 → INSUFFICIENT_DATA
+    - excecao nao tratada durante compute → CRASHED
+
+    Nunca retorna score=0 fake. Score eh None em qualquer Failure.
+    """
+    try:
+        if _upstream_failed(voice_result):
+            return WorkerFailure(
+                dimension="variety",
+                dimension_status="skipped",
+                failure_reason="upstream_dependency_failed: voice_analyzer nao produziu dados validos",
+            )
+        if _upstream_failed(gesture_result):
+            return WorkerFailure(
+                dimension="variety",
+                dimension_status="skipped",
+                failure_reason="upstream_dependency_failed: gesture_analyzer nao produziu dados validos",
+            )
+
+        voice = voice_result.get("metrics", voice_result)
+        audio_duration = voice.get("audio_duration_seconds")
+        if not audio_duration or audio_duration <= 0:
+            return WorkerFailure(
+                dimension="variety",
+                dimension_status="insufficient_data",
+                failure_reason="audio_duration_seconds ausente ou zero — analise temporal impossivel",
+            )
+
+        result_dict = _compute_variety_metrics(voice_result, gesture_result)
+
+        return WorkerSuccess(
+            dimension="variety",
+            score=result_dict["score"],
+            metrics=result_dict["metrics"],
+            confidence=0.95,
+        )
+
+    except Exception as e:
+        logger.error(
+            "variety_analysis_crashed",
+            error_type=type(e).__name__,
+            error=str(e),
+            exc_info=True,
+        )
+        return WorkerFailure(
+            dimension="variety",
+            dimension_status="crashed",
+            failure_reason=f"{type(e).__name__}: {str(e)}",
+        )
