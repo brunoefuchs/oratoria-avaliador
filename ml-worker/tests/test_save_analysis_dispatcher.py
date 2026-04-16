@@ -16,7 +16,6 @@ import pytest
 
 from contracts import WorkerFailure, WorkerSuccess
 
-
 # ---------- FakeSupabase (replica do test_analysis_result_repo) ----------
 
 
@@ -63,9 +62,7 @@ def dispatcher():
 # ---------- Flag ON + WorkerResult → Truth Contract path ----------
 
 
-def test_flag_on_worker_success_writes_truth_contract_columns(
-    monkeypatch, supabase, dispatcher
-):
+def test_flag_on_worker_success_writes_truth_contract_columns(monkeypatch, supabase, dispatcher):
     import config
 
     monkeypatch.setattr(config, "TRUTH_CONTRACT_ENABLED", True)
@@ -133,8 +130,9 @@ def test_flag_off_with_worker_result_downgrades_to_legacy(
 ):
     """Worker migrado rodando em ambiente com flag OFF — grava via legacy
     (model_dump) pra evitar quebrar pipeline. Loga warning."""
-    import config
     import logging
+
+    import config
 
     monkeypatch.setattr(config, "TRUTH_CONTRACT_ENABLED", False)
 

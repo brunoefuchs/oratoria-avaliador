@@ -9,8 +9,7 @@ Cobre:
 
 import pytest
 
-from contracts import WorkerFailure, WorkerResult, WorkerSuccess
-
+from contracts import WorkerFailure, WorkerSuccess
 
 # ==============================================================================
 # POSTURE
@@ -488,9 +487,7 @@ class TestIdentityMigration:
             }
 
         monkeypatch.setattr(identity_analyzer, "_compute_identity_metrics", fake_compute)
-        result = identity_analyzer.analyze_identity_legacy(
-            {"full_text": "teste", "words": []}
-        )
+        result = identity_analyzer.analyze_identity_legacy({"full_text": "teste", "words": []})
         assert isinstance(result, dict)
         assert "score" in result
 

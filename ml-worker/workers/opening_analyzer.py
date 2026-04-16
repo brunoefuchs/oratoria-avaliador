@@ -91,7 +91,9 @@ SUGESTOES = {
 }
 
 
-def _compute_opening_metrics(transcription: dict, voice_metrics: dict, duration_seconds: float) -> dict:
+def _compute_opening_metrics(
+    transcription: dict, voice_metrics: dict, duration_seconds: float
+) -> dict:
     """Analisa os primeiros 20% do transcript para detectar tecnicas de abertura."""
     words = transcription.get("words", [])
     full_text = transcription.get("full_text", "")

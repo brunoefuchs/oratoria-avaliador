@@ -130,9 +130,7 @@ def test_columns_exist(conn, eval_id):
 def test_check_constraint_rejects_invalid_status(conn, eval_id):
     """CHECK bloqueia dimension_status nao canonico."""
     with pytest.raises(psycopg2.errors.CheckViolation):
-        _insert_analysis(
-            conn, eval_id, "variety", dimension_status="banana_invalid"
-        )
+        _insert_analysis(conn, eval_id, "variety", dimension_status="banana_invalid")
 
 
 def test_coherence_rejects_ok_with_reason(conn, eval_id):
@@ -179,9 +177,9 @@ def test_failed_with_reason_allowed(conn, eval_id):
 
 def test_all_failure_statuses_accepted(conn, eval_id):
     """Todos os 4 status de falha sao aceitos pelo CHECK."""
+    # unique constraint por (eval_id, dim), usar dims diferentes
+    dims = ["variety", "voice", "gesture", "posture"]
     for i, status in enumerate(["failed", "skipped", "insufficient_data", "crashed"]):
-        dim = f"variety"  # unique constraint por (eval_id, dim), usar dims diferentes
-        dims = ["variety", "voice", "gesture", "posture"]
         _insert_analysis(
             conn,
             eval_id,

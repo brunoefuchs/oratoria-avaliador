@@ -13,7 +13,6 @@ from workers.variety_analyzer import (
     analyze_variety_legacy,
 )
 
-
 # ---------- Fixtures ----------
 
 

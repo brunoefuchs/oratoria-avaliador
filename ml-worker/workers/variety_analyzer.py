@@ -317,8 +317,7 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> WorkerResult:
                 dimension="variety",
                 dimension_status="skipped",
                 failure_reason=(
-                    "upstream_dependency_failed: "
-                    "voice_analyzer nao produziu dados validos"
+                    "upstream_dependency_failed: voice_analyzer nao produziu dados validos"
                 ),
             )
         if _upstream_failed(gesture_result):
@@ -326,8 +325,7 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> WorkerResult:
                 dimension="variety",
                 dimension_status="skipped",
                 failure_reason=(
-                    "upstream_dependency_failed: "
-                    "gesture_analyzer nao produziu dados validos"
+                    "upstream_dependency_failed: gesture_analyzer nao produziu dados validos"
                 ),
             )
 
@@ -338,8 +336,7 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> WorkerResult:
                 dimension="variety",
                 dimension_status="insufficient_data",
                 failure_reason=(
-                    "audio_duration_seconds ausente ou zero "
-                    "— analise temporal impossivel"
+                    "audio_duration_seconds ausente ou zero — analise temporal impossivel"
                 ),
             )
 

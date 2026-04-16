@@ -10,8 +10,7 @@ Cobre:
 
 import pytest
 
-from contracts import WorkerFailure, WorkerResult, WorkerSuccess
-
+from contracts import WorkerFailure, WorkerSuccess
 
 # ==============================================================================
 # FACIAL
@@ -32,7 +31,11 @@ class TestFacialMigration:
                 "smile_variability": 0.01,
                 "brow_raises_per_minute": 2.5,
                 "eye_openness_stddev": 0.025,
-                "emocional_texture": {"neutro_percent": 50, "positivo_percent": 40, "tenso_percent": 10},
+                "emocional_texture": {
+                    "neutro_percent": 50,
+                    "positivo_percent": 40,
+                    "tenso_percent": 10,
+                },
                 "feedback": "Variacao facial saudavel",
                 "detection_pct": 95.0,
                 "warnings": [],
@@ -143,8 +146,12 @@ class TestTonalityMigration:
                 "vad_medio": {"valence": 0.3, "arousal": 0.5, "dominance": 0.4},
                 "vad_temporal": [],
                 "textura_distribuicao": {
-                    "neutro": 40, "entusiasmado": 30, "confiante": 20,
-                    "apatico": 5, "tenso": 5, "hesitante": 0,
+                    "neutro": 40,
+                    "entusiasmado": 30,
+                    "confiante": 20,
+                    "apatico": 5,
+                    "tenso": 5,
+                    "hesitante": 0,
                 },
                 "textura_dominante": "neutro",
                 "feedback": "Variacao saudavel",
@@ -166,7 +173,14 @@ class TestTonalityMigration:
                 "diagnostico": "tonalidade_funcional",
                 "vad_medio": {"valence": 0.3, "arousal": 0.5, "dominance": 0.4},
                 "vad_temporal": [],
-                "textura_distribuicao": {"neutro": 100, "entusiasmado": 0, "confiante": 0, "apatico": 0, "tenso": 0, "hesitante": 0},
+                "textura_distribuicao": {
+                    "neutro": 100,
+                    "entusiasmado": 0,
+                    "confiante": 0,
+                    "apatico": 0,
+                    "tenso": 0,
+                    "hesitante": 0,
+                },
                 "textura_dominante": "neutro",
                 "feedback": "ok",
                 "warnings": [],
@@ -219,7 +233,14 @@ class TestTonalityMigration:
                 "diagnostico": "tonalidade_funcional",
                 "vad_medio": {},
                 "vad_temporal": [],
-                "textura_distribuicao": {"neutro": 100, "entusiasmado": 0, "confiante": 0, "apatico": 0, "tenso": 0, "hesitante": 0},
+                "textura_distribuicao": {
+                    "neutro": 100,
+                    "entusiasmado": 0,
+                    "confiante": 0,
+                    "apatico": 0,
+                    "tenso": 0,
+                    "hesitante": 0,
+                },
                 "textura_dominante": "neutro",
                 "feedback": "ok",
                 "warnings": [],
@@ -368,7 +389,9 @@ def storytelling_transcription():
 
 
 class TestStorytellingMigration:
-    def test_analyze_storytelling_returns_worker_result(self, monkeypatch, storytelling_transcription):
+    def test_analyze_storytelling_returns_worker_result(
+        self, monkeypatch, storytelling_transcription
+    ):
         """analyze_storytelling() retorna WorkerResult (nao dict)."""
         from workers import storytelling_analyzer
 
@@ -380,7 +403,12 @@ class TestStorytellingMigration:
                 "bridge_sentence": {"detected": True, "count": 1, "excerpts": []},
                 "opening_hook": {"type": "story", "strength": "strong"},
                 "cta": {"detected": True, "excerpt": "comece hoje"},
-                "chemicals": {"dopamine": {"detected": False, "examples": []}, "oxytocin": {"detected": False, "examples": []}, "endorphins": "not_yet_implemented", "cortisol_risk": {"detected": False, "reason": ""}},
+                "chemicals": {
+                    "dopamine": {"detected": False, "examples": []},
+                    "oxytocin": {"detected": False, "examples": []},
+                    "endorphins": "not_yet_implemented",
+                    "cortisol_risk": {"detected": False, "reason": ""},
+                },
                 "suggestions": [],
             }
 
@@ -400,7 +428,12 @@ class TestStorytellingMigration:
                 "bridge_sentence": {"detected": True, "count": 1, "excerpts": []},
                 "opening_hook": {"type": "story", "strength": "strong"},
                 "cta": {"detected": True, "excerpt": None},
-                "chemicals": {"dopamine": {"detected": False, "examples": []}, "oxytocin": {"detected": False, "examples": []}, "endorphins": "not_yet_implemented", "cortisol_risk": {"detected": False, "reason": ""}},
+                "chemicals": {
+                    "dopamine": {"detected": False, "examples": []},
+                    "oxytocin": {"detected": False, "examples": []},
+                    "endorphins": "not_yet_implemented",
+                    "cortisol_risk": {"detected": False, "reason": ""},
+                },
                 "suggestions": [],
             }
 
@@ -439,7 +472,9 @@ class TestStorytellingMigration:
         assert isinstance(result, WorkerFailure)
         assert result.dimension_status == "crashed"
 
-    def test_analyze_storytelling_legacy_returns_dict(self, monkeypatch, storytelling_transcription):
+    def test_analyze_storytelling_legacy_returns_dict(
+        self, monkeypatch, storytelling_transcription
+    ):
         """analyze_storytelling_legacy() retorna dict."""
         from workers import storytelling_analyzer
 
@@ -451,7 +486,12 @@ class TestStorytellingMigration:
                 "bridge_sentence": {"detected": True, "count": 1, "excerpts": []},
                 "opening_hook": {"type": "story", "strength": "strong"},
                 "cta": {"detected": False, "excerpt": None},
-                "chemicals": {"dopamine": {"detected": False, "examples": []}, "oxytocin": {"detected": False, "examples": []}, "endorphins": "not_yet_implemented", "cortisol_risk": {"detected": False, "reason": ""}},
+                "chemicals": {
+                    "dopamine": {"detected": False, "examples": []},
+                    "oxytocin": {"detected": False, "examples": []},
+                    "endorphins": "not_yet_implemented",
+                    "cortisol_risk": {"detected": False, "reason": ""},
+                },
                 "suggestions": [],
             }
 
@@ -494,9 +534,33 @@ class TestTemporalMigration:
             return {
                 "disponivel": True,
                 "por_terco": {
-                    "abertura": {"label": "abertura", "score": 75, "pitch_medio": 150.0, "volume_medio": 65.0, "trechos_monotonos": 0, "fillers": 0, "clusters": 0},
-                    "meio": {"label": "meio", "score": 70, "pitch_medio": 155.0, "volume_medio": 64.0, "trechos_monotonos": 0, "fillers": 0, "clusters": 0},
-                    "fechamento": {"label": "fechamento", "score": 80, "pitch_medio": 158.0, "volume_medio": 65.0, "trechos_monotonos": 0, "fillers": 0, "clusters": 0},
+                    "abertura": {
+                        "label": "abertura",
+                        "score": 75,
+                        "pitch_medio": 150.0,
+                        "volume_medio": 65.0,
+                        "trechos_monotonos": 0,
+                        "fillers": 0,
+                        "clusters": 0,
+                    },
+                    "meio": {
+                        "label": "meio",
+                        "score": 70,
+                        "pitch_medio": 155.0,
+                        "volume_medio": 64.0,
+                        "trechos_monotonos": 0,
+                        "fillers": 0,
+                        "clusters": 0,
+                    },
+                    "fechamento": {
+                        "label": "fechamento",
+                        "score": 80,
+                        "pitch_medio": 158.0,
+                        "volume_medio": 65.0,
+                        "trechos_monotonos": 0,
+                        "fillers": 0,
+                        "clusters": 0,
+                    },
                 },
                 "padrao": "crescente",
                 "padrao_descricao": "Constroi energia",
@@ -504,7 +568,9 @@ class TestTemporalMigration:
             }
 
         monkeypatch.setattr(temporal_analyzer, "_compute_temporal_metrics", fake_compute)
-        result = temporal_analyzer.analyze_temporal(voice_result, variety_result, filler_result, 90.0)
+        result = temporal_analyzer.analyze_temporal(
+            voice_result, variety_result, filler_result, 90.0
+        )
         assert isinstance(result, (WorkerSuccess, WorkerFailure))
         assert not isinstance(result, dict)
 
@@ -527,7 +593,9 @@ class TestTemporalMigration:
             }
 
         monkeypatch.setattr(temporal_analyzer, "_compute_temporal_metrics", fake_compute)
-        result = temporal_analyzer.analyze_temporal(voice_result, variety_result, filler_result, 90.0)
+        result = temporal_analyzer.analyze_temporal(
+            voice_result, variety_result, filler_result, 90.0
+        )
         assert isinstance(result, WorkerSuccess)
         assert result.dimension == "temporal"
         # Score sintetico: media de 75+70+80 = 75
@@ -540,10 +608,15 @@ class TestTemporalMigration:
         voice_result, variety_result, filler_result = temporal_inputs
 
         def fake_compute(vr, var, fr, duration_seconds):
-            return {"disponivel": False, "motivo": "Video muito curto para analise temporal (minimo 45s)"}
+            return {
+                "disponivel": False,
+                "motivo": "Video muito curto para analise temporal (minimo 45s)",
+            }
 
         monkeypatch.setattr(temporal_analyzer, "_compute_temporal_metrics", fake_compute)
-        result = temporal_analyzer.analyze_temporal(voice_result, variety_result, filler_result, 30.0)
+        result = temporal_analyzer.analyze_temporal(
+            voice_result, variety_result, filler_result, 30.0
+        )
         assert isinstance(result, WorkerFailure)
         assert result.dimension_status == "skipped"
         assert result.score is None
@@ -557,7 +630,9 @@ class TestTemporalMigration:
             raise RuntimeError("boom in temporal")
 
         monkeypatch.setattr(temporal_analyzer, "_compute_temporal_metrics", boom)
-        result = temporal_analyzer.analyze_temporal(voice_result, variety_result, filler_result, 90.0)
+        result = temporal_analyzer.analyze_temporal(
+            voice_result, variety_result, filler_result, 90.0
+        )
         assert isinstance(result, WorkerFailure)
         assert result.dimension_status == "crashed"
 
@@ -577,7 +652,9 @@ class TestTemporalMigration:
             }
 
         monkeypatch.setattr(temporal_analyzer, "_compute_temporal_metrics", fake_compute)
-        result = temporal_analyzer.analyze_temporal_legacy(voice_result, variety_result, filler_result, 90.0)
+        result = temporal_analyzer.analyze_temporal_legacy(
+            voice_result, variety_result, filler_result, 90.0
+        )
         assert isinstance(result, dict)
         assert result["disponivel"] is True
 
@@ -648,7 +725,13 @@ class TestCongruenceMigration:
             return {
                 "score": 73,
                 "diagnostico": "congruencia_moderada",
-                "contradicoes": [{"id": "entusiasmo_vs_postura", "descricao": "Voz entusiasmada mas postura fechada", "penalidade": 15}],
+                "contradicoes": [
+                    {
+                        "id": "entusiasmo_vs_postura",
+                        "descricao": "Voz entusiasmada mas postura fechada",
+                        "penalidade": 15,
+                    }
+                ],
                 "total_contradicoes": 1,
             }
 
@@ -701,14 +784,12 @@ class TestFlagFlip:
         env_val = os.environ.get("TRUTH_CONTRACT_ENABLED", "true")
         # Se nao esta setada, o default do config deve ser True
         assert env_val.lower() == "true", (
-            f"TRUTH_CONTRACT_ENABLED default nao e 'true'. "
-            f"Valor atual: {env_val}"
+            f"TRUTH_CONTRACT_ENABLED default nao e 'true'. Valor atual: {env_val}"
         )
 
     def test_config_truth_contract_default_true(self, monkeypatch):
         """config.TRUTH_CONTRACT_ENABLED e True quando env nao esta setada."""
         import importlib
-        import os
 
         # Simular ambiente sem env var
         monkeypatch.delenv("TRUTH_CONTRACT_ENABLED", raising=False)
@@ -742,17 +823,28 @@ class TestFlagFlip:
 class TestDisponivePatternIntegration:
     """Verifica que o pattern disponivel:bool mapeia corretamente em todos os workers."""
 
-    @pytest.mark.parametrize("module_name,func_name,args", [
-        ("facial_analyzer", "analyze_facial", ("fake_video.mp4",)),
-        ("tonality_analyzer", "analyze_tonality", ("fake_audio.wav",)),
-        ("storytelling_analyzer", "analyze_storytelling", ({"full_text": "x" * 100, "words": []},)),
-    ])
-    def test_disponivel_false_always_gives_worker_failure(self, monkeypatch, module_name, func_name, args):
+    @pytest.mark.parametrize(
+        "module_name,func_name,args",
+        [
+            ("facial_analyzer", "analyze_facial", ("fake_video.mp4",)),
+            ("tonality_analyzer", "analyze_tonality", ("fake_audio.wav",)),
+            (
+                "storytelling_analyzer",
+                "analyze_storytelling",
+                ({"full_text": "x" * 100, "words": []},),
+            ),
+        ],
+    )
+    def test_disponivel_false_always_gives_worker_failure(
+        self, monkeypatch, module_name, func_name, args
+    ):
         """Para qualquer worker augmentation, disponivel=False → WorkerFailure."""
         import importlib
 
         module = importlib.import_module(f"workers.{module_name}")
-        compute_fn_name = f"_compute_{module_name.replace('_analyzer', '').replace('_detector', '')}_metrics"
+        compute_fn_name = (
+            f"_compute_{module_name.replace('_analyzer', '').replace('_detector', '')}_metrics"
+        )
 
         def fake_compute(*a, **kw):
             return {

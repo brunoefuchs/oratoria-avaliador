@@ -10,8 +10,6 @@ Cobre:
 - V1/V2: overall_score nunca eh 0 por fallback
 """
 
-import pytest
-
 from contracts import WorkerFailure, WorkerSuccess
 from contracts.dimensions import AUGMENTATION_DIMENSIONS, SCORING_DIMENSIONS
 from workers.aggregator import aggregate_metrics, aggregate_metrics_legacy
@@ -308,7 +306,6 @@ class TestContextualWeights:
         results_high_posture["variety"] = make_success("variety", score=0)
 
         agg_palco = aggregate_metrics(EVAL_ID, results_high_posture, VIDEO_META, contexto="palco")
-        agg_default = aggregate_metrics(EVAL_ID, results_high_posture, VIDEO_META)
 
         assert agg_palco["contexto"] == "palco"
         assert agg_palco["overall_score"] is not None
