@@ -1,0 +1,94 @@
+pack:
+  name: mentores-comunicacao
+  version: 1.0.0
+  short-title: Mentores de Comunicação
+  description: >-
+    Squad consultivo de oratória humana. Recebe relatórios do ml-worker
+    (13 dimensões de análise de vídeo) e produz insight complementar
+    via dois mind clones de elite: Patsy Rodenburg (presença, Three Circles)
+    e Roger Love (técnica vocal, 5 Ingredients of Vocal Power).
+    Não substitui o ml-worker — complementa com o que algoritmos não capturam.
+  author: Bruno Fuchs
+  icon: "🎯"
+  slashPrefix: mentoresComunicacao
+
+# Pattern Library
+pattern_library:
+  prefix: "MC"
+  categories:
+    - TP: "Task Patterns"
+    - AP: "Analysis Patterns"
+    - SP: "Synthesis Patterns"
+
+# Agent Registry
+agents:
+  - id: mentores-comunicacao-chief
+    type: orchestrator
+    file: agents/mentores-comunicacao-chief.md
+    tier: orchestrator
+    activation: "@mentores-comunicacao"
+
+  - id: patsy-rodenburg
+    type: mind_clone
+    file: agents/patsy-rodenburg.md
+    tier: 1
+    source_mind: "Patsy Rodenburg"
+    lente: "Presença & Energia (Three Circles)"
+    activation: "@mentores-comunicacao:patsy-rodenburg"
+
+  - id: roger-love
+    type: mind_clone
+    file: agents/roger-love.md
+    tier: 1
+    source_mind: "Roger Love"
+    lente: "Técnica Vocal (5 Ingredients)"
+    activation: "@mentores-comunicacao:roger-love"
+
+# Squad Architecture
+architecture:
+  type: consultive
+  flow: "manual (user pastes ml-worker report)"
+  input: "ml-worker consolidated report (13 dimensions)"
+  output: "Markdown consulting artifact (6 sections)"
+
+  io_contract:
+    input_dimensions:
+      scoring: [posture, gesture, voice, fillers, variety, archetypes, facial, tonality, opening, identity]
+      augmentation: [storytelling, temporal, congruence]
+    output_sections:
+      - "Leitura Geral"
+      - "Presença & Energia (Rodenburg)"
+      - "Técnica Vocal (Roger Love)"
+      - "Pontos Cegos"
+      - "Top 3 Quick Wins"
+      - "Princípios Pedagógicos"
+
+  dimension_routing:
+    patsy-rodenburg: [posture, gesture, facial, opening, identity, congruence]
+    roger-love: [voice, tonality, variety, fillers, temporal]
+    shared: [archetypes, storytelling]
+
+# Dependencies
+dependencies:
+  project:
+    - "ml-worker/contracts/worker_result.py (WorkerResult schema)"
+    - "ml-worker/contracts/dimensions.py (13 dimensions)"
+  squad_ecosystem:
+    - "squad-creator-pro:vinh-giang (complementary, not overlapping)"
+    - "squad-creator-pro:gui-reginatto (complementary, not overlapping)"
+
+# Quality Gates
+quality:
+  min_score: 7.0
+  gates:
+    - "MC-QG-01: Both mentor perspectives in every analysis"
+    - "MC-QG-02: Pontos Cegos section always present"
+    - "MC-QG-03: Quick wins <= 3, each with pedagogical anchor"
+    - "MC-QG-04: No invented frameworks (traceable to source)"
+
+# Metadata
+metadata:
+  created: "2026-04-15"
+  prd: "docs/projects/mentores-comunicacao/prd.md"
+  planning_mode: "deep"
+  creation_mode: "YOLO"
