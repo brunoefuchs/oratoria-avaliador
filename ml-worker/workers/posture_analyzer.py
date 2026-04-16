@@ -234,16 +234,33 @@ def _compute_posture_metrics(video_path: str) -> dict:
     # Classificacao de movimento
     movimento = _classificar_movimento(centers_of_mass, detected_frames)
 
+    # MP-2: Dinamismo postural — distingue "parado com braços abertos"
+    # de "presença dinâmica". Combina variância + propositalidade.
+    variancia = movimento["variancia"]
+    proposital = movimento["proposital_score"]
+    if variancia > 0.002 and proposital >= 70:
+        dinamismo_postural = 90
+    elif variancia > 0.001 and proposital >= 50:
+        dinamismo_postural = 70
+    elif variancia > 0.0005:
+        dinamismo_postural = 50
+    elif proposital >= 60:
+        dinamismo_postural = 60
+    else:
+        dinamismo_postural = 30
+
     # =============================================
-    # SCORE DE POSTURA (0-100) — 4 componentes
+    # SCORE DE POSTURA (0-100) — 5 componentes (MP-2 rebalance)
     # =============================================
-    # 35% Alignment + 20% Open posture + 25% Grounding + 20% Proposital
+    # 30% Alignment + 10% Open + 25% Grounding + 20% Proposital + 15% Dinamismo
+    # Open reduzido 20→10% (mede só "braços não cruzados", inflava score)
 
     posture_score = round(
-        avg_alignment * 0.35
-        + min(100, open_posture_pct) * 0.20
+        avg_alignment * 0.30
+        + min(100, open_posture_pct) * 0.10
         + movimento["grounding_score"] * 0.25
         + movimento["proposital_score"] * 0.20
+        + dinamismo_postural * 0.15
     )
     posture_score = max(0, min(100, posture_score))
 
@@ -279,11 +296,13 @@ def _compute_posture_metrics(video_path: str) -> dict:
                 "num_deslocamentos": movimento["num_deslocamentos"],
                 "deslocamento_medio": movimento["deslocamento_medio"],
             },
+            "dinamismo_postural": dinamismo_postural,
             "sub_scores": {
                 "alinhamento": avg_alignment,
                 "postura_aberta": round(min(100, open_posture_pct)),
                 "grounding": movimento["grounding_score"],
                 "movimento_proposital": movimento["proposital_score"],
+                "dinamismo": dinamismo_postural,
             },
             "detected_frames": detected_frames,
             "total_frames": len(frames),
