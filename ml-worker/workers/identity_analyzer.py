@@ -124,14 +124,16 @@ _AUTORIDADE_COMPILED = [re.compile(p, re.IGNORECASE) for p in LINGUAGEM_AUTORIDA
 _VITIMA_COMPILED = [re.compile(p, re.IGNORECASE) for p in LINGUAGEM_VITIMA]
 
 
-def analyze_identity(transcription: dict) -> dict:
+def _compute_identity_metrics(transcription: dict) -> dict:
     """Analisa marcadores linguisticos de identidade no transcript."""
     full_text = transcription.get("full_text", "").lower()
     words = transcription.get("words", [])
 
     if not full_text:
         return {
-            "score": 50,
+            "score": None,
+            "confidence": "failed",
+            "failure_reason": "identity analysis failed",
             "diagnostico": "dados_insuficientes",
             "vicios_emocionais": {},
             "total_vicios": 0,
@@ -240,6 +242,25 @@ def analyze_identity(transcription: dict) -> dict:
         "exemplos": exemplos[:5],
         "diagnostico": diagnostico,
     }
+
+
+# Story 8.2 — Truth Contract
+from workers._truth_contract_helpers import wrap_worker_result
+
+
+def analyze_identity_legacy(transcription: dict) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_identity_metrics(transcription)
+
+
+def analyze_identity(transcription: dict) -> dict:
+    """Legacy alias kept for backwards compat with app.py callers."""
+    return _compute_identity_metrics(transcription)
+
+
+def analyze_identity_tc(transcription: dict) -> "WorkerResult":
+    """Truth Contract path (TRUTH_CONTRACT_ENABLED=true)."""
+    return wrap_worker_result("identity", _compute_identity_metrics, transcription)
 
 
 def _find_timestamp(words: list, char_offset: int, full_text: str) -> float:

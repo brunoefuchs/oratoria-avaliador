@@ -204,7 +204,7 @@ def _generate_feedback(distribuicao: dict, textura_dominante: str) -> str:
     )
 
 
-def analyze_tonality(audio_path: str) -> dict:
+def _compute_tonality_metrics(audio_path: str) -> dict:
     """Analisa textura emocional vocal via VAD em janelas de 5s.
 
     Pipeline:
@@ -371,3 +371,52 @@ def _disponivel_false(motivo: str) -> dict:
         "feedback": motivo,
         "warnings": [motivo],
     }
+
+
+# Story 8.3 — Truth Contract
+from contracts import WorkerFailure, WorkerResult, WorkerSuccess  # noqa: E402
+
+
+def analyze_tonality_legacy(audio_path: str) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_tonality_metrics(audio_path)
+
+
+def analyze_tonality(audio_path: str) -> "WorkerResult":
+    """Truth Contract path — retorna WorkerResult (Pydantic).
+
+    Adapta disponivel:bool pattern:
+    - disponivel=True + score → WorkerSuccess
+    - disponivel=False → WorkerFailure(skipped)
+    - Exception → WorkerFailure(crashed)
+    """
+    try:
+        result = _compute_tonality_metrics(audio_path)
+        if not result.get("disponivel", True):
+            return WorkerFailure(
+                dimension="tonality",
+                dimension_status="skipped",
+                failure_reason=result.get("feedback", "analise de tonalidade indisponivel"),
+                metrics=result,
+            )
+        score = result.get("score")
+        if score is None:
+            return WorkerFailure(
+                dimension="tonality",
+                dimension_status="insufficient_data",
+                failure_reason="score is None after tonality analysis",
+            )
+        metrics = {k: v for k, v in result.items() if k not in ("score", "disponivel")}
+        return WorkerSuccess(
+            dimension="tonality",
+            score=max(0, min(100, int(score))),
+            metrics=metrics,
+            confidence=1.0,
+        )
+    except Exception as e:
+        logger.error("tonality_crashed", error_type=type(e).__name__, error=str(e), exc_info=True)
+        return WorkerFailure(
+            dimension="tonality",
+            dimension_status="crashed",
+            failure_reason=f"{type(e).__name__}: {str(e)}",
+        )

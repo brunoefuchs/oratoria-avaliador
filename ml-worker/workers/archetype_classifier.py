@@ -151,7 +151,7 @@ def _classificar_arquetipo(features: dict, media_global: dict) -> dict:
     }
 
 
-def classify_archetypes(audio_path: str) -> dict:
+def _compute_archetype_metrics(audio_path: str) -> dict:
     """Classifica arquetipos vocais ao longo do audio.
 
     Analisa janelas de JANELA_ARQUETIPO segundos e identifica:
@@ -288,7 +288,31 @@ def classify_archetypes(audio_path: str) -> dict:
     else:
         lockin_score = 100  # Distribuicao equilibrada
 
-    archetype_score = round(diversidade_score * 0.40 + cycling_score * 0.30 + lockin_score * 0.30)
+    # 4. Qualidade do dominante — peso 30% (BUG-MP-5: consistência > diversidade)
+    #    Orador que sustenta 1 persona forte com alta confiança = valor real
+    #    Confiança média do dominante nas janelas onde aparece
+    confiancas_dominante = [
+        c["confianca"] for c in classificacoes if c["arquetipo"] == arquetipo_dominante
+    ]
+    confianca_media_dom = float(np.mean(confiancas_dominante)) if confiancas_dominante else 0.0
+    qualidade_dominante = min(100, confianca_media_dom * 200)  # 0.5 confiança → 100
+
+    # Score rebalanceado: valoriza CONSISTÊNCIA + QUALIDADE, não só diversidade
+    # v1: 40% diversidade + 30% cycling + 30% lockin → score=9 pra persona forte
+    # v2: 25/20/25/30 → score=35 (melhorou mas gap -46 vs LLMs)
+    # v3: 15/20/25/40 → qualidade do dominante pesa mais que diversidade
+    archetype_score = round(
+        diversidade_score * 0.15
+        + cycling_score * 0.20
+        + lockin_score * 0.25
+        + qualidade_dominante * 0.40
+    )
+
+    # Floor: persona forte (alta confiança) com lock-in nunca < 35
+    # Rubric: "Arquétipo claro, consistente, autêntico" ≥ 61
+    if lock_in and confianca_media_dom > 0.4:
+        archetype_score = max(archetype_score, 35)
+
     archetype_score = max(0, min(100, archetype_score))
 
     logger.info(
@@ -329,3 +353,22 @@ def classify_archetypes(audio_path: str) -> dict:
             },
         },
     }
+
+
+# Story 8.2 — Truth Contract
+from workers._truth_contract_helpers import wrap_worker_result
+
+
+def classify_archetypes_legacy(audio_path: str) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_archetype_metrics(audio_path)
+
+
+def classify_archetypes(audio_path: str) -> dict:
+    """Legacy alias kept for backwards compat with app.py callers."""
+    return _compute_archetype_metrics(audio_path)
+
+
+def analyze_archetypes(audio_path: str) -> "WorkerResult":
+    """Truth Contract path (TRUTH_CONTRACT_ENABLED=true)."""
+    return wrap_worker_result("archetypes", _compute_archetype_metrics, audio_path)

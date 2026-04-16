@@ -24,10 +24,10 @@ ORATORIA_SHADOW_MODE_ENABLED = os.getenv("ORATORIA_SHADOW_MODE_ENABLED", "false"
 # score=0 fallback em falha (comportamento pre-Epic 8.0).
 #
 # Rollout seguro: env var → reload basta (sem restart). Kill switch imediato.
-# Default false pra preservar producao enquanto workers vao sendo migrados.
-# Ativar via env var TRUTH_CONTRACT_ENABLED=true.
+# Story 8.3: default AGORA e true — todos os 13 workers migrados.
+# Kill switch: env var TRUTH_CONTRACT_ENABLED=false reverte pra legacy.
 #
-# Workers migrados (Story 8.1): variety
-# Workers pendentes (Story 8.2+): posture, gesture, voice, fillers, archetypes,
-#     facial, tonality, opening, identity, storytelling, temporal, congruence
-TRUTH_CONTRACT_ENABLED = os.getenv("TRUTH_CONTRACT_ENABLED", "false").lower() == "true"
+# Workers migrados (Story 8.2): posture, gesture, voice, fillers, archetypes, identity
+# Workers migrados (Story 8.3): facial, tonality, opening, storytelling, temporal, congruence
+# Total migrado: 13 workers (incluindo variety da Story 8.1)
+TRUTH_CONTRACT_ENABLED = os.getenv("TRUTH_CONTRACT_ENABLED", "true").lower() == "true"

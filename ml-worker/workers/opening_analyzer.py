@@ -91,7 +91,7 @@ SUGESTOES = {
 }
 
 
-def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: float) -> dict:
+def _compute_opening_metrics(transcription: dict, voice_metrics: dict, duration_seconds: float) -> dict:
     """Analisa os primeiros 20% do transcript para detectar tecnicas de abertura."""
     words = transcription.get("words", [])
     full_text = transcription.get("full_text", "")
@@ -288,3 +288,58 @@ def analyze_opening(transcription: dict, voice_metrics: dict, duration_seconds: 
         "opening_text": opening_text[:300],
         "opening_duration_seconds": round(opening_end_time, 1),
     }
+
+
+# Story 8.3 — Truth Contract
+from contracts import WorkerFailure, WorkerResult, WorkerSuccess  # noqa: E402
+
+
+def analyze_opening_legacy(
+    transcription: dict, voice_metrics: dict, duration_seconds: float
+) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_opening_metrics(transcription, voice_metrics, duration_seconds)
+
+
+def analyze_opening(
+    transcription: dict, voice_metrics: dict, duration_seconds: float
+) -> "WorkerResult":
+    """Truth Contract path — retorna WorkerResult (Pydantic).
+
+    Adapta disponivel:bool pattern:
+    - disponivel=True + score → WorkerSuccess
+    - disponivel=False → WorkerFailure(skipped)
+    - Exception → WorkerFailure(crashed)
+    """
+    try:
+        result = _compute_opening_metrics(transcription, voice_metrics, duration_seconds)
+        if not result.get("disponivel", True):
+            return WorkerFailure(
+                dimension="opening",
+                dimension_status="skipped",
+                failure_reason=result.get(
+                    "motivo", result.get("feedback", "analise de abertura indisponivel")
+                ),
+                metrics=result,
+            )
+        score = result.get("score")
+        if score is None:
+            return WorkerFailure(
+                dimension="opening",
+                dimension_status="insufficient_data",
+                failure_reason="score is None after opening analysis",
+            )
+        metrics = {k: v for k, v in result.items() if k not in ("score", "disponivel")}
+        return WorkerSuccess(
+            dimension="opening",
+            score=max(0, min(100, int(score))),
+            metrics=metrics,
+            confidence=1.0,
+        )
+    except Exception as e:
+        logger.error("opening_crashed", error_type=type(e).__name__, error=str(e), exc_info=True)
+        return WorkerFailure(
+            dimension="opening",
+            dimension_status="crashed",
+            failure_reason=f"{type(e).__name__}: {str(e)}",
+        )
