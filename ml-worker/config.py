@@ -17,3 +17,17 @@ LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")
 # Não altera comportamento user-facing — só loga decisões para comparação.
 # Default false. Ativar via env var ORATORIA_SHADOW_MODE_ENABLED=true.
 ORATORIA_SHADOW_MODE_ENABLED = os.getenv("ORATORIA_SHADOW_MODE_ENABLED", "false").lower() == "true"
+
+# Feature flag: Truth Contract (Story 8.1).
+# Quando true, workers migrados retornam WorkerResult (Pydantic) e analysis_results
+# grava dimension_status + failure_reason. Quando false, usa path legacy com
+# score=0 fallback em falha (comportamento pre-Epic 8.0).
+#
+# Rollout seguro: env var → reload basta (sem restart). Kill switch imediato.
+# Default false pra preservar producao enquanto workers vao sendo migrados.
+# Ativar via env var TRUTH_CONTRACT_ENABLED=true.
+#
+# Workers migrados (Story 8.1): variety
+# Workers pendentes (Story 8.2+): posture, gesture, voice, fillers, archetypes,
+#     facial, tonality, opening, identity, storytelling, temporal, congruence
+TRUTH_CONTRACT_ENABLED = os.getenv("TRUTH_CONTRACT_ENABLED", "false").lower() == "true"
