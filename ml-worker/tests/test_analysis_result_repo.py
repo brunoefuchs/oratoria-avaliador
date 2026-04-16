@@ -181,6 +181,44 @@ def test_legacy_does_not_write_new_columns(supabase):
     assert "failure_reason" not in row
 
 
+def test_save_returns_payload_when_supabase_empty():
+    """Quando Supabase retorna response.data vazio, retorna row construido."""
+
+    class _EmptyTable:
+        def upsert(self, row):
+            self._row = row
+            return self
+
+        def execute(self):
+            return _FakeResponse([])
+
+    class _EmptySupa:
+        def table(self, name):
+            return _EmptyTable()
+
+    result = WorkerSuccess(dimension="variety", score=50, metrics={})
+    row = save_analysis_result(_EmptySupa(), "eval-empty", result)
+    assert row["score"] == 50
+    assert "id" not in row
+
+
+def test_legacy_returns_payload_when_supabase_empty():
+    class _EmptyTable:
+        def upsert(self, row):
+            return self
+
+        def execute(self):
+            return _FakeResponse([])
+
+    class _EmptySupa:
+        def table(self, name):
+            return _EmptyTable()
+
+    row = save_analysis_result_legacy(_EmptySupa(), "eval-e2", "voice", {"score": 30})
+    assert row["score"] == 30
+    assert "id" not in row
+
+
 def test_legacy_metrics_fallback_to_full_dict(supabase):
     """Worker pode nao ter campo 'metrics' separado — cai pro dict inteiro."""
     save_analysis_result_legacy(
