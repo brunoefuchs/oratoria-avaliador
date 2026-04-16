@@ -723,10 +723,11 @@ async def _run_pipeline(req: ProcessRequest):
         ).execute()
 
         # Step 10: Gerar relatorio de coaching com LLM
+        # Story 8.5: dispatch via feature flag.
+        # - Flag ON: generate_report(AggregatedMetrics) — Truth Contract path
+        # - Flag OFF: generate_report_legacy(dict) — preservado 100% intacto
         await _notify_status(req.callback_url, req.evaluation_id, "generating_report")
         try:
-            from workers.report_generator import generate_report
-
             # Buscar contexto completo do orador para o LLM
             eval_context = None
             try:
@@ -741,7 +742,17 @@ async def _run_pipeline(req: ProcessRequest):
             except Exception:
                 pass
 
-            report = generate_report(aggregated, context=eval_context)
+            if config.TRUTH_CONTRACT_ENABLED:
+                from contracts import AggregatedMetrics
+                from workers.report_generator import generate_report
+
+                metrics = AggregatedMetrics.model_validate(aggregated)
+                report = generate_report(metrics, context=eval_context)
+            else:
+                from workers.report_generator import generate_report_legacy
+
+                report = generate_report_legacy(aggregated, context=eval_context)
+
             supabase.table("reports").insert(
                 {
                     "evaluation_id": req.evaluation_id,
