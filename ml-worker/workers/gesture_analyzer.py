@@ -12,7 +12,8 @@ HAND_MODEL_PATH = "/tmp/mediapipe_models/hand_landmarker.task"
 FACE_MODEL_PATH = "/tmp/mediapipe_models/face_landmarker.task"
 
 # Limiar para considerar gaze centrado (nariz alinhado entre olhos)
-GAZE_THRESHOLD = 0.35
+# MP-1: reduzido de 0.35→0.22 pra captar desvios reais (era inflado a 100%)
+GAZE_THRESHOLD = 0.22
 # Duracao ideal de contato visual por "fixacao" (segundos entre frames a 2fps)
 FIXACAO_MIN_FRAMES = 2  # 1s minimo
 FIXACAO_MAX_FRAMES = 10  # 5s maximo antes de ficar desconfortavel
@@ -61,9 +62,20 @@ def _estimar_direcao_olhar(face_landmarks) -> dict:
     else:
         direcao = "esquerda"
 
+    # MP-1: Classificar tipo de desvio (positivo/negativo/neutro)
+    if centrado:
+        tipo_desvio = "nenhum"
+    elif direcao == "baixo":
+        tipo_desvio = "negativo"
+    elif direcao == "cima":
+        tipo_desvio = "positivo"
+    else:
+        tipo_desvio = "neutro"
+
     return {
         "direcao": direcao,
         "centrado": centrado,
+        "tipo_desvio": tipo_desvio,
         "angulo_vertical": round(angulo_vertical, 1),
         "offset_x": round(float(offset_normalizado_x), 3),
         "offset_y": round(float(offset_normalizado_y), 3),
@@ -81,10 +93,11 @@ def _classificar_posicao_mao(hand_landmarks) -> dict:
     index_tip = np.array([hand_landmarks[8].x, hand_landmarks[8].y])
     pinky_tip = np.array([hand_landmarks[20].x, hand_landmarks[20].y])
 
-    # Zona vertical (expandida: peito-cintura e pouco alem e aceitavel)
-    if wrist[1] < 0.30:
+    # Zona vertical — MP-3 fix: ampliada de 0.65→0.80 pra "media"
+    # Em vídeos bust/portrait, mãos em posição natural caem em y=0.6-0.75
+    if wrist[1] < 0.35:
         zona = "alta"
-    elif wrist[1] < 0.65:
+    elif wrist[1] < 0.80:
         zona = "media"
     else:
         zona = "baixa"
@@ -148,6 +161,9 @@ def _compute_gesture_metrics(video_path: str) -> dict:
     # Contato visual detalhado
     contato_visual_frames = 0
     olhar_baixo_frames = 0
+    desvio_positivo_frames = 0  # MP-1: reflexivo (cima)
+    desvio_negativo_frames = 0  # MP-1: evasivo (baixo)
+    desvio_neutro_frames = 0    # MP-1: lateral (scanning)
     direcoes_olhar = []  # historico de direcoes para medir distribuicao
 
     # Gestos detalhados
@@ -238,6 +254,13 @@ def _compute_gesture_metrics(video_path: str) -> dict:
                 contato_visual_frames += 1
             if olhar["direcao"] == "baixo":
                 olhar_baixo_frames += 1
+            # MP-1: track deviation types
+            if olhar.get("tipo_desvio") == "positivo":
+                desvio_positivo_frames += 1
+            elif olhar.get("tipo_desvio") == "negativo":
+                desvio_negativo_frames += 1
+            elif olhar.get("tipo_desvio") == "neutro":
+                desvio_neutro_frames += 1
 
     hand_landmarker.close()
     face_landmarker.close()
@@ -253,6 +276,9 @@ def _compute_gesture_metrics(video_path: str) -> dict:
     hand_visible_pct = round(frames_com_mao_detectada / max(1, total_frames) * 100, 1)
     eye_contact_pct = round(contato_visual_frames / max(1, face_detected_count) * 100, 1)
     olhar_baixo_pct = round(olhar_baixo_frames / max(1, face_detected_count) * 100, 1)
+    desvio_positivo_pct = round(desvio_positivo_frames / max(1, face_detected_count) * 100, 1)
+    desvio_negativo_pct = round(desvio_negativo_frames / max(1, face_detected_count) * 100, 1)
+    desvio_neutro_pct = round(desvio_neutro_frames / max(1, face_detected_count) * 100, 1)
     duas_maos_pct = round(duas_maos_count / max(1, frames_com_mao_detectada) * 100, 1)
 
     # Vocabulario de gestos (quantas posicoes diferentes usa)
@@ -300,8 +326,9 @@ def _compute_gesture_metrics(video_path: str) -> dict:
         contato_base = max(0.0, (eye_contact_pct / 70.0) * 100)
     else:  # > 90
         contato_base = max(0.0, 100 - (eye_contact_pct - 90) * 5)
-    penalidade_olhar_baixo = min(30, olhar_baixo_pct * 0.6)
-    contato_score = max(0, contato_base - penalidade_olhar_baixo)
+    # MP-1: penalizar só desvios negativos (evasivo). Positivos não penalizam.
+    penalidade_desvio_negativo = min(30, desvio_negativo_pct * 0.8)
+    contato_score = max(0, contato_base - penalidade_desvio_negativo)
 
     # 2. Gesticulacao com qualidade — peso 30%
     # Story 7.1 AC-4: bidirectional bell curve. Pouco gesto E excesso sao ruins.
@@ -381,6 +408,9 @@ def _compute_gesture_metrics(video_path: str) -> dict:
             "hand_visible_pct": hand_visible_pct,
             "eye_contact_pct": eye_contact_pct,
             "olhar_baixo_pct": olhar_baixo_pct,
+            "desvio_positivo_pct": desvio_positivo_pct,
+            "desvio_negativo_pct": desvio_negativo_pct,
+            "desvio_neutro_pct": desvio_neutro_pct,
             "duas_maos_pct": duas_maos_pct,
             "vocabulario_gestos": vocabulario_gestos,
             "zona_ideal_pct": zona_ideal_pct,
