@@ -114,7 +114,7 @@ def _extract_frames_facial(video_path: str, fps: int) -> list[str]:
     return [str(f) for f in frames]
 
 
-def analyze_facial(video_path: str) -> dict:
+def _compute_facial_metrics(video_path: str) -> dict:
     """Analisa expressao facial: smile, brow, eye openness.
 
     Pipeline:
@@ -335,3 +335,52 @@ def _disponivel_false(motivo: str, warnings_list: list[str] | None = None) -> di
         "detection_pct": 0.0,
         "warnings": warnings_list or [motivo],
     }
+
+
+# Story 8.3 — Truth Contract
+from contracts import WorkerFailure, WorkerResult, WorkerSuccess  # noqa: E402
+
+
+def analyze_facial_legacy(video_path: str) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_facial_metrics(video_path)
+
+
+def analyze_facial(video_path: str) -> "WorkerResult":
+    """Truth Contract path — retorna WorkerResult (Pydantic).
+
+    Adapta disponivel:bool pattern:
+    - disponivel=True + score → WorkerSuccess
+    - disponivel=False → WorkerFailure(skipped)
+    - Exception → WorkerFailure(crashed)
+    """
+    try:
+        result = _compute_facial_metrics(video_path)
+        if not result.get("disponivel", True):
+            return WorkerFailure(
+                dimension="facial",
+                dimension_status="skipped",
+                failure_reason=result.get("feedback", "analise facial indisponivel"),
+                metrics=result,
+            )
+        score = result.get("score")
+        if score is None:
+            return WorkerFailure(
+                dimension="facial",
+                dimension_status="insufficient_data",
+                failure_reason="score is None after facial analysis",
+            )
+        metrics = {k: v for k, v in result.items() if k not in ("score", "disponivel")}
+        return WorkerSuccess(
+            dimension="facial",
+            score=max(0, min(100, int(score))),
+            metrics=metrics,
+            confidence=1.0,
+        )
+    except Exception as e:
+        logger.error("facial_crashed", error_type=type(e).__name__, error=str(e), exc_info=True)
+        return WorkerFailure(
+            dimension="facial",
+            dimension_status="crashed",
+            failure_reason=f"{type(e).__name__}: {str(e)}",
+        )

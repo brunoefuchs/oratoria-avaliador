@@ -238,19 +238,25 @@ async def _run_pipeline(req: ProcessRequest):
         _save_analysis(supabase, req.evaluation_id, "gesture", gesture_result)
 
         # Step 4.5: Story 7.4 — Analise de expressao facial (smile, brow, eye openness)
+        # Story 8.3: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_facial")
-        try:
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.facial_analyzer import analyze_facial
 
             facial_result = analyze_facial(video_path)
-        except Exception as e:
-            logger.error("facial_analysis_failed", error=str(e))
-            facial_result = {
-                "disponivel": False,
-                "score": 0,
-                "diagnostico": "failed",
-                "feedback": str(e),
-            }
+        else:
+            try:
+                from workers.facial_analyzer import analyze_facial_legacy
+
+                facial_result = analyze_facial_legacy(video_path)
+            except Exception as e:
+                logger.error("facial_analysis_failed", error=str(e))
+                facial_result = {
+                    "disponivel": False,
+                    "score": 0,
+                    "diagnostico": "failed",
+                    "feedback": str(e),
+                }
 
         # Step 5: Analise de voz (Whisper + Parselmouth)
         # Story 8.2: transcribe_audio + analyze_prosody are intermediates — kept as-is.
@@ -300,19 +306,25 @@ async def _run_pipeline(req: ProcessRequest):
         _save_analysis(supabase, req.evaluation_id, "voice", voice_result)
 
         # Step 5.5: Story 7.5 — Tonality VAD (5a Vocal Foundation)
-        try:
+        # Story 8.3: dispatch via feature flag.
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.tonality_analyzer import analyze_tonality
 
             tonality_result = analyze_tonality(audio_path)
-        except Exception as e:
-            logger.error("tonality_analysis_failed", error=str(e))
-            tonality_result = {
-                "disponivel": False,
-                "score": 0,
-                "diagnostico": "failed",
-                "feedback": str(e),
-                "warnings": [str(e)],
-            }
+        else:
+            try:
+                from workers.tonality_analyzer import analyze_tonality_legacy
+
+                tonality_result = analyze_tonality_legacy(audio_path)
+            except Exception as e:
+                logger.error("tonality_analysis_failed", error=str(e))
+                tonality_result = {
+                    "disponivel": False,
+                    "score": 0,
+                    "diagnostico": "failed",
+                    "feedback": str(e),
+                    "warnings": [str(e)],
+                }
 
         # Step 6: Deteccao de vicios de linguagem
         # Story 8.2: dispatch via feature flag.
@@ -351,20 +363,28 @@ async def _run_pipeline(req: ProcessRequest):
         _save_analysis(supabase, req.evaluation_id, "identity", identity_result)
 
         # Step 6.6: Analise de abertura (Epic 6)
-        try:
+        # Story 8.3: dispatch via feature flag.
+        # voice_result pode ser WorkerSuccess (TC) ou dict (legacy) — extrair metrics resiliente.
+        _voice_metrics_for_opening = (
+            voice_result.metrics
+            if hasattr(voice_result, "metrics")
+            else voice_result.get("metrics", voice_result)
+        )
+        _voice_duration = _voice_metrics_for_opening.get("audio_duration_seconds", 0)
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.opening_analyzer import analyze_opening
 
-            opening_result = analyze_opening(
-                transcription,
-                voice_result.get("metrics", voice_result),
-                voice_result.get(
-                    "audio_duration_seconds",
-                    voice_result.get("metrics", {}).get("audio_duration_seconds", 0),
-                ),
-            )
-        except Exception as e:
-            logger.error("opening_analysis_failed", error=str(e))
-            opening_result = {"disponivel": False, "motivo": str(e)}
+            opening_result = analyze_opening(transcription, _voice_metrics_for_opening, _voice_duration)
+        else:
+            try:
+                from workers.opening_analyzer import analyze_opening_legacy
+
+                opening_result = analyze_opening_legacy(
+                    transcription, _voice_metrics_for_opening, _voice_duration
+                )
+            except Exception as e:
+                logger.error("opening_analysis_failed", error=str(e))
+                opening_result = {"disponivel": False, "motivo": str(e)}
 
         # Step 7: Analise de variedade (meta-analyzer)
         # Story 8.1 T6: dispatch via feature flag.
@@ -393,33 +413,52 @@ async def _run_pipeline(req: ProcessRequest):
         _save_analysis(supabase, req.evaluation_id, "variety", variety_result)
 
         # Step 7.5: Story 7.3 — Storytelling Analyzer (bridge, hook, CTA, chemicals)
-        try:
+        # Story 8.3: dispatch via feature flag.
+        # variety_result e opening_result podem ser WorkerResult (TC) ou dict (legacy).
+        from contracts import WorkerSuccess as _WS
+
+        if isinstance(variety_result, _WS):
+            variety_metrics = variety_result.metrics
+        elif isinstance(variety_result, dict):
+            variety_metrics = variety_result.get("metrics")
+        else:
+            variety_metrics = None
+
+        # opening_result para storytelling: se WorkerResult, extrai metrics como dict
+        from contracts import WorkerFailure as _WF_check
+
+        if isinstance(opening_result, _WS):
+            _opening_for_storytelling = {**opening_result.metrics, "disponivel": True}
+        elif isinstance(opening_result, _WF_check):
+            _opening_for_storytelling = {"disponivel": False, "motivo": opening_result.failure_reason}
+        else:
+            _opening_for_storytelling = opening_result
+
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.storytelling_analyzer import analyze_storytelling
 
-            # Story 8.1 T6: variety_result pode ser dict (legacy) OU WorkerResult.
-            # Extrai metrics de forma resiliente independente do tipo.
-            from contracts import WorkerSuccess as _WS
-
-            if isinstance(variety_result, _WS):
-                variety_metrics = variety_result.metrics
-            elif isinstance(variety_result, dict):
-                variety_metrics = variety_result.get("metrics")
-            else:
-                variety_metrics = None
-            # Story 7.3 fix QA — consistencia hook
             storytelling_result = analyze_storytelling(
                 transcription,
                 variety_metrics=variety_metrics,
-                opening_result=opening_result,
+                opening_result=_opening_for_storytelling,
             )
-        except Exception as e:
-            logger.error("storytelling_analysis_failed", error=str(e))
-            storytelling_result = {
-                "disponivel": False,
-                "score": 0,
-                "diagnostico": "failed",
-                "suggestions": [str(e)],
-            }
+        else:
+            try:
+                from workers.storytelling_analyzer import analyze_storytelling_legacy
+
+                storytelling_result = analyze_storytelling_legacy(
+                    transcription,
+                    variety_metrics=variety_metrics,
+                    opening_result=_opening_for_storytelling,
+                )
+            except Exception as e:
+                logger.error("storytelling_analysis_failed", error=str(e))
+                storytelling_result = {
+                    "disponivel": False,
+                    "score": 0,
+                    "diagnostico": "failed",
+                    "suggestions": [str(e)],
+                }
 
         # Step 8: Classificacao de arquetipos vocais — NOVO
         # Story 8.2: dispatch via feature flag.
@@ -493,28 +532,43 @@ async def _run_pipeline(req: ProcessRequest):
         aggregated["opening"] = opening_result
 
         # Step 9.5: Analise de congruencia (cruzar sinais entre canais)
-        try:
+        # Story 8.3: dispatch via feature flag.
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.congruence_analyzer import analyze_congruence
 
-            congruence = analyze_congruence(aggregated["detailed_metrics"])
-            aggregated["congruence"] = congruence
-        except Exception as e:
-            logger.warning("congruence_analysis_failed", error=str(e))
+            aggregated["congruence"] = analyze_congruence(aggregated["detailed_metrics"])
+        else:
+            try:
+                from workers.congruence_analyzer import analyze_congruence_legacy
+
+                aggregated["congruence"] = analyze_congruence_legacy(aggregated["detailed_metrics"])
+            except Exception as e:
+                logger.warning("congruence_analysis_failed", error=str(e))
 
         # Step 9.6: Analise temporal (3 tercos)
-        try:
+        # Story 8.3: dispatch via feature flag.
+        if config.TRUTH_CONTRACT_ENABLED:
             from workers.temporal_analyzer import analyze_temporal
 
-            temporal = analyze_temporal(
+            aggregated["temporal"] = analyze_temporal(
                 voice_result,
                 variety_result,
                 filler_result,
                 duration_seconds=video_metadata.get("duration_seconds", 0),
             )
-            aggregated["temporal"] = temporal
-        except Exception as e:
-            logger.warning("temporal_analysis_failed", error=str(e))
-            aggregated["temporal"] = {"disponivel": False, "motivo": str(e)}
+        else:
+            try:
+                from workers.temporal_analyzer import analyze_temporal_legacy
+
+                aggregated["temporal"] = analyze_temporal_legacy(
+                    voice_result,
+                    variety_result,
+                    filler_result,
+                    duration_seconds=video_metadata.get("duration_seconds", 0),
+                )
+            except Exception as e:
+                logger.warning("temporal_analysis_failed", error=str(e))
+                aggregated["temporal"] = {"disponivel": False, "motivo": str(e)}
 
         # Incluir identity, opening, temporal e congruence no detailed_metrics
         # para que a API possa retornar ao frontend
@@ -533,14 +587,31 @@ async def _run_pipeline(req: ProcessRequest):
         if aggregated.get("pesos_utilizados"):
             full_detailed["pesos_utilizados"] = aggregated["pesos_utilizados"]
         # Story 7.4: expor analise facial no relatorio
-        if facial_result and facial_result.get("disponivel"):
-            full_detailed["facial"] = facial_result
+        # Story 8.3: facial_result pode ser WorkerSuccess (TC) ou dict (legacy).
+        from contracts import WorkerFailure as _WF
+
+        if facial_result and not isinstance(facial_result, _WF):
+            _facial_data = (
+                facial_result.metrics if isinstance(facial_result, _WS) else facial_result
+            )
+            if _facial_data and _facial_data.get("disponivel", True):
+                full_detailed["facial"] = _facial_data
         # Story 7.5: expor tonality VAD no relatorio
-        if tonality_result and tonality_result.get("disponivel"):
-            full_detailed["tonality"] = tonality_result
+        if tonality_result and not isinstance(tonality_result, _WF):
+            _tonality_data = (
+                tonality_result.metrics if isinstance(tonality_result, _WS) else tonality_result
+            )
+            if _tonality_data and _tonality_data.get("disponivel", True):
+                full_detailed["tonality"] = _tonality_data
         # Story 7.3: expor analise de storytelling no relatorio
-        if storytelling_result and storytelling_result.get("disponivel"):
-            full_detailed["storytelling"] = storytelling_result
+        if storytelling_result and not isinstance(storytelling_result, _WF):
+            _storytelling_data = (
+                storytelling_result.metrics
+                if isinstance(storytelling_result, _WS)
+                else storytelling_result
+            )
+            if _storytelling_data and _storytelling_data.get("disponivel", True):
+                full_detailed["storytelling"] = _storytelling_data
 
         supabase.table("aggregated_metrics").insert(
             {
@@ -596,18 +667,22 @@ async def _run_pipeline(req: ProcessRequest):
         # Feature flag: config.ORATORIA_SHADOW_MODE_ENABLED.
         if config.ORATORIA_SHADOW_MODE_ENABLED:
             try:
+                # Story 8.3: shadow squad expects dicts — downgrade WorkerResult if needed.
+                def _to_dict(r):
+                    return r.model_dump() if hasattr(r, "model_dump") else r
+
                 _run_squad_shadow(
                     evaluation_id=req.evaluation_id,
                     video_url=req.video_url,
                     video_metadata=video_metadata,
                     worker_results={
-                        "voice_analyzer": voice_result,
-                        "filler_detector": filler_result,
-                        "posture_analyzer": posture_result,
-                        "gesture_analyzer": gesture_result,
-                        "facial_analyzer": facial_result,
-                        "opening_analyzer": opening_result,
-                        "tonality_analyzer": tonality_result,
+                        "voice_analyzer": _to_dict(voice_result),
+                        "filler_detector": _to_dict(filler_result),
+                        "posture_analyzer": _to_dict(posture_result),
+                        "gesture_analyzer": _to_dict(gesture_result),
+                        "facial_analyzer": _to_dict(facial_result),
+                        "opening_analyzer": _to_dict(opening_result),
+                        "tonality_analyzer": _to_dict(tonality_result),
                     },
                     evaluation_context={
                         "motivacao": eval_motivacao,

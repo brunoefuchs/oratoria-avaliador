@@ -64,7 +64,7 @@ def _count_in_range(items, start: float, end: float, key: str = "inicio") -> int
     return count
 
 
-def analyze_temporal(
+def _compute_temporal_metrics(
     voice_result: dict,
     variety_result: dict,
     filler_result: dict,
@@ -159,3 +159,62 @@ def analyze_temporal(
         "padrao_descricao": descricao,
         "duracao_terco_segundos": round(terco_dur, 1),
     }
+
+
+# Story 8.3 — Truth Contract
+from contracts import WorkerFailure, WorkerResult, WorkerSuccess  # noqa: E402
+
+
+def analyze_temporal_legacy(
+    voice_result: dict,
+    variety_result: dict,
+    filler_result: dict,
+    duration_seconds: float,
+) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_temporal_metrics(voice_result, variety_result, filler_result, duration_seconds)
+
+
+def analyze_temporal(
+    voice_result: dict,
+    variety_result: dict,
+    filler_result: dict,
+    duration_seconds: float,
+) -> "WorkerResult":
+    """Truth Contract path — retorna WorkerResult (Pydantic).
+
+    Temporal e um worker de metadados — nao tem score proprio.
+    Usa score medio dos tercos como score sintetico.
+    - disponivel=True → WorkerSuccess com score medio
+    - disponivel=False (video curto) → WorkerFailure(skipped)
+    - Exception → WorkerFailure(crashed)
+    """
+    try:
+        result = _compute_temporal_metrics(
+            voice_result, variety_result, filler_result, duration_seconds
+        )
+        if not result.get("disponivel", True):
+            return WorkerFailure(
+                dimension="temporal",
+                dimension_status="skipped",
+                failure_reason=result.get("motivo", "analise temporal indisponivel"),
+                metrics=result,
+            )
+        # Score sintetico: media dos tercos
+        por_terco = result.get("por_terco", {})
+        terco_scores = [v.get("score", 0) for v in por_terco.values() if isinstance(v, dict)]
+        score = round(sum(terco_scores) / max(1, len(terco_scores))) if terco_scores else 50
+        metrics = {k: v for k, v in result.items() if k not in ("disponivel",)}
+        return WorkerSuccess(
+            dimension="temporal",
+            score=max(0, min(100, score)),
+            metrics=metrics,
+            confidence=1.0,
+        )
+    except Exception as e:
+        logger.error("temporal_crashed", error_type=type(e).__name__, error=str(e), exc_info=True)
+        return WorkerFailure(
+            dimension="temporal",
+            dimension_status="crashed",
+            failure_reason=f"{type(e).__name__}: {str(e)}",
+        )

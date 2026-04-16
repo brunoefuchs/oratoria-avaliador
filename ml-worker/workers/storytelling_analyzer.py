@@ -314,7 +314,7 @@ def _hook_from_opening_result(opening_result: dict) -> dict | None:
     return {"type": hook_type, "strength": strength}
 
 
-def analyze_storytelling(
+def _compute_storytelling_metrics(
     transcript: dict,
     variety_metrics: dict | None = None,
     opening_result: dict | None = None,
@@ -390,3 +390,64 @@ def _disponivel_false(motivo: str) -> dict:
         },
         "suggestions": [motivo],
     }
+
+
+# Story 8.3 — Truth Contract
+from contracts import WorkerFailure, WorkerResult, WorkerSuccess  # noqa: E402
+
+
+def analyze_storytelling_legacy(
+    transcript: dict,
+    variety_metrics: dict | None = None,
+    opening_result: dict | None = None,
+) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_storytelling_metrics(transcript, variety_metrics, opening_result)
+
+
+def analyze_storytelling(
+    transcript: dict,
+    variety_metrics: dict | None = None,
+    opening_result: dict | None = None,
+) -> "WorkerResult":
+    """Truth Contract path — retorna WorkerResult (Pydantic).
+
+    Adapta disponivel:bool pattern:
+    - disponivel=True + score → WorkerSuccess
+    - disponivel=False → WorkerFailure(skipped)
+    - Exception → WorkerFailure(crashed)
+    """
+    try:
+        result = _compute_storytelling_metrics(transcript, variety_metrics, opening_result)
+        if not result.get("disponivel", True):
+            reason = result.get("suggestions", ["indisponivel"])
+            reason_str = reason[0] if reason else "analise de storytelling indisponivel"
+            return WorkerFailure(
+                dimension="storytelling",
+                dimension_status="skipped",
+                failure_reason=reason_str,
+                metrics=result,
+            )
+        score = result.get("score")
+        if score is None:
+            return WorkerFailure(
+                dimension="storytelling",
+                dimension_status="insufficient_data",
+                failure_reason="score is None after storytelling analysis",
+            )
+        metrics = {k: v for k, v in result.items() if k not in ("score", "disponivel")}
+        return WorkerSuccess(
+            dimension="storytelling",
+            score=max(0, min(100, int(score))),
+            metrics=metrics,
+            confidence=1.0,
+        )
+    except Exception as e:
+        logger.error(
+            "storytelling_crashed", error_type=type(e).__name__, error=str(e), exc_info=True
+        )
+        return WorkerFailure(
+            dimension="storytelling",
+            dimension_status="crashed",
+            failure_reason=f"{type(e).__name__}: {str(e)}",
+        )

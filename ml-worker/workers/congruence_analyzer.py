@@ -60,7 +60,7 @@ def _check_condition(
     return False
 
 
-def analyze_congruence(detailed_metrics: dict) -> dict:
+def _compute_congruence_metrics(detailed_metrics: dict) -> dict:
     """Analisa congruencia entre canais de comunicacao."""
     contradicoes_detectadas = []
     total_penalidade = 0
@@ -106,3 +106,46 @@ def analyze_congruence(detailed_metrics: dict) -> dict:
         "contradicoes": contradicoes_detectadas,
         "total_contradicoes": len(contradicoes_detectadas),
     }
+
+
+# Story 8.3 — Truth Contract
+from contracts import WorkerFailure, WorkerResult, WorkerSuccess  # noqa: E402
+
+
+def analyze_congruence_legacy(detailed_metrics: dict) -> dict:
+    """Legacy path (TRUTH_CONTRACT_ENABLED=false)."""
+    return _compute_congruence_metrics(detailed_metrics)
+
+
+def analyze_congruence(detailed_metrics: dict) -> "WorkerResult":
+    """Truth Contract path — retorna WorkerResult (Pydantic).
+
+    Congruence nao usa disponivel pattern — retorna score diretamente.
+    - score presente → WorkerSuccess
+    - Exception → WorkerFailure(crashed)
+    """
+    try:
+        result = _compute_congruence_metrics(detailed_metrics)
+        score = result.get("score")
+        if score is None:
+            return WorkerFailure(
+                dimension="congruence",
+                dimension_status="insufficient_data",
+                failure_reason="score is None after congruence analysis",
+            )
+        metrics = {k: v for k, v in result.items() if k != "score"}
+        return WorkerSuccess(
+            dimension="congruence",
+            score=max(0, min(100, int(score))),
+            metrics=metrics,
+            confidence=1.0,
+        )
+    except Exception as e:
+        logger.error(
+            "congruence_crashed", error_type=type(e).__name__, error=str(e), exc_info=True
+        )
+        return WorkerFailure(
+            dimension="congruence",
+            dimension_status="crashed",
+            failure_reason=f"{type(e).__name__}: {str(e)}",
+        )
