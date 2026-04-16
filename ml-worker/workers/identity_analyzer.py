@@ -12,6 +12,9 @@ import re
 
 import structlog
 
+from contracts import WorkerResult
+from workers._truth_contract_helpers import wrap_worker_result
+
 logger = structlog.get_logger()
 
 VICIOS_EMOCIONAIS = {
@@ -245,7 +248,6 @@ def _compute_identity_metrics(transcription: dict) -> dict:
 
 
 # Story 8.2 — Truth Contract
-from workers._truth_contract_helpers import wrap_worker_result
 
 
 def analyze_identity_legacy(transcription: dict) -> dict:

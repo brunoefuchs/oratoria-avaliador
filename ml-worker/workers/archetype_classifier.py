@@ -19,6 +19,9 @@ import numpy as np
 import parselmouth
 import structlog
 
+from contracts import WorkerResult
+from workers._truth_contract_helpers import wrap_worker_result
+
 logger = structlog.get_logger()
 
 JANELA_ARQUETIPO = 10  # Analisa blocos de 10 segundos
@@ -356,7 +359,6 @@ def _compute_archetype_metrics(audio_path: str) -> dict:
 
 
 # Story 8.2 — Truth Contract
-from workers._truth_contract_helpers import wrap_worker_result
 
 
 def classify_archetypes_legacy(audio_path: str) -> dict:

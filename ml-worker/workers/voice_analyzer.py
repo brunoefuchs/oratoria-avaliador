@@ -5,6 +5,9 @@ import parselmouth
 import structlog
 import whisper
 
+from contracts import WorkerResult
+from workers._truth_contract_helpers import wrap_worker_result
+
 logger = structlog.get_logger()
 
 # Tamanho da janela temporal para analise de variacao (segundos)
@@ -421,10 +424,6 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
             "audio_duration_seconds": audio_duration,
         },
     }
-
-
-# Story 8.2 — Truth Contract
-from workers._truth_contract_helpers import wrap_worker_result
 
 
 def calculate_voice_metrics(transcription: dict, prosody: dict) -> dict:

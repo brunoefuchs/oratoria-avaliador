@@ -62,7 +62,7 @@ def wrap_worker_result(
                     return WorkerFailure(
                         dimension=dimension,
                         dimension_status="skipped",
-                        failure_reason=f"upstream_dependency_failed: input data unavailable",
+                        failure_reason="upstream_dependency_failed: input data unavailable",
                     )
 
         result = compute_fn(*args, **kwargs)
