@@ -61,17 +61,45 @@ async def _notify_complete(
         logger.error("callback_failed", error=str(e))
 
 
-def _save_analysis(supabase, evaluation_id: str, dimension: str, result: dict):
-    """Salva resultado de analise no banco."""
-    supabase.table("analysis_results").upsert(
-        {
-            "evaluation_id": evaluation_id,
-            "dimension": dimension,
-            "score": result.get("score", 0),
-            "metrics": result.get("metrics", result),
-            "confidence": result.get("confidence", "high"),
-        }
-    ).execute()
+def _save_analysis(supabase, evaluation_id: str, dimension: str, result):
+    """Salva resultado de analise no banco.
+
+    Story 8.1 (Truth Contract) T6: dispatcher entre dois paths:
+
+    - Path NOVO: quando result eh WorkerResult (Pydantic) E feature flag
+      TRUTH_CONTRACT_ENABLED=true → grava via repositories.save_analysis_result
+      (score + dimension_status + failure_reason colunas novas).
+
+    - Path LEGACY: quando result eh dict → grava via
+      repositories.save_analysis_result_legacy (score=0 fallback documentado).
+
+    - Defensive: WorkerResult com flag OFF → loga warning e usa legacy via
+      model_dump(). Evita quebrar pipeline quando worker migrado roda em
+      ambiente sem flag.
+    """
+    from contracts import WorkerFailure, WorkerSuccess
+    from repositories import save_analysis_result, save_analysis_result_legacy
+
+    is_worker_result = isinstance(result, (WorkerSuccess, WorkerFailure))
+
+    if is_worker_result and config.TRUTH_CONTRACT_ENABLED:
+        save_analysis_result(supabase, evaluation_id, result)
+        return
+
+    if is_worker_result:
+        # Flag OFF mas worker ja migrado — log + downgrade pra legacy
+        logger.warning(
+            "truth_contract_worker_result_with_flag_off",
+            evaluation_id=evaluation_id,
+            dimension=dimension,
+            dimension_status=result.dimension_status,
+        )
+        result_dict = result.model_dump()
+        save_analysis_result_legacy(supabase, evaluation_id, dimension, result_dict)
+        return
+
+    # Path legacy padrao: result eh dict
+    save_analysis_result_legacy(supabase, evaluation_id, dimension, result)
 
 
 def _run_squad_shadow(
@@ -297,15 +325,29 @@ async def _run_pipeline(req: ProcessRequest):
             logger.error("opening_analysis_failed", error=str(e))
             opening_result = {"disponivel": False, "motivo": str(e)}
 
-        # Step 7: Analise de variedade (meta-analyzer) — NOVO
+        # Step 7: Analise de variedade (meta-analyzer)
+        # Story 8.1 T6: dispatch via feature flag.
+        # - Flag ON: analyze_variety() retorna WorkerResult (Pydantic).
+        #   _save_analysis detecta tipo e usa repositories.save_analysis_result
+        #   (path Truth Contract).
+        # - Flag OFF: analyze_variety_legacy() retorna dict (comportamento
+        #   pre-Epic 8.0 preservado).
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_variety")
-        try:
+        if config.TRUTH_CONTRACT_ENABLED:
+            # Truth Contract: analyze_variety ja captura excecoes internamente
+            # e retorna WorkerFailure(crashed). Nao precisa try/except aqui.
             from workers.variety_analyzer import analyze_variety
 
             variety_result = analyze_variety(voice_result, gesture_result)
-        except Exception as e:
-            logger.error("variety_analysis_failed", error=str(e))
-            variety_result = {"score": 0, "confidence": "failed", "metrics": {}}
+        else:
+            # Legacy path: try/except pra preservar comportamento antigo
+            try:
+                from workers.variety_analyzer import analyze_variety_legacy
+
+                variety_result = analyze_variety_legacy(voice_result, gesture_result)
+            except Exception as e:
+                logger.error("variety_analysis_failed", error=str(e))
+                variety_result = {"score": 0, "confidence": "failed", "metrics": {}}
 
         _save_analysis(supabase, req.evaluation_id, "variety", variety_result)
 
@@ -313,9 +355,16 @@ async def _run_pipeline(req: ProcessRequest):
         try:
             from workers.storytelling_analyzer import analyze_storytelling
 
-            variety_metrics = (
-                variety_result.get("metrics") if isinstance(variety_result, dict) else None
-            )
+            # Story 8.1 T6: variety_result pode ser dict (legacy) OU WorkerResult.
+            # Extrai metrics de forma resiliente independente do tipo.
+            from contracts import WorkerSuccess as _WS
+
+            if isinstance(variety_result, _WS):
+                variety_metrics = variety_result.metrics
+            elif isinstance(variety_result, dict):
+                variety_metrics = variety_result.get("metrics")
+            else:
+                variety_metrics = None
             # Story 7.3 fix QA — consistencia hook
             storytelling_result = analyze_storytelling(
                 transcription,
