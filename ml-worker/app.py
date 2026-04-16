@@ -478,14 +478,23 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "archetypes", archetype_result)
 
-        # Step 9: Buscar contexto do orador + Agregar metricas (6 dimensoes)
-        from workers.aggregator import aggregate_metrics
+        # Step 9: Buscar contexto do orador + Agregar metricas
+        # Story 8.4: aggregator agora recebe dict[str, WorkerResult] diretamente.
+        # O shim _wr_to_agg() foi removido do path TRUTH_CONTRACT_ENABLED=true.
 
         # voice_result pode ter formato nested {"score":..,"metrics":{...}}
-        voice_metrics_data = voice_result.get("metrics", voice_result)
+        # (compat legacy: voice_result pode ser WorkerResult ou dict)
+        _voice_metrics_raw = (
+            voice_result.metrics if isinstance(voice_result, _WS) else
+            voice_result.get("metrics", voice_result) if isinstance(voice_result, dict) else {}
+        )
+        _posture_frames = (
+            posture_result.metrics.get("total_frames", 0) if isinstance(posture_result, _WS) else
+            posture_result.get("metrics", {}).get("total_frames", 0) if isinstance(posture_result, dict) else 0
+        )
         video_metadata = {
-            "duration_seconds": voice_metrics_data.get("audio_duration_seconds", 0),
-            "frames_processed": posture_result.get("metrics", {}).get("total_frames", 0),
+            "duration_seconds": _voice_metrics_raw.get("audio_duration_seconds", 0),
+            "frames_processed": _posture_frames,
         }
 
         # Buscar contexto do questionario pre-avaliacao (V2 — 6 perguntas)
@@ -514,30 +523,129 @@ async def _run_pipeline(req: ProcessRequest):
                 break
             time.sleep(1)
 
-        aggregated = aggregate_metrics(
-            req.evaluation_id,
-            posture_result,
-            gesture_result,
-            voice_result,
-            filler_result,
-            variety_result,
-            archetype_result,
-            video_metadata,
-            contexto=eval_contexto,
-            motivacao=eval_motivacao,
-        )
-
-        # Adicionar identity e opening ao aggregated (informativo)
-        aggregated["identity"] = identity_result
-        aggregated["opening"] = opening_result
-
-        # Step 9.5: Analise de congruencia (cruzar sinais entre canais)
-        # Story 8.3: dispatch via feature flag.
         if config.TRUTH_CONTRACT_ENABLED:
+            # ----------------------------------------------------------------
+            # PATH TRUTH CONTRACT (flag ON)
+            # Story 8.4: sem shim, sem _wr_to_agg().
+            # Congruencia e temporal rodam ANTES do aggregator (Option B):
+            # nao afetam overall_score (augmentation dims), mas precisam de
+            # dados dos scoring workers ja processados.
+            # ----------------------------------------------------------------
+
+            # Step 9.5: Analise de congruencia (cruzar sinais entre canais)
             from workers.congruence_analyzer import analyze_congruence
 
-            aggregated["congruence"] = analyze_congruence(aggregated["detailed_metrics"])
+            # Congruence precisa de detailed_metrics dict — extrair de WorkerSuccess.metrics
+            _scoring_metrics_for_congruence: dict = {}
+            for _dim, _res in [
+                ("posture", posture_result),
+                ("gesture", gesture_result),
+                ("voice", voice_result),
+                ("fillers", filler_result),
+                ("variety", variety_result),
+                ("archetypes", archetype_result),
+                ("facial", facial_result),
+                ("tonality", tonality_result),
+                ("identity", identity_result),
+                ("opening", opening_result),
+            ]:
+                if isinstance(_res, _WS):
+                    _scoring_metrics_for_congruence[_dim] = _res.metrics
+            congruence_result = analyze_congruence(_scoring_metrics_for_congruence)
+
+            # Step 9.6: Analise temporal (3 tercos)
+            from workers.temporal_analyzer import analyze_temporal
+
+            # Temporal precisa de dicts com metricas brutas dos workers
+            _voice_dict = {"metrics": _voice_metrics_raw} if _voice_metrics_raw else {}
+            _variety_metrics_raw = (
+                variety_result.metrics if isinstance(variety_result, _WS) else
+                variety_result.get("metrics", variety_result) if isinstance(variety_result, dict) else {}
+            )
+            _variety_dict = {"metrics": _variety_metrics_raw}
+            _filler_metrics_raw = (
+                filler_result.metrics if isinstance(filler_result, _WS) else
+                filler_result.get("metrics", filler_result) if isinstance(filler_result, dict) else {}
+            )
+            _filler_dict = {"metrics": _filler_metrics_raw}
+            temporal_result = analyze_temporal(
+                _voice_dict,
+                _variety_dict,
+                _filler_dict,
+                duration_seconds=video_metadata.get("duration_seconds", 0),
+            )
+
+            # Construir dict[str, WorkerResult] com todas 13 dimensoes
+            all_results: dict = {
+                "posture": posture_result,
+                "gesture": gesture_result,
+                "voice": voice_result,
+                "fillers": filler_result,
+                "variety": variety_result,
+                "archetypes": archetype_result,
+                "facial": facial_result,
+                "tonality": tonality_result,
+                "identity": identity_result,
+                "opening": opening_result,
+                "storytelling": storytelling_result,
+                "congruence": congruence_result,
+                "temporal": temporal_result,
+            }
+
+            from workers.aggregator import aggregate_metrics
+
+            aggregated = aggregate_metrics(
+                req.evaluation_id,
+                all_results,
+                video_metadata,
+                contexto=eval_contexto,
+                motivacao=eval_motivacao,
+            )
+
+            # Construir full_detailed a partir do aggregated (ja inclui augmentation dims)
+            full_detailed = {**aggregated["detailed_metrics"]}
+            # Story 5.3: expor contexto + pesos no relatorio (badge + transparencia)
+            if aggregated.get("contexto"):
+                full_detailed["contexto"] = aggregated["contexto"]
+            if aggregated.get("pesos_utilizados"):
+                full_detailed["pesos_utilizados"] = aggregated["pesos_utilizados"]
+
         else:
+            # ----------------------------------------------------------------
+            # PATH LEGACY (flag OFF)
+            # Story 8.4: shim _wr_to_agg() preservado APENAS aqui.
+            # aggregate_metrics_legacy() com 6 dicts separados (score=0 fallback
+            # documentado — eh legacy, nao bug).
+            # ----------------------------------------------------------------
+
+            # Converter WorkerResult → dict compatível com aggregator legacy (espera .get())
+            def _wr_to_agg(r):
+                if isinstance(r, _WS):
+                    return {"score": r.score, "confidence": "high", "metrics": r.metrics}
+                if isinstance(r, _WF_check):
+                    return {"score": 0, "confidence": "failed", "metrics": r.metrics if r.metrics else {}}
+                return r
+
+            from workers.aggregator import aggregate_metrics_legacy
+
+            aggregated = aggregate_metrics_legacy(
+                req.evaluation_id,
+                _wr_to_agg(posture_result),
+                _wr_to_agg(gesture_result),
+                _wr_to_agg(voice_result),
+                _wr_to_agg(filler_result),
+                _wr_to_agg(variety_result),
+                _wr_to_agg(archetype_result),
+                video_metadata,
+                contexto=eval_contexto,
+                motivacao=eval_motivacao,
+            )
+
+            # Adicionar identity e opening ao aggregated (informativo)
+            aggregated["identity"] = _wr_to_agg(identity_result)
+            aggregated["opening"] = _wr_to_agg(opening_result)
+
+            # Step 9.5: Analise de congruencia (cruzar sinais entre canais)
             try:
                 from workers.congruence_analyzer import analyze_congruence_legacy
 
@@ -545,47 +653,37 @@ async def _run_pipeline(req: ProcessRequest):
             except Exception as e:
                 logger.warning("congruence_analysis_failed", error=str(e))
 
-        # Step 9.6: Analise temporal (3 tercos)
-        # Story 8.3: dispatch via feature flag.
-        if config.TRUTH_CONTRACT_ENABLED:
-            from workers.temporal_analyzer import analyze_temporal
-
-            aggregated["temporal"] = analyze_temporal(
-                voice_result,
-                variety_result,
-                filler_result,
-                duration_seconds=video_metadata.get("duration_seconds", 0),
-            )
-        else:
+            # Step 9.6: Analise temporal (3 tercos)
             try:
                 from workers.temporal_analyzer import analyze_temporal_legacy
 
                 aggregated["temporal"] = analyze_temporal_legacy(
-                    voice_result,
-                    variety_result,
-                    filler_result,
+                    _wr_to_agg(voice_result),
+                    _wr_to_agg(variety_result),
+                    _wr_to_agg(filler_result),
                     duration_seconds=video_metadata.get("duration_seconds", 0),
                 )
             except Exception as e:
                 logger.warning("temporal_analysis_failed", error=str(e))
                 aggregated["temporal"] = {"disponivel": False, "motivo": str(e)}
 
-        # Incluir identity, opening, temporal e congruence no detailed_metrics
-        # para que a API possa retornar ao frontend
-        full_detailed = {**aggregated["detailed_metrics"]}
-        if aggregated.get("identity"):
-            full_detailed["identity"] = aggregated["identity"]
-        if aggregated.get("opening"):
-            full_detailed["opening"] = aggregated["opening"]
-        if aggregated.get("temporal"):
-            full_detailed["temporal"] = aggregated["temporal"]
-        if aggregated.get("congruence"):
-            full_detailed["congruence"] = aggregated["congruence"]
-        # Story 5.3: expor contexto + pesos no relatorio (badge + transparencia)
-        if aggregated.get("contexto"):
-            full_detailed["contexto"] = aggregated["contexto"]
-        if aggregated.get("pesos_utilizados"):
-            full_detailed["pesos_utilizados"] = aggregated["pesos_utilizados"]
+            # Incluir identity, opening, temporal e congruence no detailed_metrics
+            # para que a API possa retornar ao frontend
+            full_detailed = {**aggregated["detailed_metrics"]}
+            if aggregated.get("identity"):
+                full_detailed["identity"] = aggregated["identity"]
+            if aggregated.get("opening"):
+                full_detailed["opening"] = aggregated["opening"]
+            if aggregated.get("temporal"):
+                full_detailed["temporal"] = aggregated["temporal"]
+            if aggregated.get("congruence"):
+                full_detailed["congruence"] = aggregated["congruence"]
+            # Story 5.3: expor contexto + pesos no relatorio (badge + transparencia)
+            if aggregated.get("contexto"):
+                full_detailed["contexto"] = aggregated["contexto"]
+            if aggregated.get("pesos_utilizados"):
+                full_detailed["pesos_utilizados"] = aggregated["pesos_utilizados"]
+
         # Story 7.4: expor analise facial no relatorio
         # Story 8.3: facial_result pode ser WorkerSuccess (TC) ou dict (legacy).
         from contracts import WorkerFailure as _WF
