@@ -25,7 +25,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-MODEL_ID = "facebook/wav2vec2-base-superb-er"
+MODEL_ID = "superb/wav2vec2-base-superb-er"
 
 # Mapeamento emocao → VAD (Russell circumplex model + Ekman FACS cross-ref).
 # Valores normalizados [0, 1] baseados em literatura:

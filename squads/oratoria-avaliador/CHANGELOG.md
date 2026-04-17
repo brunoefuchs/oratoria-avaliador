@@ -1,5 +1,45 @@
 # CHANGELOG — squad oratoria-avaliador
 
+## [0.7.0-alpha.8] — 2026-04-17
+
+### Story 9.1.3 — Real deps install validation (Gate 1 pós-install)
+
+**Status:** Ready for Review
+
+#### Fixed
+- `workers/_emotion_ml.py`: `MODEL_ID` corrigido de `facebook/wav2vec2-base-superb-er` (inexistente no HF) → `superb/wav2vec2-base-superb-er` (existe, 39k+ downloads)
+- `pyproject.toml`: py-feat version `>=0.7` → `>=0.6,<0.7` (0.7 não existe no PyPI; 0.6.x incompatível Python 3.12 — documentado)
+
+#### Added
+- `docs/qa/gate1-story92-post-deps-install.md` — Gate 1 re-run com deps reais
+- Script `vram_check.py` melhorado: status `skipped_optional_dep` separado de `failed`
+
+#### Validated (deps instaladas em venv local)
+- ✅ transformers 5.5.4 (Story 9.3 emotion)
+- ✅ opensmile 2.6.0 (Story 9.4 prosody)
+- ✅ pyannote.audio 4.0.4 (Story 9.4 prosody)
+- ❌ py-feat: bloqueio Python 3.12 (upstream bug `pkgutil.ImpImporter`)
+
+#### Gate 1 results pós-install (RTX 4060 real)
+| Model | Peak VRAM | Duration | Status |
+|---|---|---|---|
+| whisper_turbo | 4.93 GB | 7.47s | ✅ |
+| whisper_medium | 4.58 GB | 8.50s | ✅ |
+| wav2vec2_emotion | 0.0 GB (CPU) | 75.21s | ✅ |
+| pyfeat | — | — | ⏭️ |
+
+**Peak global: 4.93 GB ≤ 7.5 GB budget** ✅
+
+#### Tests
+- Regression 311/311 PASS com deps instaladas
+- Lint + format clean
+
+#### Recommendation
+Ativar `TONALITY_ML_ENABLED`, `OPENSMILE_ENABLED`, `PYANNOTE_VAD_ENABLED` em staging.
+Manter `PYFEAT_ENABLED=false` até upgrade py-feat ou downgrade Python 3.11.
+
+---
+
 ## [0.7.0-alpha.7] — 2026-04-17
 
 ### Story 9.1.2 — AC9 flip MODEL_ORCHESTRATOR_ENABLED default TRUE
