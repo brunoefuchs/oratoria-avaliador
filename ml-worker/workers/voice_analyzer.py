@@ -1,3 +1,4 @@
+import os
 import time
 
 import numpy as np
@@ -5,6 +6,7 @@ import parselmouth
 import structlog
 import whisper
 
+from config import is_whisper_turbo_enabled
 from contracts import WorkerResult
 from workers._truth_contract_helpers import wrap_worker_result
 
@@ -17,18 +19,65 @@ WPM_IDEAL_MIN = 130
 WPM_IDEAL_MAX = 170
 WPM_IDEAL_CENTRO = 150
 
+# Story 9.2: default model preservado para rollback via WHISPER_TURBO_ENABLED=false.
+_WHISPER_FALLBACK_MODEL = "medium"
 
-def transcribe_audio(audio_path: str, model_name: str = "medium") -> dict:
+
+def _resolve_whisper_model(model_name: str | None = None) -> str:
+    """Seleciona model name conforme flag + env override.
+
+    Prioridade:
+      1. Argumento explicito (caller override — mantido pra compat de testes)
+      2. WHISPER_MODEL env var (debug manual)
+      3. WHISPER_TURBO_ENABLED=true → "turbo"
+      4. Fallback medium
+    """
+    if model_name is not None:
+        return model_name
+    env_override = os.getenv("WHISPER_MODEL")
+    if env_override:
+        return env_override
+    if is_whisper_turbo_enabled():
+        return "turbo"
+    return _WHISPER_FALLBACK_MODEL
+
+
+def _load_whisper_with_fallback(model_name: str):
+    """Carrega Whisper com fallback automatico pra medium se falhar.
+
+    Story 9.2 AC2: turbo pode falhar (download indisponivel, VRAM OOM, etc).
+    Nunca quebra pipeline — fallback medium + log.
+    """
+    try:
+        return whisper.load_model(model_name)
+    except Exception as e:  # noqa: BLE001 — queremos fallback em qualquer erro de load
+        if model_name == _WHISPER_FALLBACK_MODEL:
+            raise  # medium ja falhou, sem recurso
+        logger.warning(
+            "whisper_turbo_fallback_triggered",
+            requested_model=model_name,
+            fallback_model=_WHISPER_FALLBACK_MODEL,
+            error=str(e),
+            error_type=type(e).__name__,
+        )
+        return whisper.load_model(_WHISPER_FALLBACK_MODEL)
+
+
+def transcribe_audio(audio_path: str, model_name: str | None = None) -> dict:
     """Transcreve audio usando Whisper com timestamps por palavra.
 
     Story 7.1 fix (2026-04-14): preservar fillers PT-BR.
     - initial_prompt informa o modelo para nao "limpar" muletas/hesitacoes
     - condition_on_previous_text=False evita "alucinacao corretiva" baseada em contexto
-    """
-    start = time.time()
-    logger.info("whisper_transcribe_start", audio_path=audio_path, model=model_name)
 
-    model = whisper.load_model(model_name)
+    Story 9.2 (Epic 9): model_name=None → resolve via flag/env. turbo (default)
+    com fallback medium se load falhar.
+    """
+    resolved_model = _resolve_whisper_model(model_name)
+    start = time.time()
+    logger.info("whisper_transcribe_start", audio_path=audio_path, model=resolved_model)
+
+    model = _load_whisper_with_fallback(resolved_model)
     result = model.transcribe(
         audio_path,
         language="pt",

@@ -16,7 +16,6 @@ import pytest
 
 from workers._model_loader import MODEL_FACTORIES, ModelGPU
 
-
 # ─────────────────────────────────────────────────────────────
 # Factory registry
 # ─────────────────────────────────────────────────────────────
@@ -62,6 +61,7 @@ def test_context_manager_basic_flow():
 
 def test_factory_exception_releases_lock():
     """Se factory raise, lock deve ser liberado pra nao deadlock proximo caller."""
+
     def bad_factory():
         raise RuntimeError("simulated load failure")
 
