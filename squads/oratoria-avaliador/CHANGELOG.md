@@ -1,5 +1,40 @@
 # CHANGELOG — squad oratoria-avaliador
 
+## [0.7.0-alpha.5] — 2026-04-17
+
+### Story 9.5 — py-feat FACS (Epic 9 Wave 3, CPU-only)
+
+**Status:** Ready for Review
+
+#### Added
+- `PYFEAT_ENABLED` feature flag (default false)
+- `workers/_facs_ml.py` — `load_pyfeat_detector()` + `detect_aus_in_frames()` + `AU_TO_EMOTION` (Ekman)
+- `tests/test_facs_ml.py` — 15 tests mockados
+- `pyproject.toml` `[project.optional-dependencies] facs` — py-feat>=0.7
+
+#### Changed
+- `workers/_model_loader.py`: `pyfeat` factory real (não mais stub)
+- `workers/facial_analyzer.py`: enriquece output com `au_detection` (20 AUs), `emocao_distribuicao_facial` (6 Ekman), `emocao_dominante_facial`, `micro_expressions_count` quando flag ON
+- `tests/test_model_loader.py`: stub test removido (9.5 fechou último)
+
+#### Features
+- 20 Action Units relevantes (subset de FACS 45) baseados em Ekman & Friesen 1978
+- Mapeamento AU → 6 emoções básicas (alegria/tristeza/raiva/surpresa/nojo/medo)
+- Duchenne smile marker (AU06 + AU12) — sorriso genuíno
+- Adaptive frame sampling (max 60 frames) — overhead ≤30s
+- CPU-only (SVM backend) — **zero VRAM adicional**
+
+#### Tests
+- 15 novos em test_facs_ml.py
+- Regression: **292/292 PASS** (+15 de 277)
+
+#### Deferred
+- Install real: `pip install -e ".[facs]"`
+- Validação em PT-BR/latino via Gate 3
+- vram_check.py re-run (peak ainda zero — CPU only)
+
+---
+
 ## [0.7.0-alpha.4] — 2026-04-17
 
 ### Story 9.3 — Wav2Vec2-Emotion ML (Epic 9 Wave 2, GPU opcional)

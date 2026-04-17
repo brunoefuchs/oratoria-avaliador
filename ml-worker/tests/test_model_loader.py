@@ -33,11 +33,22 @@ def test_unknown_model_raises_keyerror():
         ModelGPU("nonexistent_model_xyz")
 
 
-def test_stub_factories_raise_not_implemented():
-    # Story 9.5 stub ainda pendente.
-    with pytest.raises(NotImplementedError, match="Story 9.5"):
-        with ModelGPU("pyfeat"):
-            pass
+def test_pyfeat_factory_real_story_9_5():
+    """Story 9.5: pyfeat factory real (sem lib → RuntimeError, nao NotImplementedError)."""
+    from workers._model_loader import MODEL_FACTORIES
+
+    factory = MODEL_FACTORIES["pyfeat"]
+    try:
+        import feat  # noqa: F401
+
+        # Com lib, factory pode retornar detector ou raise download error
+        try:
+            factory()
+        except Exception as e:
+            assert "indisponivel" in str(e).lower() or "feat" in str(e).lower()
+    except ImportError:
+        with pytest.raises(RuntimeError, match="indisponivel"):
+            factory()
 
 
 def test_wav2vec2_emotion_factory_real_story_9_3():

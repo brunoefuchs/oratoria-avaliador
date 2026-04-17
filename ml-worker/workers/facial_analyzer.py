@@ -306,7 +306,7 @@ def _compute_facial_metrics(video_path: str) -> dict:
         duration_seconds=elapsed,
     )
 
-    return {
+    result = {
         "disponivel": True,
         "score": score,
         "diagnostico": diagnostico,
@@ -319,6 +319,47 @@ def _compute_facial_metrics(video_path: str) -> dict:
         "detection_pct": round(detection_pct * 100, 1),
         "warnings": [],
     }
+
+    # Story 9.5: enriquecimento via py-feat FACS quando PYFEAT_ENABLED=true.
+    # Graceful fallback preserva output heuristico se lib ausente ou inference falha.
+    from config import is_pyfeat_enabled
+
+    if is_pyfeat_enabled():
+        try:
+            from workers._facs_ml import detect_aus_in_frames
+            from workers._model_loader import ModelGPU
+
+            # Reusa frames ja extraidos (em /tmp/ via extract_frames em posture_analyzer)
+            frames_dir = Path(video_path).parent / "frames"
+            frame_paths = (
+                sorted(str(p) for p in frames_dir.glob("frame_*.jpg"))
+                if frames_dir.exists()
+                else []
+            )
+
+            if frame_paths:
+                with ModelGPU("pyfeat") as detector:
+                    facs_result = detect_aus_in_frames(detector, frame_paths)
+                    if facs_result is not None:
+                        result.update(facs_result)
+                        logger.info(
+                            "facial_facs_enriched",
+                            frames_processados=facs_result.get("frames_processados"),
+                            emocao_dominante=facs_result.get("emocao_dominante_facial"),
+                            micro_count=facs_result.get("micro_expressions_count"),
+                        )
+                    else:
+                        logger.warning("facial_facs_inference_returned_none")
+            else:
+                logger.warning("facial_facs_no_frames_available")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                "facial_facs_fallback_triggered",
+                error=str(e),
+                error_type=type(e).__name__,
+            )
+
+    return result
 
 
 def _disponivel_false(motivo: str, warnings_list: list[str] | None = None) -> dict:

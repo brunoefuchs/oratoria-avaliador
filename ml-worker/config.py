@@ -99,3 +99,13 @@ TONALITY_ML_ENABLED = os.getenv("TONALITY_ML_ENABLED", "false").lower() == "true
 def is_tonality_ml_enabled() -> bool:
     """Helper testavel pra flag Wav2Vec2 emotion (Story 9.3)."""
     return os.getenv("TONALITY_ML_ENABLED", "false").strip().lower() == "true"
+
+
+# Feature flag Story 9.5 — py-feat FACS (20 AUs + 6 emocoes).
+# Default false — requer pip install -e ".[facs]".
+PYFEAT_ENABLED = os.getenv("PYFEAT_ENABLED", "false").lower() == "true"
+
+
+def is_pyfeat_enabled() -> bool:
+    """Helper testavel pra flag py-feat FACS (Story 9.5)."""
+    return os.getenv("PYFEAT_ENABLED", "false").strip().lower() == "true"
