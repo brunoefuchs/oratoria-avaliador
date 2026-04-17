@@ -11,7 +11,7 @@ Cobre:
 """
 
 from contracts import WorkerFailure, WorkerSuccess
-from contracts.dimensions import AUGMENTATION_DIMENSIONS, SCORING_DIMENSIONS
+from contracts.dimensions import ALL_DIMENSIONS, AUGMENTATION_DIMENSIONS, SCORING_DIMENSIONS
 from workers.aggregator import aggregate_metrics, aggregate_metrics_legacy
 
 EVAL_ID = "test-eval-8.4"
@@ -40,23 +40,17 @@ def make_failure(dimension: str, reason: str = "test_failure") -> WorkerFailure:
 
 
 def all_success_results(score: int = 75) -> dict:
-    """Retorna dict com todos 13 workers como WorkerSuccess."""
-    results = {}
-    for dim in SCORING_DIMENSIONS:
-        results[dim] = make_success(dim, score=score)
-    for dim in AUGMENTATION_DIMENSIONS:
-        results[dim] = make_success(dim, score=score)
-    return results
+    """Retorna dict com todos 13 workers como WorkerSuccess.
+
+    Story 9.1: popula ALL_DIMENSIONS (13) para cobrir tanto path v0.7.0
+    (6 scoring + 7 secondary) quanto v0.6.0 (10 scoring + 3 augmentation).
+    """
+    return {dim: make_success(dim, score=score) for dim in ALL_DIMENSIONS}
 
 
 def all_failure_results() -> dict:
     """Retorna dict com todos 13 workers como WorkerFailure."""
-    results = {}
-    for dim in SCORING_DIMENSIONS:
-        results[dim] = make_failure(dim)
-    for dim in AUGMENTATION_DIMENSIONS:
-        results[dim] = make_failure(dim)
-    return results
+    return {dim: make_failure(dim) for dim in ALL_DIMENSIONS}
 
 
 VIDEO_META = {"duration_seconds": 120.0, "frames_processed": 1200}
