@@ -1,5 +1,53 @@
 # CHANGELOG — squad oratoria-avaliador
 
+## [0.7.0-alpha.6] — 2026-04-17
+
+### Story 9.6 — Gemini Vision Gesture Semantic (Epic 9 Wave 3, PAGO)
+
+**Status:** Ready for Review · **ÚLTIMA story do Epic 9**
+
+#### Added
+- `GESTURE_SEMANTIC_ENABLED` feature flag (default false) + `GESTURE_SEMANTIC_MAX_COST_PER_EVAL=0.10` budget guard
+- `GESTURE_SEMANTIC_FPS=0.5` + `GESTURE_SEMANTIC_MAX_FRAMES=120` hard caps
+- `GEMINI_VISION_MODEL=gemini-2.5-flash` (default, override pra Pro)
+- `workers/_frame_sampler.py` — ffmpeg frame extraction + base64 + `estimate_cost()`
+- `workers/gesture_semantic_analyzer.py` — `analyze_gesture_semantic()` com Truth Contract + retry temp-variant
+- `tests/test_gesture_semantic.py` — 19 testes mockados (zero API calls reais)
+
+#### Changed
+- `contracts/dimensions.py`: `SECONDARY_DIMENSIONS` agora tem 8 items (+gesture_semantic)
+- `DIMENSION_CONFIDENCE["gesture_semantic"] = "media"` (LLM structured output)
+- `ALL_DIMENSIONS` passa de 13 → 14 dimensions
+- `tests/test_dimensions.py` atualizados (count 8, confidence media)
+- `pyproject.toml` adiciona `gesture_semantic_analyzer.py` a per-file-ignores E501
+
+#### Model & Pricing
+- **Gemini 2.5 Flash** default — ~$0.075/1M input tokens, ~258 tokens/imagem
+- 90 frames (3min @ 0.5fps) = **~$0.015/vídeo** estimado
+- Budget guard bloqueia se estimativa > $0.10/eval
+
+#### JSON schema estruturado
+```
+{
+  "per_frame": [{timestamp_s, gesture_type, reinforces_message, distracts}],
+  "global": {gesture_narrative_coherence_score: 0-100, rationale}
+}
+```
+
+#### Tests
+- 19 novos em test_gesture_semantic.py
+- Regression: **311/311 PASS** (+19 de 292)
+
+#### Princípio Vinh aplicado
+*"Se o gesto distrai da mensagem, é problema; se não distrai, mantenha"* — agora mensurado por LLM.
+
+#### Deferred
+- Execução real com API key — staging/prod
+- Calibração prompt PT-BR via Gate 3
+- Observability dashboard (custo acumulado por evaluation)
+
+---
+
 ## [0.7.0-alpha.5] — 2026-04-17
 
 ### Story 9.5 — py-feat FACS (Epic 9 Wave 3, CPU-only)
