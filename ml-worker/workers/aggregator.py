@@ -144,17 +144,22 @@ MOTIVACAO_TO_CONTEXTO: dict[str, str | None] = {
 def _get_pesos(
     contexto: str | None = None,
     motivacao: list | None = None,
+    force_v060: bool = False,
 ) -> tuple[dict[str, float], str | None]:
     """Seleciona pesos (flag-aware) + contexto resolvido pra badge UI.
 
     Prioridade: contexto direto > primeira motivacao com mapeamento > default.
+
+    Story 9.1 QA fix (C2): parametro `force_v060=True` permite que callers
+    (ex: aggregate_metrics_legacy) garantam pesos V060 INDEPENDENTE da
+    feature flag. Preserva guarantee "legacy intocado" do Epic 8.
     """
-    if is_state_of_art_enabled():
-        pesos_contexto = PESOS_POR_CONTEXTO
-        pesos_default = PESOS_DEFAULT
-    else:
+    if force_v060 or not is_state_of_art_enabled():
         pesos_contexto = PESOS_POR_CONTEXTO_V060
         pesos_default = PESOS_DEFAULT_V060
+    else:
+        pesos_contexto = PESOS_POR_CONTEXTO
+        pesos_default = PESOS_DEFAULT
 
     if contexto and contexto in pesos_contexto:
         return pesos_contexto[contexto], contexto
@@ -358,7 +363,11 @@ def aggregate_metrics_legacy(
                 dimension=dimension,
             )
 
-    pesos, contexto_resolvido = _get_pesos(contexto=contexto, motivacao=motivacao)
+    # Story 9.1 QA C2 fix: force_v060=True garante pesos v0.6.0 independente
+    # da feature flag STATE_OF_ART_ENABLED. Preserva guarantee legacy intocado.
+    pesos, contexto_resolvido = _get_pesos(
+        contexto=contexto, motivacao=motivacao, force_v060=True
+    )
     overall_score = 0.0
     peso_total = 0.0
 

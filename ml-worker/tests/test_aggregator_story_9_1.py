@@ -205,3 +205,31 @@ def test_ac8_legacy_path_unchanged(state_of_art_off):
     assert agg["overall_score"] == 70
     # Legacy path aceita 6 dicts — todos viram dimension_scores
     assert len(agg["dimension_scores"]) == 6
+
+
+def test_c2_fix_legacy_uses_v060_pesos_even_with_flag_on(state_of_art_on):
+    """QA C2 fix: aggregate_metrics_legacy DEVE usar V060 pesos mesmo com flag ON.
+
+    Garante guarantee "legacy intocado" do Epic 8 quando flag 9.1 ON.
+    V060 pesos tem 5 dims: variety, voice, gesture, posture, fillers.
+    Facial NAO deveria pesar em legacy path (seria bug Epic 8 quebrado).
+    """
+    result_dict = {"score": 70, "confidence": 1.0, "metrics": {}}
+    agg = state_of_art_on.aggregate_metrics_legacy(
+        "eval",
+        result_dict,  # posture
+        result_dict,  # gesture
+        result_dict,  # voice
+        result_dict,  # fillers
+        result_dict,  # variety
+        result_dict,  # archetypes
+        VIDEO_META,
+    )
+
+    # Pesos utilizados devem ser V060 (5 chaves, sem facial)
+    pesos = agg["pesos_utilizados"]
+    assert set(pesos.keys()) == {"variety", "voice", "gesture", "posture", "fillers"}
+    assert "facial" not in pesos
+
+    # Overall score derivado apenas das 5 dims V060
+    assert agg["overall_score"] == 70
