@@ -339,7 +339,7 @@ def _compute_tonality_metrics(audio_path: str) -> dict:
         duration_seconds=elapsed,
     )
 
-    return {
+    result = {
         "disponivel": True,
         "score": score,
         "diagnostico": diagnostico,
@@ -350,6 +350,34 @@ def _compute_tonality_metrics(audio_path: str) -> dict:
         "feedback": feedback,
         "warnings": [],
     }
+
+    # Story 9.3: enriquecimento ML opcional (flag TONALITY_ML_ENABLED).
+    # Graceful fallback — se falhar, preserva path heuristico + metric counter.
+    from config import is_tonality_ml_enabled
+
+    if is_tonality_ml_enabled():
+        try:
+            from workers._emotion_ml import infer_emotions
+            from workers._model_loader import ModelGPU
+
+            with ModelGPU("wav2vec2_emotion") as bundle:
+                ml_result = infer_emotions(bundle, audio_path)
+                if ml_result is not None:
+                    result.update(ml_result)
+                    logger.info(
+                        "tonality_ml_enriched",
+                        emocao_dominante=ml_result.get("emocao_dominante_ml"),
+                    )
+                else:
+                    logger.warning("tonality_ml_inference_returned_none")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(
+                "tonality_ml_fallback_triggered",
+                error=str(e),
+                error_type=type(e).__name__,
+            )
+
+    return result
 
 
 def _disponivel_false(motivo: str) -> dict:

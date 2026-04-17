@@ -89,3 +89,13 @@ def is_opensmile_enabled() -> bool:
 def is_pyannote_vad_enabled() -> bool:
     """Helper testavel pra flag pyannote VAD (Story 9.4)."""
     return os.getenv("PYANNOTE_VAD_ENABLED", "false").strip().lower() == "true"
+
+
+# Feature flag Story 9.3 — Wav2Vec2-Emotion ML (promove tonality 🟡 → 🟢).
+# Default false — requer pip install -e ".[emotion]" + ativacao explicita.
+TONALITY_ML_ENABLED = os.getenv("TONALITY_ML_ENABLED", "false").lower() == "true"
+
+
+def is_tonality_ml_enabled() -> bool:
+    """Helper testavel pra flag Wav2Vec2 emotion (Story 9.3)."""
+    return os.getenv("TONALITY_ML_ENABLED", "false").strip().lower() == "true"

@@ -34,13 +34,32 @@ def test_unknown_model_raises_keyerror():
 
 
 def test_stub_factories_raise_not_implemented():
-    with pytest.raises(NotImplementedError, match="Story 9.3"):
-        with ModelGPU("wav2vec2_emotion"):
-            pass
-
+    # Story 9.5 stub ainda pendente.
     with pytest.raises(NotImplementedError, match="Story 9.5"):
         with ModelGPU("pyfeat"):
             pass
+
+
+def test_wav2vec2_emotion_factory_real_story_9_3():
+    """Story 9.3: wav2vec2_emotion nao eh mais NotImplementedError stub.
+    Sem transformers instalado, raise RuntimeError com hint de instalacao."""
+    from workers._model_loader import MODEL_FACTORIES
+
+    factory = MODEL_FACTORIES["wav2vec2_emotion"]
+    # Em env sem transformers, factory raise RuntimeError
+    try:
+        import transformers  # noqa: F401
+
+        # Com lib instalada, factory deve retornar bundle (ou RuntimeError se download falhar)
+        try:
+            factory()
+        except Exception as e:
+            # Aceitavel: RuntimeError de download ou similar
+            assert "indisponivel" in str(e).lower() or "wav2vec2" in str(e).lower()
+    except ImportError:
+        # Sem lib: RuntimeError explicito
+        with pytest.raises(RuntimeError, match="indisponivel"):
+            factory()
 
 
 # ─────────────────────────────────────────────────────────────

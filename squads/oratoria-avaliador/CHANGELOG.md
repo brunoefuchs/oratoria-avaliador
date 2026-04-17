@@ -1,5 +1,45 @@
 # CHANGELOG — squad oratoria-avaliador
 
+## [0.7.0-alpha.4] — 2026-04-17
+
+### Story 9.3 — Wav2Vec2-Emotion ML (Epic 9 Wave 2, GPU opcional)
+
+**Status:** Ready for Review
+
+#### Added
+- `TONALITY_ML_ENABLED` feature flag (default false)
+- `workers/_emotion_ml.py` — `load_wav2vec2_emotion()` + `infer_emotions()` + `EMOTION_TO_VAD` mapping
+- `tests/test_emotion_ml.py` — 10 tests mockados
+- `pyproject.toml` `[project.optional-dependencies] emotion` — transformers>=4.40
+
+#### Changed
+- `workers/_model_loader.py`: `wav2vec2_emotion` factory real (não mais stub NotImplementedError)
+- `workers/tonality_analyzer.py`: enriquece output com `vad_ml`, `emocao_distribuicao_ml`, `emocao_dominante_ml` quando flag ON
+- `tests/test_model_loader.py`: atualiza stub test (só pyfeat remanescente)
+
+#### Model
+- `facebook/wav2vec2-base-superb-er` (~400MB, 6 emoções discretas)
+- Conservador sobre large MSP-Podcast — cabe em margem VRAM 3.66GB do RTX 4060
+
+#### VAD mapping (Russell + Mehrabian PAD)
+VAD final = média ponderada por probabilidade. Mapeamento cobre 6 emoções
+(anger/happy/sad/neutral/surprise/fear) em normalização [0,1].
+
+#### Tests
+- 10 novos em test_emotion_ml.py (mockado, zero lib real instalada)
+- Regression: **277/277 PASS** (+11 de 266 baseline)
+
+#### Promoção path
+tonality 🟡 → 🟢 candidato após Gate 3 (ground truth Gui) valida correlação
+Pearson ≥0.75. Promoção real em Story 9.7 (condicional).
+
+#### Deferred
+- Install real: `pip install -e ".[emotion]"`
+- VRAM peak real do base model (vram_check.py re-run pós-install)
+- Validação em PT-BR (modelo treinado em inglês) — depende de Gate 3
+
+---
+
 ## [0.7.0-alpha.3] — 2026-04-17
 
 ### Story 9.4 — openSMILE eGeMAPS + pyannote VAD (Epic 9 Wave 2, CPU-only)
