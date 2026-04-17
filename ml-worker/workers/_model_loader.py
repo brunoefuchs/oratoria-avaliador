@@ -59,9 +59,20 @@ def _load_whisper_medium() -> Any:
     return whisper.load_model("medium")
 
 
-def _load_wav2vec2_emotion_stub() -> Any:
-    """Stub para Story 9.3. Raise NotImplementedError ate 9.3 implementar."""
-    raise NotImplementedError("wav2vec2_emotion sera implementado na Story 9.3")
+def _load_wav2vec2_emotion() -> Any:
+    """Story 9.3: carrega Wav2Vec2-Emotion (facebook/wav2vec2-base-superb-er).
+
+    Delega pra workers._emotion_ml.load_wav2vec2_emotion que faz lazy import
+    de transformers + graceful fallback se lib ausente.
+    """
+    from workers._emotion_ml import load_wav2vec2_emotion
+
+    bundle = load_wav2vec2_emotion()
+    if bundle is None:
+        raise RuntimeError(
+            "Wav2Vec2-Emotion indisponivel — instalar via: pip install -e '.[emotion]'"
+        )
+    return bundle
 
 
 def _load_pyfeat_stub() -> Any:
@@ -72,7 +83,7 @@ def _load_pyfeat_stub() -> Any:
 MODEL_FACTORIES: dict[str, Callable[[], Any]] = {
     "whisper_turbo": _load_whisper_turbo,
     "whisper_medium": _load_whisper_medium,
-    "wav2vec2_emotion": _load_wav2vec2_emotion_stub,
+    "wav2vec2_emotion": _load_wav2vec2_emotion,
     "pyfeat": _load_pyfeat_stub,
 }
 
