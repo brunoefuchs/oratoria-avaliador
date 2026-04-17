@@ -223,7 +223,9 @@ def aggregate_metrics(
             )
         elif isinstance(result, WorkerSuccess):
             dimension_scores[dim] = result.score
-            detailed_metrics[dim] = result.metrics
+            # N5 fix: inclui score no metrics dict pro UI renderizar (WorkerSuccess
+            # separa score/metrics, mas UI cards como IdentityCard leem data.score)
+            detailed_metrics[dim] = {**result.metrics, "score": result.score}
         elif isinstance(result, WorkerFailure):
             incomplete_dimensions.append(dim)
             logger.warning(
@@ -249,7 +251,7 @@ def aggregate_metrics(
         if result is None:
             continue
         if isinstance(result, WorkerSuccess):
-            detailed_metrics[dim] = result.metrics
+            detailed_metrics[dim] = {**result.metrics, "score": result.score}
         elif isinstance(result, WorkerFailure):
             logger.info(
                 "secondary_dimension_failed",

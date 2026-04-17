@@ -622,6 +622,8 @@ async def _run_pipeline(req: ProcessRequest):
             )
 
             # Construir full_detailed a partir do aggregated (ja inclui augmentation dims)
+            # N5 fix (2026-04-17): aggregator agora inclui score em cada dim.metrics
+            # para UI cards (ex: IdentityCard leem data.score diretamente).
             full_detailed = {**aggregated["detailed_metrics"]}
             # Story 5.3: expor contexto + pesos no relatorio (badge + transparencia)
             if aggregated.get("contexto"):
@@ -707,32 +709,40 @@ async def _run_pipeline(req: ProcessRequest):
             if aggregated.get("pesos_utilizados"):
                 full_detailed["pesos_utilizados"] = aggregated["pesos_utilizados"]
 
-        # Story 7.4: expor analise facial no relatorio
-        # Story 8.3: facial_result pode ser WorkerSuccess (TC) ou dict (legacy).
+        # N6 fix (2026-04-17): overrides redundantes removidos. Aggregator
+        # (com fix N5) ja popula detailed_metrics[facial/tonality/storytelling]
+        # com WorkerSuccess.metrics + score. Override daqui podia substituir
+        # por dict vazio em edge cases (era a causa do storytelling={} no DB).
+        # Path legacy (dict direto) abaixo preservado pra flag OFF / cold paths.
         from contracts import WorkerFailure as _WF
 
-        if facial_result and not isinstance(facial_result, _WF):
-            _facial_data = (
-                facial_result.metrics if isinstance(facial_result, _WS) else facial_result
-            )
-            if _facial_data and _facial_data.get("disponivel", True):
-                full_detailed["facial"] = _facial_data
-        # Story 7.5: expor tonality VAD no relatorio
-        if tonality_result and not isinstance(tonality_result, _WF):
-            _tonality_data = (
-                tonality_result.metrics if isinstance(tonality_result, _WS) else tonality_result
-            )
-            if _tonality_data and _tonality_data.get("disponivel", True):
-                full_detailed["tonality"] = _tonality_data
-        # Story 7.3: expor analise de storytelling no relatorio
-        if storytelling_result and not isinstance(storytelling_result, _WF):
-            _storytelling_data = (
-                storytelling_result.metrics
-                if isinstance(storytelling_result, _WS)
-                else storytelling_result
-            )
-            if _storytelling_data and _storytelling_data.get("disponivel", True):
-                full_detailed["storytelling"] = _storytelling_data
+        for _dim_name, _res in [
+            ("facial", facial_result),
+            ("tonality", tonality_result),
+            ("storytelling", storytelling_result),
+        ]:
+            if _res is None or isinstance(_res, _WF) or isinstance(_res, _WS):
+                continue  # WorkerResult ja tratado pelo aggregator
+            # Path legacy: dict direto (raro pos-Epic 8, mas preservado)
+            if isinstance(_res, dict) and _res.get("disponivel", True):
+                full_detailed[_dim_name] = _res
+
+        # N7 fix (2026-04-17): salvar secondary dims em analysis_results tabela
+        # pra auditoria forense completa. Antes só scoring dims (7 dims) iam pra la.
+        # Now: 13 dims totais (scoring + secondary + augmentation).
+        for _dim_name, _res in [
+            ("facial", facial_result),
+            ("tonality", tonality_result),
+            ("opening", opening_result),
+            ("storytelling", storytelling_result),
+            ("temporal", temporal_result),
+            ("congruence", congruence_result),
+        ]:
+            if _res is not None:
+                try:
+                    _save_analysis(supabase, req.evaluation_id, _dim_name, _res)
+                except Exception as _e:
+                    logger.warning("secondary_save_failed", dimension=_dim_name, error=str(_e))
 
         supabase.table("aggregated_metrics").insert(
             {
