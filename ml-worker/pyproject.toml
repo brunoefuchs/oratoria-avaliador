@@ -17,6 +17,12 @@ emotion = [
     "transformers>=4.40",  # Wav2Vec2 + feature extractor
     # torch ja presente via whisper — sem custo extra
 ]
+# Story 9.5: facial FACS — 20 Action Units + 6 emocoes basicas.
+# Install via: pip install -e ".[facs]"
+facs = [
+    "py-feat>=0.7",  # FACS detector SVM CPU-only
+    # pandas, scikit-learn, pytorch vem como deps transitivas
+]
 
 [tool.ruff]
 target-version = "py311"

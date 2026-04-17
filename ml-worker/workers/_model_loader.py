@@ -75,16 +75,24 @@ def _load_wav2vec2_emotion() -> Any:
     return bundle
 
 
-def _load_pyfeat_stub() -> Any:
-    """Stub para Story 9.5. Raise NotImplementedError ate 9.5 implementar."""
-    raise NotImplementedError("pyfeat sera implementado na Story 9.5")
+def _load_pyfeat() -> Any:
+    """Story 9.5: carrega py-feat FACS Detector via workers._facs_ml.
+
+    Delega pra load_pyfeat_detector que faz lazy import + graceful fallback.
+    """
+    from workers._facs_ml import load_pyfeat_detector
+
+    detector = load_pyfeat_detector()
+    if detector is None:
+        raise RuntimeError("py-feat indisponivel — instalar via: pip install -e '.[facs]'")
+    return detector
 
 
 MODEL_FACTORIES: dict[str, Callable[[], Any]] = {
     "whisper_turbo": _load_whisper_turbo,
     "whisper_medium": _load_whisper_medium,
     "wav2vec2_emotion": _load_wav2vec2_emotion,
-    "pyfeat": _load_pyfeat_stub,
+    "pyfeat": _load_pyfeat,
 }
 
 
