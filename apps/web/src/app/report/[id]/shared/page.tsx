@@ -12,9 +12,10 @@ const DIMENSION_LABELS: Record<string, string> = {
   gesture: "Presença Visual",
   posture: "Postura e Presença",
   fillers: "Clareza Verbal",
+  facial: "Expressão Facial",
 };
 
-const DIMENSION_ORDER = ["variety", "voice", "gesture", "posture", "fillers"];
+const DIMENSION_ORDER = ["variety", "voice", "gesture", "facial", "posture", "fillers"];
 
 function getScoreTone(score: number) {
   if (score >= 70) return "text-secondary";

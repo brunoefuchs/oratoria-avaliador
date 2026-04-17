@@ -59,6 +59,9 @@ Pontuacao Geral: {overall_score}
 ### Clareza Verbal (Pontuacao: {fillers_score})
 {fillers_metrics}
 
+### Expressao Facial (Pontuacao: {facial_score})
+{facial_metrics}
+
 ### Arquetipos Vocais (Referencia — nao incluir no feedback por dimensao)
 {archetype_metrics}
 
@@ -146,6 +149,11 @@ Responda EXCLUSIVAMENTE em JSON valido com esta estrutura:
     "clareza_verbal": {{{{
       "label": "...",
       "feedback": "Feedback sobre vicios de linguagem, distinguindo hesitacao de muletas",
+      "dica": "..."
+    }}}},
+    "expressao_facial": {{{{
+      "label": "...",
+      "feedback": "Feedback sobre sorriso, sobrancelhas, micro-expressoes e textura emocional do rosto",
       "dica": "..."
     }}}}
   }}}},
@@ -537,6 +545,7 @@ def _build_prompt(metrics: AggregatedMetrics, context: dict | None = None) -> st
     gesture_str = _score_label(dimension_scores.get("gesture"), "gesture", incomplete)
     posture_str = _score_label(dimension_scores.get("posture"), "posture", incomplete)
     fillers_str = _score_label(dimension_scores.get("fillers"), "fillers", incomplete)
+    facial_str = _score_label(dimension_scores.get("facial"), "facial", incomplete)
     archetype_str = _score_label(dimension_scores.get("archetypes"), "archetypes", incomplete)
 
     guard_rails = ""
@@ -561,6 +570,8 @@ def _build_prompt(metrics: AggregatedMetrics, context: dict | None = None) -> st
         posture_metrics=_format_metrics(detailed.get("posture", {})),
         fillers_score=fillers_str,
         fillers_metrics=_format_metrics(detailed.get("fillers", {})),
+        facial_score=facial_str,
+        facial_metrics=_format_metrics(detailed.get("facial", {})),
         archetype_score=archetype_str,
         archetype_metrics=_format_metrics(detailed.get("archetypes", {})),
     )
@@ -846,6 +857,8 @@ def generate_report_legacy(aggregated: dict, context: dict | None = None) -> dic
         posture_metrics=_format_metrics(detailed.get("posture", {})),
         fillers_score=dimension_scores.get("fillers", 0),
         fillers_metrics=_format_metrics(detailed.get("fillers", {})),
+        facial_score=dimension_scores.get("facial", 0),
+        facial_metrics=_format_metrics(detailed.get("facial", {})),
         archetype_score=dimension_scores.get("archetypes", 0),
         archetype_metrics=_format_metrics(detailed.get("archetypes", {})),
     )

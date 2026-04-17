@@ -140,9 +140,16 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     """
     logger.info("variety_analysis_start")
 
-    # Extrair dados de janelas do voice_analyzer
-    # Suporta tanto voice_result flat quanto voice_result.metrics nested
-    voice = voice_result.get("metrics", voice_result)
+    # Truth Contract: voice_result/gesture_result podem ser WorkerSuccess (pydantic)
+    # ou dict (legacy). Normaliza pra extrair metrics dict em ambos casos.
+    def _extract_metrics(r):
+        if hasattr(r, "metrics"):
+            return r.metrics or {}
+        if isinstance(r, dict):
+            return r.get("metrics", r) or {}
+        return {}
+
+    voice = _extract_metrics(voice_result)
     wpm_janelas = voice.get("wpm_por_janela", [])
     pitch_janelas = voice.get("pitch_por_janela", [])
     volume_janelas = voice.get("volume_por_janela", [])
@@ -151,7 +158,7 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     cv_volume = voice.get("cv_volume", 0.0)
 
     # CV de gesticulacao (estimativa baseada em detecoes de mao)
-    metrics_gesture = gesture_result.get("metrics", {})
+    metrics_gesture = _extract_metrics(gesture_result)
     metrics_gesture.get("gesticulation_pct", 0)
     # Usar vocabulario como proxy de variacao gestual
     vocabulario = metrics_gesture.get("vocabulario_gestos", 0)
@@ -279,17 +286,25 @@ def analyze_variety_legacy(voice_result: dict, gesture_result: dict) -> dict:
     return _compute_variety_metrics(voice_result, gesture_result)
 
 
-def _upstream_failed(result: dict | None) -> bool:
-    """Detecta falha upstream em ambos os schemas legacy e novo.
+def _upstream_failed(result) -> bool:
+    """Detecta falha upstream em todos schemas (legacy, novo, Truth Contract).
 
     Schema legacy: confidence == 'failed'
     Schema novo (facial/tonality/opening): disponivel == False
-    Schema novissimo (Truth Contract): WorkerFailure ou dict com
-                                       dimension_status != 'ok'
+    Schema Truth Contract: WorkerFailure OR dict com dimension_status != 'ok'
+    Schema Truth Contract success: WorkerSuccess (pydantic) → checa dimension_status='ok'
     """
-    if not result:
+    if result is None:
         return True
+
+    # Pydantic WorkerSuccess/WorkerFailure (Truth Contract — Epic 8)
+    if hasattr(result, "dimension_status"):
+        return result.dimension_status != "ok"
+
+    # Dict-like (legacy + schema novo)
     if not isinstance(result, dict):
+        return True
+    if not result:  # empty dict = sem dados upstream
         return True
     if result.get("confidence") == "failed":
         return True
@@ -329,8 +344,14 @@ def analyze_variety(voice_result: dict, gesture_result: dict) -> WorkerResult:
                 ),
             )
 
-        voice = voice_result.get("metrics", voice_result)
-        audio_duration = voice.get("audio_duration_seconds")
+        # Truth Contract: WorkerSuccess tem .metrics attr; legacy dict tem "metrics" key
+        if hasattr(voice_result, "metrics"):
+            voice = voice_result.metrics
+        elif isinstance(voice_result, dict):
+            voice = voice_result.get("metrics", voice_result)
+        else:
+            voice = {}
+        audio_duration = voice.get("audio_duration_seconds") if isinstance(voice, dict) else None
         if not audio_duration or audio_duration <= 0:
             return WorkerFailure(
                 dimension="variety",

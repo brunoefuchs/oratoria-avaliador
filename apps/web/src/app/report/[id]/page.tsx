@@ -22,9 +22,20 @@ const DIMENSION_LABELS: Record<string, string> = {
   gesture: "Presença Visual",
   posture: "Postura e Presença",
   fillers: "Clareza Verbal",
+  facial: "Expressão Facial",
 };
 
-const DIMENSION_ORDER = ["variety", "voice", "gesture", "posture", "fillers"];
+const DIMENSION_ORDER = ["variety", "voice", "gesture", "facial", "posture", "fillers"];
+
+// Mapping inglês → PT usado pelas chaves do Gemini em report.dimensoes
+const DIMENSION_TO_PT_KEY: Record<string, string> = {
+  variety: "variedade",
+  voice: "voz",
+  gesture: "presenca_visual",
+  posture: "postura",
+  fillers: "clareza_verbal",
+  facial: "expressao_facial",
+};
 
 function getScoreTone(score: number) {
   if (score >= 70) return "text-secondary";
@@ -226,7 +237,8 @@ export default function ReportPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {sortedDimensions.map((dimension) => {
               const score = data.dimension_scores[dimension] as number;
-              const feedback = dimensoes[dimension];
+              const ptKey = DIMENSION_TO_PT_KEY[dimension];
+              const feedback = dimensoes[dimension] || dimensoes[ptKey];
               const confidence = (data.dimension_confidence as DimensionConfidence | undefined)?.[
                 dimension
               ];

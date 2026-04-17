@@ -742,6 +742,13 @@ async def _run_pipeline(req: ProcessRequest):
                 "detailed_metrics": full_detailed,
                 "incomplete_dimensions": aggregated["incomplete_dimensions"],
                 "video_metadata": aggregated["video_metadata"],
+                # Story 9.1 (Epic 9 — State of the Art) — campos opcionais.
+                # Populados quando STATE_OF_ART_ENABLED=true; None caso contrario.
+                "partial_aggregation": aggregated.get("partial_aggregation", False),
+                "schema_version": aggregated.get("schema_version"),
+                "dimension_confidence": aggregated.get("dimension_confidence"),
+                "contexto": aggregated.get("contexto"),
+                "pesos_utilizados": aggregated.get("pesos_utilizados"),
             }
         ).execute()
 
