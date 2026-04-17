@@ -63,16 +63,17 @@ def is_whisper_turbo_enabled() -> bool:
 
 
 # Feature flag: Epic 9 Story 9.2 — Model Orchestrator (VRAM management).
-# Default false ate Gate 1 PASS (vram_check.py peak <=7.5GB). Flip para true em
-# follow-up commit pos-merge conforme AC9 (decisao PO 2026-04-17).
-# Habilita load/unload explicito via ModelGPU context manager, desbloqueando
-# stories 9.3 (Wav2Vec2) e 9.5 (py-feat) no RTX 4060 8.6GB.
-MODEL_ORCHESTRATOR_ENABLED = os.getenv("MODEL_ORCHESTRATOR_ENABLED", "false").lower() == "true"
+# AC9 flip 2026-04-17: default TRUE apos Gate 1 PASS (peak 4.93GB <= 7.5GB budget)
+# e Gate 2 PASS (Story 9.1.1 replay em 5 evals reais).
+# Habilita load/unload explicito via ModelGPU context manager, liberando VRAM
+# entre whisper → mediapipe → ML novos (9.3 Wav2Vec2 / 9.5 py-feat).
+# Rollback explicito via env var MODEL_ORCHESTRATOR_ENABLED=false.
+MODEL_ORCHESTRATOR_ENABLED = os.getenv("MODEL_ORCHESTRATOR_ENABLED", "true").lower() == "true"
 
 
 def is_orchestrator_enabled() -> bool:
     """Helper testavel pra flag Story 9.2."""
-    return os.getenv("MODEL_ORCHESTRATOR_ENABLED", "false").strip().lower() == "true"
+    return os.getenv("MODEL_ORCHESTRATOR_ENABLED", "true").strip().lower() == "true"
 
 
 # Feature flags Story 9.4 — prosody deep dive (CPU-only).

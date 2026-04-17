@@ -1,5 +1,28 @@
 # CHANGELOG — squad oratoria-avaliador
 
+## [0.7.0-alpha.7] — 2026-04-17
+
+### Story 9.1.2 — AC9 flip MODEL_ORCHESTRATOR_ENABLED default TRUE
+
+**Status:** Ready for Review
+
+#### Changed
+- `config.py`: `MODEL_ORCHESTRATOR_ENABLED` default `false` → **`true`**
+- Docstring explicita cumprimento AC9 (decisão PO 2026-04-17) pós-Gate 1 + Gate 2 PASS
+
+#### Rationale
+- **Gate 1 hardware:** RTX 4060 peak 4.93GB ≤ 7.5GB budget (Story 9.2 validated)
+- **Gate 2 smoke:** max delta 5pt em 5 evals reais (Story 9.1.1 PASS)
+- Stories 9.3 (Wav2Vec2) e 9.5 (py-feat) precisam do orchestrator — atrito removido
+
+#### Rollback
+`MODEL_ORCHESTRATOR_ENABLED=false` env var reverte comportamento.
+
+#### Tests
+Regression 311/311 mantido.
+
+---
+
 ## [0.7.0-alpha.6] — 2026-04-17
 
 ### Story 9.6 — Gemini Vision Gesture Semantic (Epic 9 Wave 3, PAGO)
