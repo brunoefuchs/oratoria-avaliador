@@ -269,7 +269,9 @@ async def _run_pipeline(req: ProcessRequest):
                 transcribe_audio,
             )
 
-            transcription = transcribe_audio(audio_path, config.WHISPER_MODEL)
+            # Story 9.2: passa None para usar WHISPER_TURBO_ENABLED + fallback.
+            # WHISPER_MODEL env var preservado como override manual pra debug.
+            transcription = transcribe_audio(audio_path)
             prosody = analyze_prosody(audio_path)
 
             # Salvar transcricao

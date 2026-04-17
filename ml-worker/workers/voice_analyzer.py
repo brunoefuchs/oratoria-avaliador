@@ -78,17 +78,39 @@ def transcribe_audio(audio_path: str, model_name: str | None = None) -> dict:
     logger.info("whisper_transcribe_start", audio_path=audio_path, model=resolved_model)
 
     model = _load_whisper_with_fallback(resolved_model)
-    result = model.transcribe(
-        audio_path,
-        language="pt",
-        word_timestamps=True,
-        initial_prompt=(
-            "Esta e uma transcricao fiel de oratoria em portugues brasileiro. "
-            "Preserve TODOS os vicios de linguagem como ne, tipo, ai, sabe, entao, ahn, eh, hum. "
-            "Nao corrija nem omita marcadores de hesitacao."
-        ),
-        condition_on_previous_text=False,
-    )
+    try:
+        result = model.transcribe(
+            audio_path,
+            language="pt",
+            word_timestamps=True,
+            initial_prompt=(
+                "Esta e uma transcricao fiel de oratoria em portugues brasileiro. "
+                "Preserve TODOS os vicios de linguagem como ne, tipo, ai, sabe, entao, ahn, eh, hum. "
+                "Nao corrija nem omita marcadores de hesitacao."
+            ),
+            condition_on_previous_text=False,
+        )
+    finally:
+        # Story 9.2: unload explicito quando orchestrator ativo, libera VRAM
+        # pros workers MediaPipe + ML novos (9.3/9.5) nao estourarem 8.6GB.
+        from config import is_orchestrator_enabled
+
+        if is_orchestrator_enabled():
+            import gc
+
+            del model
+            gc.collect()
+            try:
+                import torch
+
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+                    logger.info(
+                        "whisper_vram_unloaded",
+                        peak_gb=round(torch.cuda.max_memory_allocated() / 1e9, 2),
+                    )
+            except (ImportError, RuntimeError):
+                pass
 
     words = []
     for segment in result.get("segments", []):
