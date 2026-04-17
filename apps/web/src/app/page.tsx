@@ -25,7 +25,13 @@ export default function Home() {
       setShowOnboarding(true);
     }
     if (!localStorage.getItem("oratoria_user_token")) {
-      localStorage.setItem("oratoria_user_token", crypto.randomUUID());
+      // crypto.randomUUID() requer secure context (HTTPS ou localhost).
+      // Fallback pra acesso via IP LAN (ex: http://172.23.x.x:3000 em WSL).
+      const token =
+        typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+          ? crypto.randomUUID()
+          : `user-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      localStorage.setItem("oratoria_user_token", token);
     }
     setReady(true);
   }, []);
