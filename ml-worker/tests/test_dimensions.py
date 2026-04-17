@@ -142,9 +142,7 @@ def test_scoring_dims_are_all_alta_confianca():
             # Excecao: variety e meta-dim sobre outputs Alta, herda confianca.
             assert conf == "media"
         else:
-            assert conf == "alta", (
-                f"scoring dim {dim} deveria ser 'alta' mas e '{conf}'"
-            )
+            assert conf == "alta", f"scoring dim {dim} deveria ser 'alta' mas e '{conf}'"
 
 
 # ─────────────────────────────────────────────────────────────

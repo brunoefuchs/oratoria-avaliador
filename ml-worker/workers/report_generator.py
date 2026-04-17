@@ -595,7 +595,8 @@ def _build_prompt(metrics: AggregatedMetrics, context: dict | None = None) -> st
             prompt += f"🟡 Media (heuristica sobre features confiaveis): {', '.join(media)}\n"
 
         baixa_secondary = [
-            d for d, c in confidence.items()
+            d
+            for d, c in confidence.items()
             if c == "baixa" and d in detailed and d not in dimension_scores
         ]
         if baixa_secondary:

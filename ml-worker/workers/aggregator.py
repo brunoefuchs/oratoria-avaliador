@@ -365,9 +365,7 @@ def aggregate_metrics_legacy(
 
     # Story 9.1 QA C2 fix: force_v060=True garante pesos v0.6.0 independente
     # da feature flag STATE_OF_ART_ENABLED. Preserva guarantee legacy intocado.
-    pesos, contexto_resolvido = _get_pesos(
-        contexto=contexto, motivacao=motivacao, force_v060=True
-    )
+    pesos, contexto_resolvido = _get_pesos(contexto=contexto, motivacao=motivacao, force_v060=True)
     overall_score = 0.0
     peso_total = 0.0
 
