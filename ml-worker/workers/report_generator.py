@@ -582,6 +582,29 @@ def _build_prompt(metrics: AggregatedMetrics, context: dict | None = None) -> st
             prompt += f"- {insight}\n"
         prompt += "\nINSTRUCAO: use esses insights como BASE do feedback. NAO copie literal — reescreva no seu tom de coach.\n"
 
+    # Story 9.1 (Epic 9): confidence awareness + secondary dims section.
+    # So injetado quando STATE_OF_ART_ENABLED=true (aggregator populou esses campos).
+    confidence = metrics.dimension_confidence
+    if confidence:
+        prompt += "\n\n## CONFIANCA DAS MEDICOES (Epic 9 — calibracao mentor)\n"
+        alta = [d for d, c in confidence.items() if c == "alta" and d in dimension_scores]
+        media = [d for d, c in confidence.items() if c == "media" and d in dimension_scores]
+        if alta:
+            prompt += f"🟢 Alta (ML validado, >85%): {', '.join(alta)}\n"
+        if media:
+            prompt += f"🟡 Media (heuristica sobre features confiaveis): {', '.join(media)}\n"
+
+        baixa_secondary = [
+            d for d, c in confidence.items()
+            if c == "baixa" and d in detailed and d not in dimension_scores
+        ]
+        if baixa_secondary:
+            prompt += (
+                f"🔴 Baixa (regex PT-BR — analise complementar): {', '.join(baixa_secondary)}\n"
+                "INSTRUCAO: trate dims 🔴 como SUGESTAO, nao afirmacao. Use linguagem hedge "
+                "('parece indicar', 'pode sugerir'). NAO faca coaching prescritivo em 🔴.\n"
+            )
+
     identity = metrics.identity
     if identity is not None:
         _identity_status = identity.get("dimension_status", "")
