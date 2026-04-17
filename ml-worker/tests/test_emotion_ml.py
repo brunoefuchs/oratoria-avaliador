@@ -29,7 +29,7 @@ from workers._emotion_ml import (
 
 
 def test_model_id_is_base_superb():
-    assert MODEL_ID == "facebook/wav2vec2-base-superb-er"
+    assert MODEL_ID == "superb/wav2vec2-base-superb-er"
 
 
 def test_emotion_to_vad_covers_core_labels():

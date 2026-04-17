@@ -99,6 +99,16 @@ def _test_model(model_name: str) -> dict:
     except NotImplementedError as e:
         result["status"] = "skipped_stub"
         result["reason"] = str(e)
+    except RuntimeError as e:
+        # "indisponivel" = lib opcional nao instalada, nao eh failure real
+        err_msg = str(e)
+        if "indisponivel" in err_msg.lower():
+            result["status"] = "skipped_optional_dep"
+            result["reason"] = err_msg
+        else:
+            result["status"] = "failed"
+            result["error"] = err_msg
+            result["error_type"] = "RuntimeError"
     except Exception as e:  # noqa: BLE001 — queremos report de qualquer erro
         result["status"] = "failed"
         result["error"] = str(e)
@@ -153,10 +163,15 @@ def main() -> int:
         exit_code = 1
 
     any_failed = any(m["status"] == "failed" for m in report["models_tested"])
+    skipped_opt = [
+        m["model"] for m in report["models_tested"] if m["status"] == "skipped_optional_dep"
+    ]
     if any_failed:
         report["status"] = "fail"
         report["verdict"] += " + modelos falharam durante load"
         exit_code = 1
+    elif skipped_opt:
+        report["verdict"] += f" + {len(skipped_opt)} modelo(s) sem dep instalada: {skipped_opt}"
 
     print(json.dumps(report, indent=2) if args.json else _format_text(report))
     return exit_code

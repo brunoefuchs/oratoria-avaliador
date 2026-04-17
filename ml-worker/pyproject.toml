@@ -18,9 +18,11 @@ emotion = [
     # torch ja presente via whisper — sem custo extra
 ]
 # Story 9.5: facial FACS — 20 Action Units + 6 emocoes basicas.
-# Install via: pip install -e ".[facs]"
+# Install via: pip install py-feat (versao compativel Python 3.11, NAO 3.12)
+# py-feat 0.6.x tem bug upstream (pkgutil.ImpImporter removido em 3.12).
+# Se usar Python 3.12+, considerar `feat-py` fork ou aguardar release >=0.7.
 facs = [
-    "py-feat>=0.7",  # FACS detector SVM CPU-only
+    "py-feat>=0.6,<0.7",  # FACS detector SVM CPU-only — requer Python <3.12
     # pandas, scikit-learn, pytorch vem como deps transitivas
 ]
 
