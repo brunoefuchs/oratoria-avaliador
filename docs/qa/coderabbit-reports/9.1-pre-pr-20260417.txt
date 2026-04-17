@@ -1,0 +1,40 @@
+Starting CodeRabbit review in plain text mode...
+
+Review directory: /mnt/c/Users/bruno/code/oratoria-avaliador
+
+Connecting to review service
+Setting up
+Summarizing
+Reviewing
+
+============================================================================
+File: ml-worker/config.py
+Line: 45 to 51
+Type: potential_issue
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @ml-worker/config.py around lines 45 - 51, The module has inconsistent whitespace handling: is_state_of_art_enabled() uses .strip().lower() but the module-level constant STATE_OF_ART_ENABLED uses only .lower(), causing mismatches for values like "true ". Update the module-level constant initialization to use .strip().lower() == "true" (or change both to the same normalized form) so STATE_OF_ART_ENABLED and is_state_of_art_enabled() behave identically; adjust the constant definition where STATE_OF_ART_ENABLED is set and keep is_state_of_art_enabled() as the testable helper.
+
+============================================================================
+File: ml-worker/contracts/dimensions.py
+Line: 29 to 38
+Type: potential_issue
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @ml-worker/contracts/dimensions.py around lines 29 - 38, The comment above SCORING_DIMENSIONS is inconsistent with DIMENSION_CONFIDENCE: it claims all six dimensions are "🟢 Alta confianca (>85%)" but DIMENSION_CONFIDENCE maps "variety" to "media"; update either the comment or the data to match intent. Locate SCORING_DIMENSIONS and the DIMENSION_CONFIDENCE mapping and either (A) change the comment to note that "variety" is medium confidence (60-85%) and treated as a meta-dimension, or (B) remove "variety" from SCORING_DIMENSIONS so only high-confidence dimensions remain—ensure references to the "variety" symbol are adjusted accordingly.
+
+============================================================================
+File: apps/web/src/app/report/[id]/page.tsx
+Line: 217 to 225
+Type: potential_issue
+
+Prompt for AI Agent:
+Verify each finding against the current code and only fix it if needed.
+
+In @apps/web/src/app/report/[id]/page.tsx around lines 217 - 225, The emoji legend spans (the three  elements showing 🟢/🟡/🔴) are not accessible to screen readers; update each span in the report page component to expose an accessible name—either add role="img" plus an aria-label sourced from CONFIDENCE_BADGES.alta.tooltip / CONFIDENCE_BADGES.media.tooltip / CONFIDENCE_BADGES.baixa.tooltip, or keep the decorative emoji aria-hidden="true" and add a sibling visually-hidden text node (e.g., a ) with the same tooltip text; ensure the accessible text matches CONFIDENCE_BADGES and retain existing title for hover.
+
+Review completed: 3 findings ✔

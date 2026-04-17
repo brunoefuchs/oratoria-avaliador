@@ -109,3 +109,17 @@ PYFEAT_ENABLED = os.getenv("PYFEAT_ENABLED", "false").lower() == "true"
 def is_pyfeat_enabled() -> bool:
     """Helper testavel pra flag py-feat FACS (Story 9.5)."""
     return os.getenv("PYFEAT_ENABLED", "false").strip().lower() == "true"
+
+
+# Feature flag Story 9.6 — Gemini Vision gesture semantic (UNICO pago ~$0.015/video).
+# Default false + budget guard hard cap pra evitar runaway cost.
+GESTURE_SEMANTIC_ENABLED = os.getenv("GESTURE_SEMANTIC_ENABLED", "false").lower() == "true"
+GESTURE_SEMANTIC_MAX_COST_PER_EVAL = float(os.getenv("GESTURE_SEMANTIC_MAX_COST_PER_EVAL", "0.10"))
+GESTURE_SEMANTIC_FPS = float(os.getenv("GESTURE_SEMANTIC_FPS", "0.5"))  # 1 frame/2s
+GESTURE_SEMANTIC_MAX_FRAMES = int(os.getenv("GESTURE_SEMANTIC_MAX_FRAMES", "120"))
+GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-flash")
+
+
+def is_gesture_semantic_enabled() -> bool:
+    """Helper testavel pra flag Gemini Vision (Story 9.6)."""
+    return os.getenv("GESTURE_SEMANTIC_ENABLED", "false").strip().lower() == "true"

@@ -42,6 +42,8 @@ select = ["E", "F", "I", "W"]
 "workers/facial_analyzer.py" = ["E501"]
 # Story 9.2: initial_prompt PT-BR do Whisper preserva fillers — string contigua.
 "workers/voice_analyzer.py" = ["E501"]
+# Story 9.6: PROMPT_TEMPLATE PT-BR para Gemini Vision — string contigua.
+"workers/gesture_semantic_analyzer.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

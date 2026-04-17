@@ -42,8 +42,8 @@ def test_scoring_dimensions_content_v070():
 
 
 def test_secondary_dimensions_count():
-    """Story 9.1 AC3: 7 secondary dims nova constante."""
-    assert len(SECONDARY_DIMENSIONS) == 7
+    """Story 9.1 AC3: 7 secondary dims. Story 9.6: +1 gesture_semantic = 8."""
+    assert len(SECONDARY_DIMENSIONS) == 8
 
 
 def test_secondary_dimensions_content():
@@ -55,6 +55,7 @@ def test_secondary_dimensions_content():
         "storytelling",
         "temporal",
         "congruence",
+        "gesture_semantic",  # Story 9.6
     }
 
 
@@ -100,7 +101,8 @@ def test_augmentation_is_subset_of_secondary():
 def test_all_dimensions_is_complete_union():
     expected = set(SCORING_DIMENSIONS) | set(SECONDARY_DIMENSIONS)
     assert set(ALL_DIMENSIONS) == expected
-    assert len(ALL_DIMENSIONS) == 13
+    # Story 9.6: 13 dims original + 1 gesture_semantic = 14
+    assert len(ALL_DIMENSIONS) == 14
 
 
 def test_all_dimensions_no_duplicates():
@@ -130,7 +132,8 @@ def test_confidence_distribution():
     baixa = {d for d, c in DIMENSION_CONFIDENCE.items() if c == "baixa"}
 
     assert alta == {"posture", "gesture", "voice", "fillers", "facial"}
-    assert media == {"variety", "archetypes", "tonality", "temporal"}
+    # Story 9.6: gesture_semantic adicionado como media (LLM structured output)
+    assert media == {"variety", "archetypes", "tonality", "temporal", "gesture_semantic"}
     assert baixa == {"opening", "identity", "storytelling", "congruence"}
 
 

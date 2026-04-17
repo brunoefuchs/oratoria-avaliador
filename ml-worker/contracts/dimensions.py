@@ -47,6 +47,7 @@ SECONDARY_DIMENSIONS: tuple[str, ...] = (
     "storytelling",
     "temporal",
     "congruence",
+    "gesture_semantic",  # Story 9.6 — Gemini Vision gesto semantico (LLM)
 )
 
 # 3 augmentation dimensions — subset de SECONDARY consumido pelo report_generator
@@ -100,6 +101,7 @@ Dimension = Literal[
     "storytelling",
     "temporal",
     "congruence",
+    "gesture_semantic",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -127,6 +129,8 @@ DIMENSION_CONFIDENCE: dict[str, ConfidenceLevel] = {
     "identity": "baixa",
     "storytelling": "baixa",
     "congruence": "baixa",
+    # 🟡 Media — Story 9.6 LLM structured output, em calibracao (Gemini Vision)
+    "gesture_semantic": "media",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -154,4 +158,5 @@ DIMENSION_TO_WORKER_MODULE: dict[str, str] = {
     "storytelling": "workers.storytelling_analyzer",
     "temporal": "workers.temporal_analyzer",
     "congruence": "workers.congruence_analyzer",
+    "gesture_semantic": "workers.gesture_semantic_analyzer",
 }
