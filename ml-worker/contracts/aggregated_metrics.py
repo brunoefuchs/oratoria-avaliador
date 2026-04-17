@@ -40,3 +40,9 @@ class AggregatedMetrics(BaseModel):
     storytelling: Optional[dict] = None
     temporal: Optional[dict] = None
     congruence: Optional[dict] = None
+
+    # Story 9.1 (Epic 9 — State of the Art): confidence badges + schema version.
+    # Populados apenas quando STATE_OF_ART_ENABLED=true. Optional garante
+    # backward compat com payloads v0.6.0 (sem estes campos).
+    dimension_confidence: Optional[dict[str, str]] = None
+    schema_version: Optional[str] = None

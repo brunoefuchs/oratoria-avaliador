@@ -1,0 +1,298 @@
+---
+# EPIC-9.0-EXECUTION.yaml
+# Wave-based execution plan for Epic 9.0 — State of the Art
+# Owner: @pm (Morgan)
+# Formalized: 2026-04-16
+# Related: docs/stories/9.0.epic-state-of-the-art.md
+
+epic:
+  id: "9.0"
+  name: "State of the Art"
+  target_version: "oratoria-avaliador@0.7.0"
+  status: "ready-for-breakdown"
+  predecessors:
+    - { id: "7.0", status: "done" }
+    - { id: "8.0", status: "done", note: "24/24 vetos fechados, Truth Contract base" }
+  created: "2026-04-16"
+  formalized_by: "@pm"
+  source_draft_by: "@vinh-giang"
+
+feature_flags:
+  master: "STATE_OF_ART_ENABLED"
+  story_level:
+    - "TONALITY_ML_ENABLED"       # Story 9.3
+    - "GESTURE_SEMANTIC_ENABLED"  # Story 9.6 (default false)
+  budget_guards:
+    - "GESTURE_SEMANTIC_MAX_COST_PER_EVAL=0.10"
+
+# ─────────────────────────────────────────────────────────────
+# WAVES — Parallelization strategy
+# ─────────────────────────────────────────────────────────────
+waves:
+
+  wave_0:
+    name: "Foundation"
+    mode: "sequential"
+    rationale: "Story 9.1 é pré-requisito estrutural — refactor do aggregator bloqueia qualquer ML novo. Sem isso, dims novas não têm onde pendurar peso."
+    stories:
+      - id: "9.1"
+        title: "Aggregator Refactor + Confidence Badges"
+        priority: "P0"
+        effort_hours: 16
+        executor: "@dev (Dex)"
+        blocker_for: ["9.2", "9.3", "9.4", "9.5", "9.6"]
+        quality_gate: "gate_1_regression"
+        risk: "low"
+
+  wave_1:
+    name: "Infrastructure — ML Orchestration"
+    mode: "sequential"
+    depends_on: ["wave_0"]
+    rationale: "Story 9.2 cria o VRAM orchestrator que todo ML novo (9.3, 9.5) vai precisar. Hardware 8.6GB não aguenta modelos empilhados."
+    stories:
+      - id: "9.2"
+        title: "Whisper large-v3-turbo + VRAM Orchestrator"
+        priority: "P0"
+        effort_hours: 20
+        executor: "@dev (Dex)"
+        blocker_for: ["9.3", "9.5"]
+        quality_gate: "gate_1_regression + gate_4_performance"
+        risk: "medium"
+        notes:
+          - "Model já baixado (~/.cache/whisper/large-v3.pt)"
+          - "Criar ModelGPU context manager em _model_loader.py"
+
+  wave_2:
+    name: "ML Upgrades — CPU+GPU Parallel"
+    mode: "parallel"
+    depends_on: ["wave_1"]
+    rationale: "9.3 usa GPU sequencial via orchestrator; 9.4 é CPU-only — podem rodar em paralelo no dev sem conflito."
+    stories:
+      - id: "9.3"
+        title: "Wav2Vec2-Emotion (tonality 🟡→🟢)"
+        priority: "P1"
+        effort_hours: 24
+        executor: "@dev (Dex)"
+        depends_on: ["9.2"]
+        quality_gate: "gate_2_ground_truth"
+        risk: "medium"
+        promotion_path: "augmentation → scoring após Gate 3 PASS"
+      - id: "9.4"
+        title: "openSMILE eGeMAPS + pyannote VAD"
+        priority: "P1"
+        effort_hours: 18
+        executor: "@dev (Dex)"
+        depends_on: ["9.1"]
+        quality_gate: "gate_1_regression"
+        risk: "low"
+        notes:
+          - "CPU-only, zero VRAM"
+          - "pyannote requer HF token gratuito — @devops configurar secret"
+
+  wave_3_bonus:
+    name: "Conditional calibration (post-Gate 3)"
+    mode: "sequential"
+    depends_on: ["gate_3_ground_truth PASS"]
+    rationale: "PO approved weights heurísticas v1 como proxy. Calibração real acontece após ter ground truth Gui pra calibrar sobre dados, não chute."
+    stories:
+      - id: "9.7"
+        title: "Pesos contextuais v2 — calibração via ground truth"
+        priority: "P2"
+        effort_hours: 8
+        executor: "@dev (Dex)"
+        depends_on: ["gate_3_ground_truth"]
+        quality_gate: "correlação Pearson melhora ou mantém após recalibração"
+        risk: "low"
+        notes:
+          - "Opcional se dados de Gate 3 mostrarem pesos v1 já alinhados (Pearson ≥0.8)"
+          - "Só dispara se Gate 3 mostrar desvio sistemático por contexto"
+
+  wave_3:
+    name: "Advanced Analyzers"
+    mode: "parallel"
+    depends_on: ["wave_2"]
+    rationale: "9.5 (facial expandido) e 9.6 (gesto semântico) são independentes entre si, dependem de base estável das waves anteriores."
+    stories:
+      - id: "9.5"
+        title: "py-feat FACS (facial expandido)"
+        priority: "P2"
+        effort_hours: 32
+        executor: "@dev (Dex)"
+        depends_on: ["9.2"]
+        quality_gate: "gate_2_ground_truth"
+        risk: "medium-high"
+        promotion_path: "FACS mantém facial em 🟢, expande profundidade"
+      - id: "9.6"
+        title: "Gemini Vision (gesto semântico)"
+        priority: "P2"
+        effort_hours: 24
+        executor: "@dev (Dex)"
+        depends_on: ["9.1"]
+        quality_gate: "gate_4_performance + budget check"
+        risk: "high"
+        notes:
+          - "Único upgrade pago — $0.015/vídeo (Gemini Flash)"
+          - "Default feature flag OFF até validação"
+          - "Budget guard: $0.10/eval max"
+
+# ─────────────────────────────────────────────────────────────
+# QUALITY GATES
+# ─────────────────────────────────────────────────────────────
+quality_gates:
+
+  gate_1_hardware_smoke:
+    trigger: "Pré-Wave 1 (antes de Story 9.2 mergear)"
+    owner: "@dev"
+    check: |
+      Script ml-worker/scripts/vram_check.py valida:
+        - Carrega whisper turbo + unload → peak VRAM ≤7.5GB
+        - Carrega wav2vec2-emotion + unload
+        - Carrega py-feat + unload
+    pass_criteria: "Peak VRAM ≤7.5GB em todos os cenários"
+    fail_action: "BLOCK Story 9.2 merge — revisar orchestrator"
+
+  gate_2_regression:
+    trigger: "Após cada story em wave_0 e wave_1"
+    owner: "@qa (Quinn)"
+    check: |
+      - 54 smoke tests ml-worker PASS
+      - 10 vídeos calibração: delta overall_score conforme critério por story
+      - pytest ml-worker/tests coverage não regride
+    pass_criteria_by_story:
+      "9.1": "100% smoke tests + delta ≤15 pontos + cada delta rastreável à nova fórmula + direção consistente (monotônicos ↓, variados ↑). PO ajustou 2026-04-16 porque 9.1 muda a fórmula intencionalmente."
+      "9.2+": "100% smoke tests + delta ≤5 pontos (critério original — stories de infra não devem mover score)"
+    fail_action: "Return to @dev com feedback especifico"
+
+  gate_3_ground_truth:
+    trigger: "Pós Story 9.3 e Story 9.5 (antes de promover ML novo → scoring)"
+    owner: "@qa + mentor Gui (externo)"
+    depends_on: "Story 7.7 concluída"
+    check: |
+      - Protocolo blind rodado em 10 vídeos ground truth (Gui)
+      - Correlação Pearson app score vs rubric humano ≥ 0.75
+      - Rubric 11-dim: app acerta ≥8/11 no range ±15 pontos
+    pass_criteria: "Pearson ≥0.75 + 8/11 dims dentro de ±15"
+    fail_action: "ML novo permanece augmentation (não vira scoring)"
+
+  gate_4_performance:
+    trigger: "Pós Story 9.6 (E2E completo)"
+    owner: "@qa"
+    check: |
+      - Vídeo 3min processa em ≤ 180s (target realista)
+      - Memory peak ≤ 8GB (sem swap)
+      - Custo por eval ≤ $0.10 (se Gemini ON)
+    pass_criteria: "Todos os 3 limites respeitados"
+    fail_action: "Perf profiling + otimização antes de v0.7.0 release"
+
+# ─────────────────────────────────────────────────────────────
+# HANDOFF CHAIN
+# ─────────────────────────────────────────────────────────────
+handoff_chain:
+  - step: 1
+    from: "@pm"
+    to: "@sm"
+    command: "*draft 9.1"
+    context_file: "docs/stories/9.0.epic-state-of-the-art.md"
+    when: "Imediato — após formalização deste YAML"
+  - step: 2
+    from: "@sm"
+    to: "@po"
+    command: "*validate-story-draft 9.1"
+    when: "Após @sm drafta story 9.1"
+  - step: 3
+    from: "@po"
+    to: "@dev"
+    command: "*develop 9.1"
+    when: "Após @po GO verdict (≥7/10)"
+  - step: 4
+    from: "@dev"
+    to: "@qa"
+    command: "*qa-gate 9.1"
+    when: "Após @dev completa implementação"
+  - step: 5
+    from: "@qa"
+    to: "@devops"
+    command: "*push"
+    when: "QA PASS"
+
+# ─────────────────────────────────────────────────────────────
+# EXECUTION TIMELINE (realistic solo pace)
+# ─────────────────────────────────────────────────────────────
+timeline_estimate:
+  wave_0: "3-4 days (Story 9.1, 16h solo)"
+  wave_1: "4-5 days (Story 9.2, 20h solo)"
+  wave_2: "1 week (Stories 9.3 + 9.4 paralelas, ~24h effort)"
+  wave_3: "1.5-2 weeks (Stories 9.5 + 9.6 paralelas, ~32h effort)"
+  total_dev: "~4 weeks"
+  gate_3_window: "+1-2 weeks (dependente de Gui Reginatto disponibilidade)"
+  ship_to_production: "v0.7.0 em ~5-6 weeks"
+
+# ─────────────────────────────────────────────────────────────
+# RISK REGISTER (consolidado do epic doc)
+# ─────────────────────────────────────────────────────────────
+risks:
+  - id: R1
+    description: "OOM VRAM em produção"
+    mitigation: "Story 9.2 orchestrator + Gate 1 hardware smoke"
+    severity: "high"
+  - id: R2
+    description: "Whisper turbo WER pior em PT-BR"
+    mitigation: "Benchmark em 10 vídeos antes de trocar; feature flag rollback"
+    severity: "medium"
+  - id: R3
+    description: "Gemini custo explode em uso real"
+    mitigation: "Budget guard por eval + flag default OFF"
+    severity: "medium"
+  - id: R4
+    description: "py-feat FACS não calibra PT-BR/culturas latinas"
+    mitigation: "Validação obrigatória com Gui (Gate 3)"
+    severity: "medium-high"
+  - id: R5
+    description: "Ground truth Gui atrasa"
+    mitigation: "Stories 9.3-9.6 podem mergear atrás de flag; ativação condicional"
+    severity: "low"
+  - id: R6
+    description: "Latência por vídeo > 3min"
+    mitigation: "Perf profiling obrigatório em 9.2 + 9.5"
+    severity: "medium"
+
+# ─────────────────────────────────────────────────────────────
+# SUCCESS METRICS (targets pós-epic)
+# ─────────────────────────────────────────────────────────────
+success_metrics:
+  technical:
+    dims_alta_confianca: { baseline: 5, target: 8 }
+    dims_scoring: { baseline: "10 (5 honestos)", target: "6 (todos auditáveis)" }
+    processing_time_3min_video_sec: { baseline: 90, target_max: 180 }
+    smoke_tests: { baseline: 54, target: "54 PASS + novos" }
+  validation:
+    ground_truth_pearson: { baseline: "não medido", target: ">= 0.75" }
+    rubric_accuracy: { baseline: "não medido", target: ">= 8/11 dims em ±15 pontos" }
+  squad:
+    score: { baseline: 9.0, target: 9.5 }
+    tested_flag: { baseline: true, target: true }
+  cost:
+    infra_usd: { baseline: 0, target: 0 }
+    api_usd_per_1k_evals: { baseline: 0, target: "~15 (Gemini Flash, opcional)" }
+
+# ─────────────────────────────────────────────────────────────
+# NON-SCOPE (explicit — prevent scope creep)
+# ─────────────────────────────────────────────────────────────
+non_scope:
+  - "Epic 3b (LLM real em mentor-narrator) — separado"
+  - "Epic 5 (B2B aggregation) — aguarda 100+ evals shadow"
+  - "Troca de MediaPipe por OpenPose — ganho insuficiente"
+  - "Fine-tuning de modelos próprios — precisa dataset ≥500"
+  - "Streaming/real-time — MVP é batch"
+  - "Epics 10-12 (conditional roadmap) — aguardando gatilhos documentados em memória"
+
+# ─────────────────────────────────────────────────────────────
+# CONSTITUTIONAL ALIGNMENT
+# ─────────────────────────────────────────────────────────────
+constitution_check:
+  article_i_cli_first: "PASS — toda alteração via CLI/scripts"
+  article_ii_agent_authority: "PASS — handoff chain respeita matriz"
+  article_iii_story_driven: "PASS — 6 stories numeradas, status trackable"
+  article_iv_no_invention: "PASS — toda decisão rastreável ao diagnóstico Vinh + user approval"
+  article_v_quality_first: "PASS — 4 Quality Gates bloqueantes"
+  article_vi_absolute_imports: "APPLIES — novas libs (transformers, py-feat, pyannote, opensmile) respeitam convenção"

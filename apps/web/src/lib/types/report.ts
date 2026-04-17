@@ -45,6 +45,13 @@ export interface OpeningData {
 
 export type DimensionKey = "variety" | "voice" | "gesture" | "posture" | "fillers";
 
+/**
+ * Story 9.1 (Epic 9) — Confidence map por dimensão.
+ * Populado apenas quando backend roda com STATE_OF_ART_ENABLED=true.
+ * Source of truth: ml-worker/contracts/dimensions.py::DIMENSION_CONFIDENCE
+ */
+export type DimensionConfidence = Record<string, "alta" | "media" | "baixa">;
+
 export interface DimensionWeights {
   variety: number;
   voice: number;

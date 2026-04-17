@@ -1,27 +1,70 @@
 """Dimension — fonte unica de verdade dos analyzers do pipeline ML.
 
-Story 8.1 (Truth Contract — Fundacao).
+Story 9.1 (Epic 9 — State of the Art, 2026-04-16):
+Reorganiza o universo de dimensoes em 3 conjuntos semanticamente distintos:
 
-Pre-Flight discovery (2026-04-15): existem 13 analyzers reais em
-ml-worker/workers/, nao 10 como o draft inicial supos. Inclui:
+1. SCORING_DIMENSIONS (6): entram no `overall_score` via pesos contextuais.
+   Representam medicoes 🟢 Alta confianca (>85%) — backbone ML confiavel.
+2. SECONDARY_DIMENSIONS (7): exibidas como "analise complementar" no report
+   com badge de confidence. Nao pesam no `overall_score`. Em calibracao com
+   mentor Gui (Story 7.7 / Gate 3).
+3. AUGMENTATION_DIMENSIONS (3): subset de SECONDARY consumido internamente
+   pelo `report_generator` para enriquecer prompt LLM. Preservado como alias
+   para compat com pipeline existente.
 
-- 10 scoring dimensions (compoem overall_score via aggregator)
-- 3 augmentation dimensions (consumidas pelo report_generator mas nao
-  entram diretamente no overall_score):
-    - storytelling: estrutura narrativa
-    - temporal: arco temporal por terco
-    - congruence: cruzamento entre canais
+v0.6.0 legacy (Epic 8 Truth Contract): SCORING_DIMENSIONS_V060 preserva a
+lista de 10 dimensoes que pesavam no aggregator quando feature flag
+`STATE_OF_ART_ENABLED=false`. Permite rollback instantaneo.
 
-OBS: congruence ESTA listada como augmentation aqui pq o aggregator
-atualmente trata-a como dimensao paralela (nao tem peso no overall_score
-do contexto principal). Decisao revisitada na Story 8.4 (Aggregator
-Truth Contract).
+Story 8.1 prehistory: existem 13 analyzers reais em ml-worker/workers/
+(10 scoring + 3 augmentation).
 """
 
 from typing import Literal
 
-# 10 scoring dimensions — compoem overall_score via aggregator
+# ─────────────────────────────────────────────────────────────────────────────
+# V0.7.0 CANONICAL (flag ON — Epic 9 active)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# 6 scoring dimensions — compoem overall_score via aggregator com pesos novos.
+# Todas sao 🟢 Alta confianca (>85%). variety entra como meta-dim sobre outputs 🟢.
 SCORING_DIMENSIONS: tuple[str, ...] = (
+    "posture",
+    "gesture",
+    "voice",
+    "fillers",
+    "variety",
+    "facial",
+)
+
+# 7 secondary dimensions — "analise complementar" no report, sem peso no score.
+# Em calibracao com mentor (Gate 3). Promocao → scoring requer Gate 3 PASS.
+SECONDARY_DIMENSIONS: tuple[str, ...] = (
+    "archetypes",
+    "tonality",
+    "opening",
+    "identity",
+    "storytelling",
+    "temporal",
+    "congruence",
+)
+
+# 3 augmentation dimensions — subset de SECONDARY consumido pelo report_generator
+# como contexto interno (storytelling structure, temporal arc, congruence checks).
+# Preservado como alias para nao quebrar consumers existentes.
+AUGMENTATION_DIMENSIONS: tuple[str, ...] = (
+    "storytelling",
+    "temporal",
+    "congruence",
+)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# V0.6.0 LEGACY (flag OFF — comportamento pre-Epic 9 preservado)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# 10 scoring dimensions da v0.6.0 — usadas quando STATE_OF_ART_ENABLED=false.
+# NAO remover: aggregate_metrics_legacy depende desta lista.
+SCORING_DIMENSIONS_V060: tuple[str, ...] = (
     "posture",
     "gesture",
     "voice",
@@ -34,17 +77,15 @@ SCORING_DIMENSIONS: tuple[str, ...] = (
     "identity",
 )
 
-# 3 augmentation dimensions — analise complementar pro report_generator
-AUGMENTATION_DIMENSIONS: tuple[str, ...] = (
-    "storytelling",
-    "temporal",
-    "congruence",
+# ─────────────────────────────────────────────────────────────────────────────
+# CONJUNTO COMPLETO (invariante — todas as 13 dims produziveis pelos workers)
+# ─────────────────────────────────────────────────────────────────────────────
+
+ALL_DIMENSIONS: tuple[str, ...] = tuple(
+    dict.fromkeys(SCORING_DIMENSIONS + SECONDARY_DIMENSIONS + AUGMENTATION_DIMENSIONS)
 )
 
-# Conjunto completo: 13 dimensoes que workers podem produzir
-ALL_DIMENSIONS: tuple[str, ...] = SCORING_DIMENSIONS + AUGMENTATION_DIMENSIONS
-
-# Literal type — fonte unica de verdade pra type-checker e Pydantic
+# Literal type — fonte unica de verdade pra type-checker e Pydantic.
 Dimension = Literal[
     "posture",
     "gesture",
@@ -61,7 +102,44 @@ Dimension = Literal[
     "congruence",
 ]
 
-# Mapa para discovery dinamico (modulo onde cada analyzer vive)
+# ─────────────────────────────────────────────────────────────────────────────
+# CONFIDENCE MAPPING (hardcoded — propriedade do metodo de medicao)
+# ─────────────────────────────────────────────────────────────────────────────
+# Story 9.1 AC5: badges visuais no report UI.
+# Mudar confidence = mudar codigo = code review obrigatorio.
+
+ConfidenceLevel = Literal["alta", "media", "baixa"]
+
+DIMENSION_CONFIDENCE: dict[str, ConfidenceLevel] = {
+    # 🟢 Alta (>85%) — ML estado-da-arte validado
+    "posture": "alta",
+    "gesture": "alta",
+    "voice": "alta",
+    "fillers": "alta",
+    "facial": "alta",
+    # 🟡 Media (60-85%) — heuristicas sobre features confiaveis
+    "variety": "media",
+    "archetypes": "media",
+    "tonality": "media",
+    "temporal": "media",
+    # 🔴 Baixa (<60%) — regex PT-BR ou regras if-then
+    "opening": "baixa",
+    "identity": "baixa",
+    "storytelling": "baixa",
+    "congruence": "baixa",
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SCHEMA VERSIONING (Story 9.1 AC7)
+# ─────────────────────────────────────────────────────────────────────────────
+
+SCHEMA_VERSION_V060 = "1.1.0"  # baseline — flag OFF mantem este schema
+SCHEMA_VERSION_V070 = "1.2.0"  # Epic 9 — flag ON emite este schema
+
+# ─────────────────────────────────────────────────────────────────────────────
+# WORKER MODULE MAP (para discovery dinamico)
+# ─────────────────────────────────────────────────────────────────────────────
+
 DIMENSION_TO_WORKER_MODULE: dict[str, str] = {
     "posture": "workers.posture_analyzer",
     "gesture": "workers.gesture_analyzer",
