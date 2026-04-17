@@ -11,7 +11,10 @@ import { ScoreBreakdown } from "@/components/score-breakdown";
 import { FacialCard } from "@/components/facial-card";
 import { TonalityViz } from "@/components/tonality-viz";
 import { NarrativeCard } from "@/components/narrative-card";
+import { ConfidenceBadge } from "@/components/confidence-badge";
 import { fetchReport, submitRating, createShare } from "@/lib/api-client";
+import type { DimensionConfidence } from "@/lib/types/report";
+import { CONFIDENCE_BADGES } from "@/lib/report-labels";
 
 const DIMENSION_LABELS: Record<string, string> = {
   variety: "Variedade Vocal",
@@ -211,19 +214,37 @@ export default function ReportPage() {
           <p className="text-on-surface-variant text-sm">
             Clique em qualquer dimensão para ver métricas e feedback detalhados.
           </p>
+          {/* Story 9.1 — legenda de confiança (só aparece quando flag ON popula dimension_confidence) */}
+          {data.dimension_confidence && (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+              <span className="opacity-70">Confiança:</span>
+              <span title={CONFIDENCE_BADGES.alta.tooltip}>🟢 ML validado</span>
+              <span title={CONFIDENCE_BADGES.media.tooltip}>🟡 Heurística</span>
+              <span title={CONFIDENCE_BADGES.baixa.tooltip}>🔴 Complementar</span>
+            </div>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {sortedDimensions.map((dimension) => {
               const score = data.dimension_scores[dimension] as number;
               const feedback = dimensoes[dimension];
+              const confidence = (data.dimension_confidence as DimensionConfidence | undefined)?.[
+                dimension
+              ];
               return (
-                <ScoreCard
-                  key={dimension}
-                  title={DIMENSION_LABELS[dimension] || dimension}
-                  dimensionKey={dimension}
-                  score={score}
-                  summary={feedback?.dica || feedback?.tip}
-                  onClick={() => router.push(`/report/${id}/${dimension}`)}
-                />
+                <div key={dimension} className="relative">
+                  <ScoreCard
+                    title={DIMENSION_LABELS[dimension] || dimension}
+                    dimensionKey={dimension}
+                    score={score}
+                    summary={feedback?.dica || feedback?.tip}
+                    onClick={() => router.push(`/report/${id}/${dimension}`)}
+                  />
+                  {confidence && (
+                    <div className="absolute top-2 right-2 pointer-events-none">
+                      <ConfidenceBadge confidence={confidence} compact />
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

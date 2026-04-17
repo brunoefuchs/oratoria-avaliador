@@ -94,3 +94,35 @@ export const SCORE_TERMS = {
 
 export type DimensionKey = keyof typeof DIMENSIONS;
 export type MetricKey = keyof typeof METRICS;
+
+/**
+ * Story 9.1 (Epic 9) — Confidence badges por dimensão.
+ * Source of truth: ml-worker/contracts/dimensions.py::DIMENSION_CONFIDENCE
+ * Sempre espelhar mudanças backend aqui.
+ */
+export type ConfidenceLevel = "alta" | "media" | "baixa";
+
+export const CONFIDENCE_BADGES: Record<ConfidenceLevel, {
+  emoji: string;
+  label: string;
+  tooltip: string;
+}> = {
+  alta: {
+    emoji: "🟢",
+    label: "Alta confiança",
+    tooltip: "Medição ML validada com confiança >85%. Use este score com segurança.",
+  },
+  media: {
+    emoji: "🟡",
+    label: "Média confiança",
+    tooltip: "Heurística sobre features confiáveis. Trate como indicativo, não veredito.",
+  },
+  baixa: {
+    emoji: "🔴",
+    label: "Análise complementar",
+    tooltip: "Análise qualitativa em calibração com mentor humano. Use como sugestão.",
+  },
+} as const;
+
+export const SECONDARY_DIMENSION_BANNER =
+  "Análise complementar — em calibração com mentor especialista";
