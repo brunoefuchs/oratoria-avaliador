@@ -94,5 +94,7 @@ Não re-processa video (rápido, zero custo).
 
 ---
 
-**Status:** Aguardando execução @qa.
-**Dependência:** script `ml_worker/scripts/replay_eval.py` a criar (trivial — ~30 linhas).
+**Status:** ✅ **EXECUTADO 2026-04-17** via Story 9.1.1
+**Resultados:** `docs/qa/gate2-story91-results.md`
+**Script:** `ml-worker/scripts/replay_eval.py`
+**Verdict:** PASS (max delta 5pt ≤ 15pt threshold)
