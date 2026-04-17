@@ -15,6 +15,7 @@ prosody = [
 # Install via: pip install -e ".[emotion]"
 emotion = [
     "transformers>=4.40",  # Wav2Vec2 + feature extractor
+    "librosa>=0.10",        # Audio loading 16kHz mono pra Wav2Vec2 inference
     # torch ja presente via whisper — sem custo extra
 ]
 # Story 9.5: facial FACS — 20 Action Units + 6 emocoes basicas.

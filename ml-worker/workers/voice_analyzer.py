@@ -135,7 +135,7 @@ def transcribe_audio(audio_path: str, model_name: str | None = None) -> dict:
         "full_text": result.get("text", "").strip(),
         "words": words,
         "language": "pt-BR",
-        "model": model_name,
+        "model": resolved_model,  # bug fix: era model_name (None quando caller passa None)
     }
 
 
