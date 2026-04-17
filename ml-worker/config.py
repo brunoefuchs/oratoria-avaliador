@@ -73,3 +73,19 @@ MODEL_ORCHESTRATOR_ENABLED = os.getenv("MODEL_ORCHESTRATOR_ENABLED", "false").lo
 def is_orchestrator_enabled() -> bool:
     """Helper testavel pra flag Story 9.2."""
     return os.getenv("MODEL_ORCHESTRATOR_ENABLED", "false").strip().lower() == "true"
+
+
+# Feature flags Story 9.4 — prosody deep dive (CPU-only).
+# Independentes entre si — rollout granular.
+OPENSMILE_ENABLED = os.getenv("OPENSMILE_ENABLED", "false").lower() == "true"
+PYANNOTE_VAD_ENABLED = os.getenv("PYANNOTE_VAD_ENABLED", "false").lower() == "true"
+
+
+def is_opensmile_enabled() -> bool:
+    """Helper testavel pra flag openSMILE eGeMAPS (Story 9.4)."""
+    return os.getenv("OPENSMILE_ENABLED", "false").strip().lower() == "true"
+
+
+def is_pyannote_vad_enabled() -> bool:
+    """Helper testavel pra flag pyannote VAD (Story 9.4)."""
+    return os.getenv("PYANNOTE_VAD_ENABLED", "false").strip().lower() == "true"

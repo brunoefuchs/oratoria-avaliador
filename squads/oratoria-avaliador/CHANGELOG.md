@@ -1,5 +1,46 @@
 # CHANGELOG — squad oratoria-avaliador
 
+## [0.7.0-alpha.3] — 2026-04-17
+
+### Story 9.4 — openSMILE eGeMAPS + pyannote VAD (Epic 9 Wave 2, CPU-only)
+
+**Status:** Ready for Review
+
+#### Added
+- `OPENSMILE_ENABLED` feature flag (default false)
+- `PYANNOTE_VAD_ENABLED` feature flag (default false)
+- `workers/_prosody_extras.py` — `extract_egemaps()` + `detect_pauses()` com fallback librosa
+- `tests/test_prosody_extras.py` — 11 testes mockados
+- `pyproject.toml` `[project.optional-dependencies] prosody` — opensmile + pyannote.audio
+
+#### Changed
+- `voice_analyzer.analyze_prosody` adiciona campos opcionais quando flags ON:
+  - `egemaps: dict[str, float]` — 88 features eGeMAPSv02
+  - `pauses_classified: dict` — micro/hesitation/retorical + ratio + source
+- Lazy imports garantem pipeline não quebra se libs não instaladas
+
+#### Pause classification thresholds
+- Micro: <0.4s (natural)
+- Hesitation: 0.4–1.2s (nervosismo)
+- Retorical: >1.2s (Vinh "highlighter verbal")
+
+#### Cascata pauses detection
+1. pyannote VAD (requer HF_TOKEN) — preferido
+2. librosa silence-detection — fallback
+3. lista vazia + source="none" — graceful degradation
+
+#### Tests
+- 11 novos em test_prosody_extras.py (mockado, zero instalação real)
+- Regression: 266/266 PASS (+11 de 255)
+- Lint + format: clean
+
+#### Deferred
+- Install real via `pip install -e ".[prosody]"` — ambiente prod
+- HF_TOKEN setup doc — docs/guides/ (follow-up)
+- Performance overhead real (AC5) — medição pós-merge em shadow
+
+---
+
 ## [0.7.0-alpha.2] — 2026-04-17
 
 ### Story 9.2 — Whisper large-v3-turbo + VRAM Orchestrator (Epic 9 Wave 1)

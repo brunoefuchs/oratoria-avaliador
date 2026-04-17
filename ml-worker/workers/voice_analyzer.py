@@ -240,7 +240,7 @@ def analyze_prosody(audio_path: str) -> dict:
         cv_volume=cv_volume,
     )
 
-    return {
+    result = {
         "pitch_mean_hz": round(pitch_mean, 1),
         "pitch_std_hz": round(pitch_std, 1),
         "pitch_min_hz": round(pitch_min, 1),
@@ -260,6 +260,28 @@ def analyze_prosody(audio_path: str) -> dict:
         "num_janelas": janela_count,
         "janela_size_seconds": round(janela_size, 2),
     }
+
+    # Story 9.4: enriquecimento opcional via flags (graceful fallback se libs ausentes).
+    from config import is_opensmile_enabled, is_pyannote_vad_enabled
+    from workers._prosody_extras import detect_pauses, extract_egemaps
+
+    if is_opensmile_enabled():
+        egemaps = extract_egemaps(audio_path)
+        if egemaps is not None:
+            result["egemaps"] = egemaps
+            logger.info("egemaps_extracted", feature_count=len(egemaps))
+
+    if is_pyannote_vad_enabled():
+        pauses_data = detect_pauses(audio_path)
+        result["pauses_classified"] = pauses_data
+        logger.info(
+            "pauses_detected",
+            total=sum(pauses_data["counts"].values()),
+            retorical_ratio=pauses_data["total_retorical_ratio"],
+            source=pauses_data["source"],
+        )
+
+    return result
 
 
 def _classificar_pausas(words: list, prosody: dict) -> dict:
