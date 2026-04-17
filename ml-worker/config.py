@@ -49,3 +49,27 @@ def is_state_of_art_enabled() -> bool:
     monkeypatchar em testes (pytest.MonkeyPatch.setenv + reimport).
     """
     return os.getenv("STATE_OF_ART_ENABLED", "false").strip().lower() == "true"
+
+
+# Feature flag: Epic 9 Story 9.2 — Whisper large-v3-turbo.
+# Quando true (default), voice_analyzer tenta "turbo" e faz fallback para WHISPER_MODEL
+# (medium) se load falhar. Rollback explicito via WHISPER_TURBO_ENABLED=false.
+WHISPER_TURBO_ENABLED = os.getenv("WHISPER_TURBO_ENABLED", "true").lower() == "true"
+
+
+def is_whisper_turbo_enabled() -> bool:
+    """Helper testavel pra flag Story 9.2."""
+    return os.getenv("WHISPER_TURBO_ENABLED", "true").strip().lower() == "true"
+
+
+# Feature flag: Epic 9 Story 9.2 — Model Orchestrator (VRAM management).
+# Default false ate Gate 1 PASS (vram_check.py peak <=7.5GB). Flip para true em
+# follow-up commit pos-merge conforme AC9 (decisao PO 2026-04-17).
+# Habilita load/unload explicito via ModelGPU context manager, desbloqueando
+# stories 9.3 (Wav2Vec2) e 9.5 (py-feat) no RTX 4060 8.6GB.
+MODEL_ORCHESTRATOR_ENABLED = os.getenv("MODEL_ORCHESTRATOR_ENABLED", "false").lower() == "true"
+
+
+def is_orchestrator_enabled() -> bool:
+    """Helper testavel pra flag Story 9.2."""
+    return os.getenv("MODEL_ORCHESTRATOR_ENABLED", "false").strip().lower() == "true"

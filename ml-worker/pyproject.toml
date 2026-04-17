@@ -19,6 +19,8 @@ select = ["E", "F", "I", "W"]
 "workers/storytelling_analyzer.py" = ["E501"]
 "workers/tonality_analyzer.py" = ["E501"]
 "workers/facial_analyzer.py" = ["E501"]
+# Story 9.2: initial_prompt PT-BR do Whisper preserva fillers — string contigua.
+"workers/voice_analyzer.py" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

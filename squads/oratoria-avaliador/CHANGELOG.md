@@ -1,5 +1,48 @@
 # CHANGELOG — squad oratoria-avaliador
 
+## [0.7.0-alpha.2] — 2026-04-17
+
+### Story 9.2 — Whisper large-v3-turbo + VRAM Orchestrator (Epic 9 Wave 1)
+
+**Status:** InReview (branch `feature/9.2-whisper-turbo-vram-orchestrator`)
+
+#### Added
+- `WHISPER_TURBO_ENABLED` feature flag (default true, opt-out rollback)
+- `MODEL_ORCHESTRATOR_ENABLED` feature flag (default false até Gate 1 PASS — AC9 pós-merge)
+- `workers/_model_loader.py` — `ModelGPU` context manager + `MODEL_FACTORIES` registry
+- `scripts/vram_check.py` — Gate 1 hardware smoke (exit 0/1/2)
+- `scripts/wer_benchmark.py` — AC6 WER comparison (skip gracioso sem fixtures)
+- `tests/test_model_loader.py` — 7 testes mockados (registry, context, thread-safe)
+- `tests/test_voice_analyzer_turbo.py` — 7 testes AC1 resolution + AC2 fallback
+
+#### Changed
+- `voice_analyzer.transcribe_audio`: model_name now `str | None`, resolve via flag/env
+- `voice_analyzer._load_whisper_with_fallback`: fallback automático turbo → medium
+- `voice_analyzer.transcribe_audio`: try/finally unload VRAM quando orchestrator ativo
+- `app.py`: passa `None` pra transcribe_audio (deixa flag resolver)
+- `pyproject.toml`: adiciona `voice_analyzer.py` a per-file-ignores E501
+
+#### Gate 1 — Hardware smoke (real RTX 4060 Laptop 8.59GB)
+| Model | Peak VRAM | Status |
+|---|---|---|
+| whisper_turbo | 4.93 GB | ✅ |
+| whisper_medium | 4.58 GB | ✅ |
+| Peak global | **4.93 GB** | ≤ 7.5GB budget |
+
+**Verdict: PASS** — RTX 4060 suporta Epic 9 completo.
+
+#### Deferred
+- AC6 WER benchmark execução — roadmap Story 9.1.1 (precisa fixtures de áudio)
+- AC9 default flip `MODEL_ORCHESTRATOR_ENABLED=true` — follow-up commit pós-merge
+- jiwer lib add — só quando fixtures existirem
+
+#### Tests
+- Regression: 255/255 PASS (241 baseline + 14 novos)
+- Lint: `ruff check` All checks passed
+- Format: `ruff format --check` clean
+
+---
+
 ## [0.7.0-alpha.1] — 2026-04-17
 
 ### Story 9.1 — Aggregator Refactor + Confidence Badges (Epic 9)
