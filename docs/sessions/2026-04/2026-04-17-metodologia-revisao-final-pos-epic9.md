@@ -256,3 +256,41 @@ Durante re-avaliação pós-Epic 9, video do mentor **Gui Reginatto** (gravado i
 ### 10.6 Princípio-síntese
 
 > A honestidade pedagógica do score tem 3 camadas: **medição** (thresholds refletem ambiente real), **classificação** (não colapsar em defaults por normalização), **agregação** (refletir o que a evidência suporta, não inflar pra compensar bugs). Epic 9 resolveu a terceira, sprints de 2026-04-18 resolveram a primeira e segunda.
+
+### 10.7 Cross-validation via Gemini Vision
+
+Após aplicar Opção A (threshold gesticulação 0.40→0.60), validei via **método ortogonal**: ativei `GESTURE_SEMANTIC_ENABLED` e rodei os mesmos vídeos com Gemini Vision analisando semantic/intent. Custo real medido: **$0.0013/eval** em vídeos de ~60s.
+
+**Descobertas:**
+
+1. **Story 9.6 não estava plugada** — `analyze_gesture_semantic` existia mas nunca era chamado em `app.py`. Dispatch integrado pós-transcription como opt-in.
+
+2. **Dois sinais ortogonais de gesto**: `variacao_gesticulacao` (amplitude/CV de movimento) vs `gesto_repetitivo` (diversidade de vocabulário via `unique_ratio`). Um palestrante pode ter amplitude alta **E** vocabulário pobre (mesmo gesto executado grande-pequeno-grande). Gui é esse caso. Não é contradição — são eixos independentes.
+
+3. **Penalty binário vs proporcional**: `-15 if gesto_repetitivo` tratava Gui (unique_ratio=0.30 borderline) e Bruno (0.15 lock-in severo) igual. Refatorado pra gradient:
+   ```python
+   >= 0.30 → 0  (ok)
+   0.25-0.30 → -10 (mild)
+   0.15-0.25 → -20 (claro)
+   < 0.15 → -30 (lock-in severo)
+   ```
+
+4. **Gemini é ruidoso (não-determinístico)**: Gui teve score 95 primeira chamada, 85 segunda. Bruno teve 85 primeira, 90 segunda. ±10pts de variabilidade inter-call. Conclusão: **Gemini como sanity check sim, como default scorer não**. Memória criada: `feedback_gemini_vision_on_demand.md`.
+
+5. **Fillers cluster penalty validado no Bruno**: cluster real de "então/né/aí" em 18s detectado, penalty −5→−10 aplicada, fillers score caiu de 22 → 17. Proporcionalidade reflete cognição travada de forma honesta.
+
+**Ação:** `GESTURE_SEMANTIC_ENABLED=false` como default, dispatch integrado (opt-in via shell export). Flag ML paga não é default em produção.
+
+### 10.8 Tabela final de evals-âncora
+
+| Vídeo | Contexto | overall_score pré | overall_score pós | Gesto pós | Fillers pós |
+|-------|----------|-------------------|-------------------|-----------|-------------|
+| Gui (54s profissional) | Denso+controlado | 61 (legacy V060) | **79** | 69 | 100 |
+| Bruno (54s amador) | Amigo lock-in | 50 | **58** | 83 | 17 |
+
+Gap Gui↔Bruno: 21pts. Suficiente pra separar níveis comunicativos em produção.
+
+### 10.9 Memórias criadas (para futuros ciclos)
+
+- `feedback_validacao_dupla.md` — usar método alternativo quando existe pra validar supposition antes de scale
+- `feedback_gemini_vision_on_demand.md` — ML pago on-demand, nunca default
