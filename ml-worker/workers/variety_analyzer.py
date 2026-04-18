@@ -32,9 +32,11 @@ logger = structlog.get_logger()
 # CV = desvio padrao / media — quanto mais alto, mais variacao
 # Muito baixo = monotono, muito alto = caotico
 CV_RANGES = {
-    "velocidade": {"min_ideal": 0.08, "max_ideal": 0.30, "label": "Velocidade de Fala"},
-    "volume": {"min_ideal": 0.03, "max_ideal": 0.25, "label": "Volume"},
-    "pitch": {"min_ideal": 0.05, "max_ideal": 0.20, "label": "Entonacao"},
+    # B12-real calibration: thresholds rebaixados pra AGC de smartphone
+    # (AGC comprime dynamic range em 6-10dB → CV cai ~30-40% vs mic studio).
+    "velocidade": {"min_ideal": 0.05, "max_ideal": 0.30, "label": "Velocidade de Fala"},
+    "volume": {"min_ideal": 0.015, "max_ideal": 0.25, "label": "Volume"},
+    "pitch": {"min_ideal": 0.03, "max_ideal": 0.20, "label": "Entonacao"},
     "gesticulacao": {"min_ideal": 0.10, "max_ideal": 0.40, "label": "Gesticulacao"},
 }
 

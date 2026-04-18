@@ -30,9 +30,13 @@ MIN_AUDIO_DURATION = 10.0  # AC-10: audio < 10s = indisponivel
 
 # Thresholds calibrados via literatura (eGeMAPS norms para fala adulta).
 # Ajustar via Task 8 se 5 videos de calibracao divergirem.
-JITTER_NEUTRAL = 0.012  # Jitter local neutro tipico ~1.2%
-SHIMMER_NEUTRAL = 0.06  # Shimmer local neutro tipico ~6%
-HNR_GOOD = 18.0  # HNR > 18dB indica voz limpa
+JITTER_NEUTRAL = 0.012  # Jitter local neutro — estavel entre devices (studio/mobile)
+# B9-real calibration: thresholds ajustados pra real-world (smartphone recording).
+# Literatura: HNR e shimmer sao sensiveis ao device (AGC + mic quality). Voz normal
+# masculina em celular fica em ~9.5-12 dB HNR, nao 15-20 (eGeMAPS studio).
+# Refs: Awan et al. 2024 (JSLHR), Maryn 2022 (ScienceDirect), eGeMAPS Eyben 2016.
+SHIMMER_NEUTRAL = 0.08  # era 0.06 — AGC mobile infla shimmer
+HNR_GOOD = 12.0  # era 18.0 — acomoda mic celular sem perder discriminacao
 PITCH_MIN_HZ = 75
 PITCH_MAX_HZ = 500
 

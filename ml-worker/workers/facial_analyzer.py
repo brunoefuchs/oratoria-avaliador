@@ -24,7 +24,8 @@ FACE_MODEL_PATH = "/tmp/mediapipe_models/face_landmarker.task"
 # Thresholds baseados em literatura (Ekman FACS + MediaPipe community).
 # Ajustar via Task 9 se feedback de users em videos diversos divergir.
 SMILE_INDEX_THRESHOLD = 0.42  # Smile ativo quando ratio > 0.42
-BROW_RAISE_DELTA_THRESHOLD = 0.008  # Elevacao brow significativa em normalized coords
+BROW_RAISE_DELTA_THRESHOLD = 0.005  # B10-real: 0.008 era muito agressivo pra camera
+# mobile (jitter de handheld + landmark noise reduzem deltas detectaveis)
 BLINK_EAR_THRESHOLD = 0.18  # Eye Aspect Ratio abaixo disso = piscada
 WINDOW_SECONDS = 5.0  # Janelas para variability
 TARGET_FPS = 5  # 5fps cobre rosto bem (rosto nao muda dramaticamente em 200ms)
@@ -235,9 +236,10 @@ def _compute_facial_metrics(video_path: str) -> dict:
     # - Eye openness com variacao (nao monotono)
     score = 50.0  # base
 
-    # Smile saudavel: 20-60% do tempo + variabilidade > 0.005
-    # B10 calibration: relaxa criterio — smile presente (mesmo subtil) ja merece bonus
-    if 20 <= smile_frequency_percent <= 60 and smile_variability > 0.005:
+    # Smile saudavel: 20-70% do tempo + variabilidade > 0.005
+    # B10 calibration: janela expandida de 20-60 pra 20-70 (palestrantes warm
+    # sorriem frequentemente sem virar "sorriso travado")
+    if 20 <= smile_frequency_percent <= 70 and smile_variability > 0.005:
         score += 20
     elif 10 <= smile_frequency_percent < 20:
         score += 10  # smile subtil mas presente (tom profissional)

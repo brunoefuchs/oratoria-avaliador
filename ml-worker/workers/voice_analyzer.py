@@ -437,11 +437,14 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
         velocidade_score = max(0, 50 - (cv_velocidade - 0.45) * 200)
 
     # 4. Variacao de volume (CV entre janelas) — peso 20%
+    # B13-real calibration: AGC de smartphone comprime dinamica em 6-10 dB vs
+    # mic condensador studio. Threshold antigo cv_vol<0.03 penalizava palestrantes
+    # controlados gravando em celular. Piso rebaixado pra 0.015.
     cv_vol = prosody.get("cv_volume", 0)
-    if cv_vol < 0.03:
+    if cv_vol < 0.015:
         volume_score = 20
-    elif cv_vol <= 0.10:
-        volume_score = 50 + (cv_vol - 0.03) * 714
+    elif cv_vol <= 0.08:
+        volume_score = 50 + (cv_vol - 0.015) * 769
     elif cv_vol <= 0.25:
         volume_score = 100
     elif cv_vol <= 0.40:
