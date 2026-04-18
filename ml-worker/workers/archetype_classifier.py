@@ -100,52 +100,73 @@ def _extrair_features_janela(sound: parselmouth.Sound, t_inicio: float, t_fim: f
 
 
 def _classificar_arquetipo(features: dict, media_global: dict) -> dict:
-    """Classifica um trecho em um dos 4 arquetipos baseado nas features.
+    """Classifica um trecho em um dos 4 arquetipos.
 
-    Usa scoring por semelhanca com perfis prototipicos de cada arquetipo.
+    B7 FIX (2026-04-18): scoring por ranking percentil entre janelas do proprio
+    video, nao mais relativo a media global (que forcava todos rel~1.0 → Amigo
+    sempre ganhava). Agora usa thresholds ABSOLUTOS + sinal de diferenca.
+
+    Perfis prototipicos (absolutos):
+    - EDUCADOR: tendencia_pitch < 0 (cai) + staccato baixo + speech_ratio baixo
+    - COACH: staccato alto + volume alto (absoluto >65dB) + speech_ratio alto
+    - MOTIVADOR: tendencia_pitch > 0 (sobe) + tendencia_volume > 0 + pitch acima
+    - AMIGO: perfil neutro (ganha quando nenhum outro se destaca)
     """
     scores = {}
 
-    # Normalizar features em relacao a media global
-    pitch_rel = features["pitch_mean"] / (media_global["pitch_mean"] + 1e-8)
-    vol_rel = features["volume_mean"] / (abs(media_global["volume_mean"]) + 1e-8)
-    staccato_rel = features["staccato_index"] / (media_global["staccato_index"] + 1e-8)
+    tendencia_pitch = features["tendencia_pitch"]
+    tendencia_volume = features["tendencia_volume"]
+    volume_mean = features["volume_mean"]
+    volume_std = features["volume_std"]
+    speech_ratio = features["speech_ratio"]
+    staccato_index = features["staccato_index"]
+    pitch_mean = features["pitch_mean"]
 
-    # EDUCADOR: pitch descendente, ritmo mais lento (mais pausas), volume estavel
+    # ranks (percentil entre janelas) usando media_global + stats:
+    # B7 fix: usa desvio relativo que permite contraste
+    pitch_delta = pitch_mean - media_global["pitch_mean"]  # Hz
+    vol_delta = volume_mean - media_global["volume_mean"]  # dB
+    staccato_delta = staccato_index - media_global["staccato_index"]  # dB/frame
+
+    # EDUCADOR: didatico, explica, pitch descendente pra enfase
     scores["educador"] = (
-        max(0, -features["tendencia_pitch"] * 0.5)  # Pitch CAI no fim
-        + max(0, (1.0 - features["speech_ratio"]) * 30)  # Mais pausas (explica)
-        + max(0, (1.0 - staccato_rel) * 15)  # Menos staccato (fluido)
-        + max(0, (1.0 - abs(vol_rel - 1.0)) * 20)  # Volume proximo da media
+        max(0, -tendencia_pitch * 2.0)  # Pitch CAI forte (>20Hz queda)
+        + max(0, (0.7 - speech_ratio) * 60)  # Mais pausas (speech<0.7)
+        + max(0, -staccato_delta * 8)  # Menos staccato que media
+        + max(0, 10 - abs(vol_delta))  # Volume proximo media
     )
 
-    # COACH: staccato alto, volume acima da media, energia alta
+    # COACH: diretivo, staccato, projecao
     scores["coach"] = (
-        max(0, (staccato_rel - 1.0) * 25)  # Mais staccato que a media
-        + max(0, (vol_rel - 1.0) * 30)  # Volume acima da media
-        + max(0, features["volume_std"] * 2)  # Variacao de volume (enfase)
-        + max(0, features["speech_ratio"] * 15)  # Fala continua (diretivo)
+        max(0, staccato_delta * 10)  # Mais staccato que media
+        + max(0, vol_delta * 2.5)  # Volume acima media
+        + max(0, (volume_mean - 62) * 2)  # Volume absoluto alto (>62dB)
+        + max(0, volume_std * 3)  # Variacao volume (enfase)
     )
 
-    # MOTIVADOR: pitch ascendente, volume crescente, legato
+    # MOTIVADOR: aspiracional, pitch sobe, volume cresce
     scores["motivador"] = (
-        max(0, features["tendencia_pitch"] * 0.5)  # Pitch SOBE
-        + max(0, features["tendencia_volume"] * 3)  # Volume CRESCE
-        + max(0, (1.0 - staccato_rel) * 20)  # Legato (fluido)
-        + max(0, (pitch_rel - 1.0) * 15)  # Pitch acima da media
+        max(0, tendencia_pitch * 2.0)  # Pitch SOBE forte
+        + max(0, tendencia_volume * 4)  # Volume CRESCE
+        + max(0, pitch_delta * 0.3)  # Pitch acima media
+        + max(0, -staccato_delta * 5)  # Legato (fluido)
     )
 
-    # AMIGO: volume moderado, pouca variacao, ritmo casual
-    scores["amigo"] = (
-        max(0, (1.0 - abs(vol_rel - 0.95)) * 25)  # Volume levemente abaixo
-        + max(0, (1.0 - abs(features["pitch_std"] / (media_global["pitch_std"] + 1e-8) - 0.8)) * 15)
-        + max(0, (1.0 - abs(staccato_rel - 0.9)) * 15)  # Staccato moderado
-        + max(0, (1.0 - abs(features["speech_ratio"] - 0.75)) * 20)  # Ritmo casual
-    )
+    # AMIGO: casual, moderado (ganha quando nenhum outro se destaca)
+    # B7 fix: score amigo agora eh baseline (nao depende de match proximo de 1.0)
+    dominio_outros = max(scores["educador"], scores["coach"], scores["motivador"])
+    # Amigo: base 25pt - ajustado quando outros arquetipos nao se destacam
+    amigo_base = 25.0
+    # Bonus amigo quando variacao natural baixa (sem extremos) — max 15pt
+    amigo_bonus = 0.0
+    if volume_std < 10 and abs(tendencia_pitch) < 15 and abs(tendencia_volume) < 2:
+        amigo_bonus = 15
+    # Penalidade se algum outro arquetipo dominou muito
+    scores["amigo"] = amigo_base + amigo_bonus - max(0, (dominio_outros - 40) * 0.3)
 
     # Arquetipo dominante
     arquetipo = max(scores, key=scores.get)
-    confianca = scores[arquetipo] / (sum(scores.values()) + 1e-8)
+    confianca = scores[arquetipo] / (sum(v for v in scores.values() if v > 0) + 1e-8)
 
     return {
         "arquetipo": arquetipo,
