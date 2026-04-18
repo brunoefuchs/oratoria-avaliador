@@ -37,7 +37,9 @@ CV_RANGES = {
     "velocidade": {"min_ideal": 0.05, "max_ideal": 0.30, "label": "Velocidade de Fala"},
     "volume": {"min_ideal": 0.015, "max_ideal": 0.25, "label": "Volume"},
     "pitch": {"min_ideal": 0.03, "max_ideal": 0.20, "label": "Entonacao"},
-    "gesticulacao": {"min_ideal": 0.10, "max_ideal": 0.40, "label": "Gesticulacao"},
+    # Opção A calibration: max_ideal 0.40 → 0.60 — conteudo denso em video
+    # curto legitima variacao rapida de gesto (marca infos novas, nao caos).
+    "gesticulacao": {"min_ideal": 0.10, "max_ideal": 0.60, "label": "Gesticulacao"},
 }
 
 

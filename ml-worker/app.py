@@ -346,6 +346,24 @@ async def _run_pipeline(req: ProcessRequest):
 
         _save_analysis(supabase, req.evaluation_id, "fillers", filler_result)
 
+        # Story 9.6 dispatch — Gesture semantic via Gemini Vision (opt-in)
+        # Corre apos transcription pra poder cross-reference gesture vs fala.
+        if config.is_gesture_semantic_enabled():
+            try:
+                from workers.gesture_semantic_analyzer import analyze_gesture_semantic
+
+                gs_result = analyze_gesture_semantic(
+                    video_path, transcription.get("words", [])
+                )
+                _save_analysis(supabase, req.evaluation_id, "gesture_semantic", gs_result)
+                logger.info("gesture_semantic_dispatched")
+            except Exception as e:
+                logger.warning(
+                    "gesture_semantic_failed",
+                    error=str(e),
+                    error_type=type(e).__name__,
+                )
+
         # Step 6.5: Analise de identidade comunicativa (Epic 6)
         # Story 8.2: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_identity")

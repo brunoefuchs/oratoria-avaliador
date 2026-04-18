@@ -352,8 +352,17 @@ def _compute_gesture_metrics(video_path: str) -> dict:
 
     # Bonus vocabulario (mais posicoes = mais expressivo)
     bonus_vocabulario = min(20, vocabulario_gestos * 3)
-    # Penalidade repeticao
-    penalidade_repeticao = 15 if gesto_repetitivo else 0
+    # Penalidade repeticao — PROPORCIONAL ao unique_ratio (validado 2026-04-18
+    # via Gemini Vision). Binario -15 tratava igual borderline (0.30) e severo
+    # (0.15). Gradiente reflete severidade real do lock-in gestual.
+    if unique_ratio >= 0.30:
+        penalidade_repeticao = 0
+    elif unique_ratio >= 0.25:
+        penalidade_repeticao = 10  # mild: 5-6 unique gestos em 20 frames
+    elif unique_ratio >= 0.15:
+        penalidade_repeticao = 20  # claro: 3-4 unique gestos
+    else:
+        penalidade_repeticao = 30  # severo: lock-in em 1-2 gestos
     gesticulacao_score = max(0, min(100, gesto_base + bonus_vocabulario - penalidade_repeticao))
 
     # 3. Duas maos — peso 15%
@@ -418,6 +427,7 @@ def _compute_gesture_metrics(video_path: str) -> dict:
             "zona_ideal_pct": zona_ideal_pct,
             "distribuicao_olhar": distribuicao_olhar,
             "gesto_repetitivo": gesto_repetitivo,
+            "unique_ratio": round(unique_ratio, 3),
             "gesto_zona": gesto_zona,  # Story 7.1 AC-4: ideal | pouca_variacao | excesso
             "hand_detected_frames": hand_detected_count,
             "face_detected_frames": face_detected_count,
