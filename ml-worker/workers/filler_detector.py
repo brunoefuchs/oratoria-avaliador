@@ -244,8 +244,10 @@ def _compute_filler_metrics(transcription: dict) -> dict:
     else:
         filler_score = round(100 - (fillers_ponderados_por_min - 3) * (100 / 9))
 
-    # Penalidade por clusters (cada cluster = -5 pontos)
-    penalidade_clusters = len(clusters) * 5
+    # Penalidade por clusters (cada cluster = -10 pontos)
+    # Cluster = 3+ fillers em <10s = travamento cognitivo agudo, pior que
+    # fillers distribuidos. Calibrado 2026-04-18 (Rodenburg audit).
+    penalidade_clusters = len(clusters) * 10
     filler_score = max(0, min(100, filler_score - penalidade_clusters))
 
     # Bonus diversidade lexical (compensacao parcial se vocabulario e rico)
