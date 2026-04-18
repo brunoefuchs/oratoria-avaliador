@@ -236,20 +236,23 @@ def _compute_facial_metrics(video_path: str) -> dict:
     score = 50.0  # base
 
     # Smile saudavel: 20-60% do tempo + variabilidade > 0.005
+    # B10 calibration: relaxa criterio — smile presente (mesmo subtil) ja merece bonus
     if 20 <= smile_frequency_percent <= 60 and smile_variability > 0.005:
         score += 20
+    elif 10 <= smile_frequency_percent < 20:
+        score += 10  # smile subtil mas presente (tom profissional)
     elif smile_frequency_percent < 5:
         score -= 15  # rosto serio demais
     elif smile_frequency_percent > 80 and smile_variability < 0.005:
         score -= 15  # sorriso travado
 
-    # Brow ativo
+    # Brow ativo — B10: reduz peso; ausencia de brow nao e tao grave quanto ausencia de smile
     if brow_raises_per_minute >= 2:
-        score += 15
+        score += 10
     elif brow_raises_per_minute >= 1:
-        score += 8
+        score += 5
     else:
-        score -= 10  # rosto estatico
+        score -= 5  # rosto estatico (reduzido de -10)
 
     # Eye openness com variacao saudavel (nao monotono nem ansioso)
     if 0.015 <= eye_openness_stddev <= 0.05:
