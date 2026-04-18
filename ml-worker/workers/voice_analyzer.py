@@ -469,6 +469,12 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
 
     pausa_score = min(100, max(0, pausa_score_base - penalidade_hesitacao + bonus_pausa))
 
+    # B11 calibration: pausa penalty condicional.
+    # Ausencia de pausa retorica NAO e problema quando fala e calma (wpm<=180)
+    # e sem muita hesitacao (<=5/min). Aplica baseline neutro 50 nesses casos.
+    if pausa_score < 50 and wpm <= 180 and qtd_hesitacao_por_min <= 5:
+        pausa_score = max(pausa_score, 50)
+
     # Score final ponderado
     voice_score = round(
         wpm_score * 0.20
