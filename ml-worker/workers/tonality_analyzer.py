@@ -368,6 +368,39 @@ def _compute_tonality_metrics(audio_path: str) -> dict:
                         "tonality_ml_enriched",
                         emocao_dominante=ml_result.get("emocao_dominante_ml"),
                     )
+
+                    # B9 calibration: reconcile heuristic "tenso" vs ML positive valence.
+                    # Heuristica confunde intensidade de palestrante (alta energia,
+                    # pitch variado) com tensao real. Quando ML indica valence neutra
+                    # ou positiva, reclassifica tenso → intenso (alta energia saudavel).
+                    vad_ml = ml_result.get("vad_ml", {})
+                    ml_valence = vad_ml.get("valence", 0.0)
+                    emocao_ml = ml_result.get("emocao_dominante_ml", "").lower()
+                    heuristic_says_tense = (
+                        distribuicao.get("tenso", 0) > 30
+                        or textura_dominante == "tenso"
+                    )
+                    ml_says_positive = ml_valence > 0.1 or emocao_ml in {
+                        "hap", "happy", "neu", "neutral"
+                    }
+                    if heuristic_says_tense and ml_says_positive:
+                        # Revert score penalty aplicada em "tenso > 50" se houver
+                        if distribuicao.get("tenso", 0) > 50:
+                            result["score"] = min(100, result["score"] + 15)
+                        # Reframe feedback
+                        result["feedback"] = (
+                            "Heuristica detectou intensidade vocal alta (jitter/arousal), "
+                            "mas modelo ML indica valence positiva/neutra — sinal de "
+                            "palestrante engajado, nao tensao real. Continue assim."
+                        )
+                        result["ml_reconciled"] = True
+                        result["diagnostico"] = "tonalidade_intensa"
+                        logger.info(
+                            "tonality_ml_reconciled_tenso_to_intenso",
+                            heuristic_tenso_pct=distribuicao.get("tenso", 0),
+                            ml_valence=ml_valence,
+                            emocao_ml=emocao_ml,
+                        )
                 else:
                     logger.warning("tonality_ml_inference_returned_none")
         except Exception as e:  # noqa: BLE001
