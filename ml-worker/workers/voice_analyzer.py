@@ -284,6 +284,16 @@ def analyze_prosody(audio_path: str) -> dict:
     return result
 
 
+CONTINUACAO_WORDS = {
+    # Conectivos + muletas — pausa antes deles eh respiracao, nao retorica
+    "e", "mas", "que", "ou", "então", "entao", "aí", "ai", "né", "ne",
+    "um", "uma", "uns", "umas", "o", "a", "os", "as", "de", "do", "da",
+    "dos", "das", "no", "na", "nos", "nas", "em", "pra", "para", "com",
+    "sem", "por", "se", "quando", "onde", "enquanto", "porque", "pois",
+    "sabe", "tipo", "assim",
+}
+
+
 def _classificar_pausas(words: list, prosody: dict) -> dict:
     """Classifica pausas em estrategicas, de hesitacao ou de respiracao."""
     pausas_estrategicas = []
@@ -323,13 +333,18 @@ def _classificar_pausas(words: list, prosody: dict) -> dict:
         # 1. Antes de som de hesitacao = hesitacao
         if next_word in hesitacao_sounds:
             pausas_hesitacao.append(pausa)
-        # 2. Pausa estrategica: 0.5-3s
+        # 2. Pausa estrategica longa: 0.5-3s (sempre retorica)
         elif 0.5 <= gap <= 3.0:
             pausas_estrategicas.append(pausa)
-        # 3. Micro-pausa 0.2-0.5s = respiracao
+        # 3. Pausa curta 0.35-0.5s: retorica SE palavra seguinte for content-word
+        # (validado 2026-04-18 — ouvido treinado capta pausas curtas antes de
+        # palavra-chave; duracao sozinha eh feature insuficiente).
+        elif 0.35 <= gap < 0.5 and next_word not in CONTINUACAO_WORDS:
+            pausas_estrategicas.append(pausa)
+        # 4. Micro-pausa 0.2-0.5s com continuacao = respiracao
         elif 0.2 <= gap < 0.5:
             pausas_respiracao.append(pausa)
-        # 4. Pausa muito longa > 3s = hesitacao
+        # 5. Pausa muito longa > 3s = hesitacao
         elif gap > 3.0:
             pausas_hesitacao.append(pausa)
 
