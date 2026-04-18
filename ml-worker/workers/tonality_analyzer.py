@@ -300,8 +300,8 @@ def _compute_tonality_metrics(audio_path: str) -> dict:
     num_texturas_usadas = sum(1 for c in texturas_count.values() if c > 0)
 
     # Diversidade base
-    # B9-real-v3: heuristica mobile eh inerentemente limitada — piso 55
-    score = 55 + (num_texturas_usadas - 1) * 9
+    # B9-real-v2: sobe baseline — 1 textura=45, 6=95
+    score = 45 + (num_texturas_usadas - 1) * 10
 
     # Penalty se >70% em uma textura (default)
     if pct_dominante > 80:

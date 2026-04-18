@@ -205,14 +205,9 @@ def _compute_identity_metrics(transcription: dict) -> dict:
     amostra_suficiente = (total_markers + total_vicios) >= MINIMUM_MARKERS
 
     if not amostra_suficiente:
-        # Dados insuficientes — mas ausencia de vicios merece credito
-        # B-identity-real: 60 default → 75 quando total_vicios=0 (comunicacao limpa)
-        if total_vicios == 0:
-            score = 75  # sem vicios emocionais detectados = bom sinal
-            diagnostico = "sem_vicios_detectados"
-        else:
-            score = 60
-            diagnostico = "dados_insuficientes"
+        # Dados insuficientes — retornar score neutro
+        score = 60
+        diagnostico = "dados_insuficientes"
     else:
         # Score: Base 60, penalidade vicios (-5 cada, max -40), bonus/penalidade autoridade
         base = 60
