@@ -425,10 +425,11 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
         pitch_score = pitch_range * 8
 
     # 3. Variacao de velocidade (CV entre janelas) — peso 20%
-    if cv_velocidade < 0.05:
+    # B13-real: mesma logica AGC — smartphone comprime CV velocidade
+    if cv_velocidade < 0.03:
         velocidade_score = 20
-    elif cv_velocidade <= 0.15:
-        velocidade_score = 50 + (cv_velocidade - 0.05) * 500
+    elif cv_velocidade <= 0.12:
+        velocidade_score = 50 + (cv_velocidade - 0.03) * 556
     elif cv_velocidade <= 0.30:
         velocidade_score = 100
     elif cv_velocidade <= 0.45:
