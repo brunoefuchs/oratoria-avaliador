@@ -213,17 +213,20 @@ def _detect_chemicals(text: str, variety_metrics: dict | None) -> dict:
 
 def _compute_score(bridge: dict, hook: dict, cta: dict, chemicals: dict) -> tuple[int, str]:
     """Score 0-100 + diagnostico textual."""
-    score = 20  # base
+    # B4-real: base elevado de 20→45. Storytelling framework assume narrativa
+    # (Bridge sentence canonica). Conteudo educacional/axiomatico valido cai
+    # fora dos patterns mas nao e "narrativa ausente" — e outra categoria.
+    score = 45  # base neutro
 
     if bridge["detected"]:
         score += 15
     if hook["type"] != "none":
         if hook["strength"] == "strong":
-            score += 12
+            score += 15
         elif hook["strength"] == "medium":
-            score += 7
+            score += 8
         else:
-            score += 3
+            score += 4
     if cta["detected"]:
         score += 15
     if chemicals["dopamine"]["detected"]:
@@ -231,7 +234,7 @@ def _compute_score(bridge: dict, hook: dict, cta: dict, chemicals: dict) -> tupl
     if chemicals["oxytocin"]["detected"]:
         score += 10
     if chemicals["cortisol_risk"]["detected"]:
-        score -= 20
+        score -= 25
 
     score = max(0, min(100, score))
 
