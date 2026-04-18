@@ -30,13 +30,12 @@ MIN_AUDIO_DURATION = 10.0  # AC-10: audio < 10s = indisponivel
 
 # Thresholds calibrados via literatura (eGeMAPS norms para fala adulta).
 # Ajustar via Task 8 se 5 videos de calibracao divergirem.
-JITTER_NEUTRAL = 0.012  # Jitter local neutro — estavel entre devices (studio/mobile)
-# B9-real calibration: thresholds ajustados pra real-world (smartphone recording).
-# Literatura: HNR e shimmer sao sensiveis ao device (AGC + mic quality). Voz normal
-# masculina em celular fica em ~9.5-12 dB HNR, nao 15-20 (eGeMAPS studio).
-# Refs: Awan et al. 2024 (JSLHR), Maryn 2022 (ScienceDirect), eGeMAPS Eyben 2016.
-SHIMMER_NEUTRAL = 0.08  # era 0.06 — AGC mobile infla shimmer
-HNR_GOOD = 12.0  # era 18.0 — acomoda mic celular sem perder discriminacao
+# B9-real-v2: Mobile recordings tem ruido ambiente que infla jitter tambem
+# (literatura diz que jitter eh estavel pro MESMO falante repetindo palavra,
+# mas em fala continua + ruido, elevated jitter eh comum).
+JITTER_NEUTRAL = 0.020  # era 0.012 — mobile real-world jitter baseline
+SHIMMER_NEUTRAL = 0.10  # era 0.06 — AGC mobile infla mais do que pensavamos
+HNR_GOOD = 10.0  # era 18.0 — voz mobile masc normal ~8-12 dB
 PITCH_MIN_HZ = 75
 PITCH_MAX_HZ = 500
 
@@ -154,15 +153,17 @@ def _classify_textura(vad: dict) -> str:
     """
     v, a, d = vad["v"], vad["a"], vad["d"]
 
-    if v > 0.4 and a > 0.6 and d > 0.4:
+    # B9-real-v2: thresholds relaxados pra real-world mobile audio
+    # (valence fica negativa por default em mobile devido a jitter/HNR)
+    if v > 0.3 and a > 0.5 and d > 0.3:
         return "entusiasmado"
-    if v < -0.2 and a > 0.5 and d <= 0.6:
+    if v < -0.4 and a > 0.6 and d <= 0.5:
         return "tenso"
-    if v < -0.2 and a < 0.4 and d < 0.4:
+    if v < -0.3 and a < 0.3 and d < 0.3:
         return "apatico"
-    if v >= -0.1 and a < 0.4 and d < 0.4:
+    if -0.3 <= v < 0.1 and a < 0.4 and d < 0.4:
         return "hesitante"
-    if v >= 0.0 and 0.3 <= a <= 0.6 and d > 0.5:
+    if v >= -0.2 and 0.3 <= a <= 0.7 and d > 0.4:
         return "confiante"
     return "neutro"
 
