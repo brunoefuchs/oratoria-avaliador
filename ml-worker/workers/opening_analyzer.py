@@ -88,7 +88,27 @@ SUGESTOES = {
     "conexao_audiencia": "Fale PARA alguem: 'Voce que esta assistindo isso agora, provavelmente ja passou por isso.'",
     "frase_impacto": "Abra com uma frase curta e forte: 'Poucas coisas custam tanto dinheiro quanto o silencio.'",
     "citacao_autoridade": "Cite alguem respeitado: 'Como disse Warren Buffett: a comunicacao e a habilidade mais subvalorizada do mundo.'",
+    "declaracao_axiomatica": "Abra com uma afirmacao declarativa curta e forte: 'Toda empresa so tem duas funcoes: marketing e inovacao.'",
+    "identity_led": "Apresente-se com proposito claro: 'Meu nome e X e eu ajudo pessoas a Y.'",
 }
+
+PATTERNS_AXIOMATICA = [
+    r"\bs[oó] (tem|existe[m]?|h[aá])\b",
+    r"\bexiste[m]?\s+(dois|duas|tr[eê]s|apenas)\b",
+    r"\btoda\s+(empresa|pessoa|marca|lideranca)\b",
+    r"\btodo\s+(mundo|lider|negocio)\b",
+    r"\bou\s+\w+\s+ou\s+\w+\b",
+    r"\ba\s+verdade\s+[eé]\b",
+    r"\bo\s+problema\s+[eé]\b",
+    r"\bningu[eé]m\s+(fala|conta|diz)\b",
+]
+PATTERNS_IDENTITY = [
+    r"\bmeu\s+nome\s+[eé]\b",
+    r"\beu\s+sou\s+(o|a|um|uma)\b",
+    r"\beu\s+trabalho\s+com\b",
+    r"\beu\s+ajudo\b",
+    r"\bprazer[,.]?\s+eu\s+sou\b",
+]
 
 
 def _compute_opening_metrics(
@@ -204,8 +224,8 @@ def _compute_opening_metrics(
                 break
 
     # 7. Frase de impacto (curta + volume acima da media)
+    primeira_frase = full_text.split(".")[0].strip() if "." in full_text else ""
     if "frase_impacto" not in tecnicas_ids:
-        primeira_frase = full_text.split(".")[0].strip() if "." in full_text else ""
         if primeira_frase and len(primeira_frase.split()) <= 10:
             volume_windows = voice_metrics.get("volume_por_janela", [])
             if volume_windows and len(volume_windows) > 1:
@@ -221,6 +241,48 @@ def _compute_opening_metrics(
                         }
                     )
                     tecnicas_ids.add("frase_impacto")
+
+    # 8. Declaracao axiomatica — afirmacao curta declarativa forte (B8 calibration)
+    if "declaracao_axiomatica" not in tecnicas_ids:
+        match_axiom = None
+        for pattern in PATTERNS_AXIOMATICA:
+            m = re.search(pattern, opening_text, re.IGNORECASE)
+            if m:
+                match_axiom = m
+                break
+        is_short_declarative = (
+            primeira_frase
+            and len(primeira_frase.split()) <= 15
+            and "?" not in primeira_frase
+        )
+        if match_axiom and is_short_declarative:
+            tecnicas_detectadas.append(
+                {
+                    "tecnica": "declaracao_axiomatica",
+                    "label": "Declaracao Axiomatica",
+                    "descricao": "Voce abriu com uma afirmacao declarativa curta e forte — tom de verdade universal prende atencao",
+                    "exemplo": primeira_frase[:80],
+                    "qualidade": "boa",
+                }
+            )
+            tecnicas_ids.add("declaracao_axiomatica")
+
+    # 9. Identity-led intro — "meu nome e X e eu faco Y" (B8 calibration)
+    if "identity_led" not in tecnicas_ids:
+        for pattern in PATTERNS_IDENTITY:
+            m = re.search(pattern, opening_text, re.IGNORECASE)
+            if m:
+                tecnicas_detectadas.append(
+                    {
+                        "tecnica": "identity_led",
+                        "label": "Apresentacao com Proposito",
+                        "descricao": "Voce se apresentou com clareza de identidade e proposito",
+                        "exemplo": m.group()[:80],
+                        "qualidade": "boa",
+                    }
+                )
+                tecnicas_ids.add("identity_led")
+                break
 
     # Score de abertura — distinguir qualidade das tecnicas
     n = len(tecnicas_detectadas)
@@ -263,6 +325,8 @@ def _compute_opening_metrics(
         "conexao_audiencia",
         "frase_impacto",
         "citacao_autoridade",
+        "declaracao_axiomatica",
+        "identity_led",
     }
     for t_id in todas_tecnicas - tecnicas_ids:
         if t_id in SUGESTOES and len(tecnicas_ausentes) < 3:
