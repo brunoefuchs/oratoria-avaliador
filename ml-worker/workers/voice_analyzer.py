@@ -469,24 +469,37 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
         volume_score = max(0, 50 - (cv_vol - 0.40) * 200)
 
     # 5. Qualidade das pausas — peso 20%
-    ratio_estrategicas = pausas["ratio_estrategicas"]
+    # Scoring por DENSIDADE absoluta (estrategicas/min), nao ratio.
+    # Ratio penalizava palestrantes com boa respiracao (mais pausas totais).
+    # Calibrado 2026-04-18 via Gui (6.67 estrategicas/min = tier TEDx).
     qtd_hesitacao_por_min = pausas["hesitacao_por_min"]
+    qtd_estrategicas_por_min = pausas["estrategicas_por_min"]
+    ratio_estrategicas = pausas["ratio_estrategicas"]
 
-    pausa_score_base = ratio_estrategicas * 100
+    # Densidade absoluta como score base (tier)
+    if qtd_estrategicas_por_min >= 4:
+        densidade_score = 100
+    elif qtd_estrategicas_por_min >= 2:
+        densidade_score = 85
+    elif qtd_estrategicas_por_min >= 1:
+        densidade_score = 70
+    elif qtd_estrategicas_por_min > 0:
+        densidade_score = 55
+    else:
+        densidade_score = 30
+
+    # Quality modulator pela razao estrategicas/total. Ratio 0.5+ = full credit.
+    # Protege contra sobre-deteccao em fala hesitante (pausas frequentes mas
+    # curtas e pre-content-word podem passar por estrategicas sem serem).
+    quality_factor = min(1.0, ratio_estrategicas * 2)
+    pausa_score_base = densidade_score * quality_factor
+
     if qtd_hesitacao_por_min > 5:
         penalidade_hesitacao = min(40, (qtd_hesitacao_por_min - 5) * 8)
     else:
         penalidade_hesitacao = 0
 
-    qtd_estrategicas_por_min = pausas["estrategicas_por_min"]
-    if qtd_estrategicas_por_min >= 2:
-        bonus_pausa = 20
-    elif qtd_estrategicas_por_min >= 1:
-        bonus_pausa = 10
-    else:
-        bonus_pausa = 0
-
-    pausa_score = min(100, max(0, pausa_score_base - penalidade_hesitacao + bonus_pausa))
+    pausa_score = min(100, max(0, pausa_score_base - penalidade_hesitacao))
 
     # B11 calibration: pausa penalty condicional.
     # Ausencia de pausa retorica NAO e problema quando fala e calma (wpm<=180)
