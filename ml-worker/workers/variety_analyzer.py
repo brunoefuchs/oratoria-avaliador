@@ -171,17 +171,45 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     variacao_pitch = _score_variacao(cv_pitch, "pitch")
 
     # Detectar trechos monotonos — usa janela real do voice_analyzer
+    # 2026-04-29: skip detecao quando CV global > 1.5x piso ideal.
+    # Speaker que varia globalmente tem direito a platos locais (estabilidade
+    # tematica intencional). Sem isso, mentor TEDx era marcado tao monotono
+    # quanto aluno iniciante por causa de 3 janelas estaveis no meio.
+    SKIP_FACTOR = 1.5
     janela_segundos = voice.get("janela_size_seconds") or 15.0
-    trechos_monotonos_velocidade = _detectar_trechos_monotonos(wpm_janelas, 0.05, janela_segundos)
-    trechos_monotonos_volume = _detectar_trechos_monotonos(volume_janelas, 0.02, janela_segundos)
-    trechos_monotonos_pitch = _detectar_trechos_monotonos(pitch_janelas, 0.03, janela_segundos)
+    trechos_monotonos_velocidade = (
+        []
+        if cv_velocidade > CV_RANGES["velocidade"]["min_ideal"] * SKIP_FACTOR
+        else _detectar_trechos_monotonos(wpm_janelas, 0.05, janela_segundos)
+    )
+    trechos_monotonos_volume = (
+        []
+        if cv_volume > CV_RANGES["volume"]["min_ideal"] * SKIP_FACTOR
+        else _detectar_trechos_monotonos(volume_janelas, 0.02, janela_segundos)
+    )
+    trechos_monotonos_pitch = (
+        []
+        if cv_pitch > CV_RANGES["pitch"]["min_ideal"] * SKIP_FACTOR
+        else _detectar_trechos_monotonos(pitch_janelas, 0.03, janela_segundos)
+    )
 
     todos_trechos = (
         trechos_monotonos_velocidade + trechos_monotonos_volume + trechos_monotonos_pitch
     )
 
-    # Tempo total monotono (segundos)
-    tempo_monotono_total = sum(t["duracao_segundos"] for t in todos_trechos)
+    # Tempo total monotono (segundos) — UNIAO de intervalos, nao soma.
+    # Soma double-contava overlap entre dimensoes (3x mesmo instante = 3x tempo)
+    # gerando pct > 100% capped artificialmente.
+    intervalos = sorted(
+        [(t["inicio_segundos"], t["fim_segundos"]) for t in todos_trechos]
+    )
+    merged: list[tuple[float, float]] = []
+    for start, end in intervalos:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    tempo_monotono_total = sum(end - start for start, end in merged)
     duracao_audio = voice.get("audio_duration_seconds", 1)
     pct_tempo_monotono = round(min(100, tempo_monotono_total / max(1, duracao_audio) * 100), 1)
 

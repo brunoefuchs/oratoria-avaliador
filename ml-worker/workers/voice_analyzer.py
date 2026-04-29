@@ -12,8 +12,13 @@ from workers._truth_contract_helpers import wrap_worker_result
 
 logger = structlog.get_logger()
 
-# Tamanho da janela temporal para analise de variacao (segundos)
-JANELA_SEGUNDOS = 15
+# Tamanho da janela temporal adaptativo (2026-04-29):
+# - Curtos (<60s): janelas pequenas (5s) capturam dinamica intra-frase
+# - Longos (>2min): janelas maiores (~12s) reduzem ruido/AGC
+# Alvo: ~12 janelas minimo, clamp 5-12s.
+JANELA_SEGUNDOS_MIN = 5
+JANELA_SEGUNDOS_MAX = 12
+JANELA_COUNT_TARGET = 12
 # Range ideal de palavras por minuto (PT-BR conversacional)
 WPM_IDEAL_MIN = 130
 WPM_IDEAL_MAX = 170
@@ -181,8 +186,11 @@ def analyze_prosody(audio_path: str) -> dict:
     pitch_all = pitch.selected_array["frequency"]
 
     # N janelas uniformes cobrindo 100% da duracao (evita cauda ignorada).
-    # Tamanho-alvo ~15s; arredonda para o inteiro mais proximo, minimo 1.
-    janela_count = max(1, round(duration_s / JANELA_SEGUNDOS))
+    # Adaptativo: alvo ~12 janelas, clamp 5-12s.
+    janela_size_target = max(
+        JANELA_SEGUNDOS_MIN, min(JANELA_SEGUNDOS_MAX, duration_s / JANELA_COUNT_TARGET)
+    )
+    janela_count = max(1, round(duration_s / janela_size_target))
     janela_size = duration_s / janela_count
     pitch_por_janela = []
     volume_por_janela = []
@@ -377,7 +385,7 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
     # WPM por janela — usa o mesmo tamanho de janela real do prosody (cobre 100%).
     janela_count = prosody.get("num_janelas", 1)
     janela_size = prosody.get("janela_size_seconds") or (
-        audio_duration / janela_count if janela_count > 0 else JANELA_SEGUNDOS
+        audio_duration / janela_count if janela_count > 0 else JANELA_SEGUNDOS_MIN
     )
     janela_dur_min = janela_size / 60
     wpm_por_janela = []
@@ -440,11 +448,13 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
         pitch_score = pitch_range * 8
 
     # 3. Variacao de velocidade (CV entre janelas) — peso 20%
-    # B13-real: mesma logica AGC — smartphone comprime CV velocidade
+    # 2026-04-29: plato apertado (0.20-0.30) — janelas adaptativas (5-12s)
+    # captam mais variacao, plato largo (0.12+) saturava CV moderado em 100
+    # e perdia discriminacao. Rampa estendida 0.03-0.20 distingue melhor.
     if cv_velocidade < 0.03:
         velocidade_score = 20
-    elif cv_velocidade <= 0.12:
-        velocidade_score = 50 + (cv_velocidade - 0.03) * 556
+    elif cv_velocidade <= 0.20:
+        velocidade_score = 50 + (cv_velocidade - 0.03) * 294
     elif cv_velocidade <= 0.30:
         velocidade_score = 100
     elif cv_velocidade <= 0.45:
