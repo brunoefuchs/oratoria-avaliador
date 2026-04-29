@@ -10,8 +10,10 @@ Dimensoes avaliadas:
 - Variacao de velocidade (WPM entre janelas)
 - Variacao de volume (dB entre janelas)
 - Variacao de pitch (Hz entre janelas)
-- Variacao de gesticulacao (presenca de gestos entre janelas)
 - Score de monotonia geral
+
+Nota (2026-04-29): variacao gestual saiu desta dimensao — pertence a
+"Gestos" (gesture_analyzer). Ver historico para justificativa.
 
 Story 8.1 (Truth Contract — Fundacao):
 - analyze_variety() retorna WorkerResult validado por Pydantic (path NOVO)
@@ -37,9 +39,6 @@ CV_RANGES = {
     "velocidade": {"min_ideal": 0.05, "max_ideal": 0.30, "label": "Velocidade de Fala"},
     "volume": {"min_ideal": 0.015, "max_ideal": 0.25, "label": "Volume"},
     "pitch": {"min_ideal": 0.03, "max_ideal": 0.20, "label": "Entonacao"},
-    # Opção A calibration: max_ideal 0.40 → 0.60 — conteudo denso em video
-    # curto legitima variacao rapida de gesto (marca infos novas, nao caos).
-    "gesticulacao": {"min_ideal": 0.10, "max_ideal": 0.60, "label": "Gesticulacao"},
 }
 
 
@@ -161,21 +160,15 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     cv_pitch = voice.get("cv_pitch", 0.0)
     cv_volume = voice.get("cv_volume", 0.0)
 
-    # CV de gesticulacao (estimativa baseada em detecoes de mao)
-    metrics_gesture = _extract_metrics(gesture_result)
-    metrics_gesture.get("gesticulation_pct", 0)
-    # Usar vocabulario como proxy de variacao gestual
-    vocabulario = metrics_gesture.get("vocabulario_gestos", 0)
-    # Normalizar: 9 posicoes no grid = max, quanto mais = mais variacao
-    cv_gesticulacao = min(1.0, vocabulario / 9.0) if vocabulario > 0 else 0.0
-
     # =============================================
-    # SCORES POR DIMENSAO
+    # SCORES POR DIMENSAO (puramente vocais)
+    # Gesto saiu daqui (2026-04-29): "Variedade Vocal" mistura conceitual +
+    # double counting com a dimensao Gestos propria. Variacao gestual
+    # permanece dentro da dimensao Gestos via gesture_analyzer.
     # =============================================
     variacao_velocidade = _score_variacao(cv_velocidade, "velocidade")
     variacao_volume = _score_variacao(cv_volume, "volume")
     variacao_pitch = _score_variacao(cv_pitch, "pitch")
-    variacao_gesticulacao = _score_variacao(cv_gesticulacao, "gesticulacao")
 
     # Detectar trechos monotonos — usa janela real do voice_analyzer
     janela_segundos = voice.get("janela_size_seconds") or 15.0
@@ -199,10 +192,9 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     # Esse score mede quantas teclas voce esta usando.
 
     variety_score = round(
-        variacao_velocidade["score"] * 0.30  # Velocidade e o mais perceptivel
-        + variacao_volume["score"] * 0.25  # Volume cria peaks and troughs
-        + variacao_pitch["score"] * 0.25  # Entonacao da vida a fala
-        + variacao_gesticulacao["score"] * 0.20  # Gestual complementa
+        variacao_velocidade["score"] * 0.35  # Velocidade e o mais perceptivel
+        + variacao_volume["score"] * 0.32  # Volume cria peaks and troughs
+        + variacao_pitch["score"] * 0.33  # Entonacao da vida a fala
     )
 
     # Penalidade por tempo monotono (>30% monotono = penalidade significativa)
@@ -230,7 +222,6 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
         ("velocidade", variacao_velocidade),
         ("volume", variacao_volume),
         ("entonacao", variacao_pitch),
-        ("gesticulacao", variacao_gesticulacao),
     ]:
         if resultado["diagnostico"] in ("travado", "pouca_variacao"):
             defaults_detectados.append(nome)
@@ -254,7 +245,6 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
                 "velocidade": variacao_velocidade,
                 "volume": variacao_volume,
                 "entonacao": variacao_pitch,
-                "gesticulacao": variacao_gesticulacao,
             },
             "trechos_monotonos": {
                 "velocidade": trechos_monotonos_velocidade,
@@ -267,7 +257,6 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
                 "variacao_velocidade": variacao_velocidade["score"],
                 "variacao_volume": variacao_volume["score"],
                 "variacao_entonacao": variacao_pitch["score"],
-                "variacao_gesticulacao": variacao_gesticulacao["score"],
             },
         },
     }
