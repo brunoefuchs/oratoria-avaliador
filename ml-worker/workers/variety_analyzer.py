@@ -214,10 +214,46 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     pct_tempo_monotono = round(min(100, tempo_monotono_total / max(1, duracao_audio) * 100), 1)
 
     # =============================================
+    # PENALIDADE LOCAL POR DIMENSAO (2026-04-29)
+    # =============================================
+    # Sub-score baseava-se em CV global, ignorando trechos monotonos locais.
+    # Cliente via "ideal" + 54% monotono = contradicao. Agora cada dimensao
+    # com trecho monotono tem score reduzido proporcional ao tempo plano.
+    # Substitui penalidade global de pct_tempo_monotono (que penalizava o
+    # variety_score sem mostrar onde o problema estava).
+
+    def _aplicar_penalidade_local(resultado: dict, trechos: list, dur: float) -> dict:
+        if not trechos or dur <= 0:
+            return resultado
+        tempo_plano = sum(t["duracao_segundos"] for t in trechos)
+        pct_dim = (tempo_plano / dur) * 100
+        penalidade = min(30, pct_dim * 0.5)
+        novo_score = max(0, round(resultado["score"] - penalidade))
+        return {
+            **resultado,
+            "score": novo_score,
+            "diagnostico": "atencao" if penalidade > 5 else resultado["diagnostico"],
+            "tempo_plano_segundos": round(tempo_plano, 1),
+            "pct_dimensao_plana": round(pct_dim, 1),
+        }
+
+    variacao_velocidade = _aplicar_penalidade_local(
+        variacao_velocidade, trechos_monotonos_velocidade, duracao_audio
+    )
+    variacao_volume = _aplicar_penalidade_local(
+        variacao_volume, trechos_monotonos_volume, duracao_audio
+    )
+    variacao_pitch = _aplicar_penalidade_local(
+        variacao_pitch, trechos_monotonos_pitch, duracao_audio
+    )
+
+    # =============================================
     # SCORE GERAL DE VARIEDADE (0-100)
     # =============================================
     # "Sua voz e um instrumento com 88 teclas. A maioria das pessoas usa apenas 20."
     # Esse score mede quantas teclas voce esta usando.
+    # Sem penalidade global de pct_tempo_monotono — substituida por penalidade
+    # local em cada dimensao (vide bloco acima).
 
     variety_score = round(
         variacao_velocidade["score"] * 0.35  # Velocidade e o mais perceptivel
@@ -225,7 +261,9 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
         + variacao_pitch["score"] * 0.33  # Entonacao da vida a fala
     )
 
-    # Penalidade por tempo monotono (>30% monotono = penalidade significativa)
+    # Penalidade GLOBAL pct_tempo_monotono mantida — penalidade local mostra
+    # onde, global mostra impacto no overall. Sozinha local nao puxa overall
+    # forte o bastante por causa dos pesos 0.32-0.35 amortizando o tombo.
     if pct_tempo_monotono > 30:
         penalidade_monotonia = min(20, (pct_tempo_monotono - 30) * 0.4)
         variety_score = max(0, round(variety_score - penalidade_monotonia))

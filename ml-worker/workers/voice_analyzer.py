@@ -5,6 +5,7 @@ import numpy as np
 import parselmouth
 import structlog
 import whisper
+from scipy.signal import find_peaks
 
 from config import is_whisper_turbo_enabled
 from contracts import WorkerResult
@@ -26,6 +27,78 @@ WPM_IDEAL_CENTRO = 150
 
 # Story 9.2: default model preservado para rollback via WHISPER_TURBO_ENABLED=false.
 _WHISPER_FALLBACK_MODEL = "medium"
+
+# Pitch accent detection (2026-04-29)
+# Pitch accent = pico proeminente em F0 marcando enfase em palavra de conteudo.
+# Granularidade alem de CV puro: distingue variacao melodica intencional (mentor
+# enfatiza) de oscilacao aleatoria (aluno tremendo).
+# Literatura: speakers normais 40-80 accents/min, expressivos 80-150, TEDx 100+.
+PITCH_ACCENT_PROMINENCE_SEMITONS = 3.0  # Subida/descida minima pra contar como accent
+PITCH_ACCENT_STRONG_THRESHOLD_ST = 8.0  # Accent "forte" — enfase dramatica intencional
+PITCH_ACCENT_MIN_DISTANCE_MS = 150  # Distancia minima entre accents
+
+
+def _count_pitch_accents(
+    pitch_hz: np.ndarray,
+    timestamps: np.ndarray,
+    duration_s: float,
+) -> dict:
+    """Detecta picos proeminentes em F0 contour como pitch accents.
+
+    Discrimina QUANTIDADE de QUALIDADE. Empirico (Gui mentor vs aluna):
+    - Quantidade isolada nao discrimina (aluna 90/min vs Gui 60/min)
+    - Mean prominence discrimina (Gui 10.8st vs aluna 7.6st)
+    - Aluna oscila frequente mas pequeno (ansiedade vocal)
+    - Mentor modula menos vezes mas dramaticamente (enfase intencional)
+
+    Retorna multiplas metricas pra UI escolher discriminador apropriado.
+    """
+    empty = {
+        "count": 0,
+        "per_minute": 0.0,
+        "strong_count": 0,
+        "strong_per_minute": 0.0,
+        "mean_prominence_st": 0.0,
+        "max_prominence_st": 0.0,
+    }
+    if len(pitch_hz) == 0 or duration_s <= 0:
+        return empty
+
+    voiced_mask = pitch_hz > 0
+    voiced_hz = pitch_hz[voiced_mask]
+    voiced_ts = timestamps[voiced_mask]
+    if len(voiced_hz) < 10:
+        return empty
+
+    pitch_floor = float(np.min(voiced_hz))
+    semitones = 12 * np.log2(voiced_hz / pitch_floor)
+
+    if len(voiced_ts) > 1:
+        dt = float(np.median(np.diff(voiced_ts)))
+        min_distance_samples = max(1, int(PITCH_ACCENT_MIN_DISTANCE_MS / 1000 / dt))
+    else:
+        min_distance_samples = 15
+
+    peaks, props = find_peaks(
+        semitones,
+        prominence=PITCH_ACCENT_PROMINENCE_SEMITONS,
+        distance=min_distance_samples,
+    )
+    proms = props.get("prominences", np.array([]))
+    count = len(peaks)
+    if count == 0:
+        return empty
+
+    strong_count = int((proms >= PITCH_ACCENT_STRONG_THRESHOLD_ST).sum())
+    duration_min = duration_s / 60.0
+    return {
+        "count": int(count),
+        "per_minute": round(count / duration_min, 1),
+        "strong_count": strong_count,
+        "strong_per_minute": round(strong_count / duration_min, 1),
+        "mean_prominence_st": round(float(np.mean(proms)), 1),
+        "max_prominence_st": round(float(np.max(proms)), 1),
+    }
 
 
 def _resolve_whisper_model(model_name: str | None = None) -> str:
@@ -239,6 +312,9 @@ def analyze_prosody(audio_path: str) -> dict:
         round(min(10, max(1, (intensity_mean - 40) / 4)), 1) if intensity_mean > 40 else 1.0
     )
 
+    # Pitch accents (peaks proeminentes em F0) — granularidade alem de CV
+    pitch_accents = _count_pitch_accents(pitch_all, pitch_timestamps, duration_s)
+
     elapsed = time.time() - start
     logger.info(
         "prosody_analysis_complete",
@@ -261,6 +337,11 @@ def analyze_prosody(audio_path: str) -> dict:
         "intensity_max_db": round(intensity_max, 1),
         "cv_volume": cv_volume,
         "volume_base_1_10": volume_base_1_10,
+        "pitch_accent_count": pitch_accents["count"],
+        "pitch_accent_per_minute": pitch_accents["per_minute"],
+        "pitch_accent_strong_per_minute": pitch_accents["strong_per_minute"],
+        "pitch_accent_mean_prominence_st": pitch_accents["mean_prominence_st"],
+        "pitch_accent_max_prominence_st": pitch_accents["max_prominence_st"],
         "speech_silence_ratio": round(speech_ratio, 3),
         "audio_duration_seconds": round(duration_s, 2),
         "pitch_por_janela": pitch_por_janela,
@@ -426,17 +507,23 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
     monotonia_score = min(100, monotonia_score)
 
     # =============================================
-    # SCORE DE VOZ (0-100) — 5 componentes × 20%
+    # SCORE DE VOZ (0-100) — 3 componentes
+    # 2026-04-29: removido velocidade_score e volume_score (CV) — eram
+    # double-counting com Variedade Vocal. Voice agora foca em TECNICA
+    # (WPM/Pitch range/Pausas), Variety dona da expressividade temporal.
     # =============================================
 
-    # 1. WPM no range ideal (130-170) — peso 20%
+    # 1. WPM no range ideal (130-170) — peso 35%
     if WPM_IDEAL_MIN <= wpm <= WPM_IDEAL_MAX:
         wpm_score = 100 - abs(wpm - WPM_IDEAL_CENTRO)
     else:
         distancia = min(abs(wpm - WPM_IDEAL_MIN), abs(wpm - WPM_IDEAL_MAX))
         wpm_score = max(0, 80 - distancia * 2)
 
-    # 2. Variacao de pitch — peso 20%
+    # 2. Variacao de pitch (range absoluto em semitons) — peso 30%
+    # Range = max-min em semitons (escala perceptual). Mede AMPLITUDE
+    # melodica (diferente de cv_pitch usado em Variety, que mede DISPERSAO
+    # entre janelas).
     pitch_range = prosody["pitch_range_semitones"]
     if pitch_range >= 15:
         pitch_score = 100
@@ -447,38 +534,7 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
     else:
         pitch_score = pitch_range * 8
 
-    # 3. Variacao de velocidade (CV entre janelas) — peso 20%
-    # 2026-04-29: plato apertado (0.20-0.30) — janelas adaptativas (5-12s)
-    # captam mais variacao, plato largo (0.12+) saturava CV moderado em 100
-    # e perdia discriminacao. Rampa estendida 0.03-0.20 distingue melhor.
-    if cv_velocidade < 0.03:
-        velocidade_score = 20
-    elif cv_velocidade <= 0.20:
-        velocidade_score = 50 + (cv_velocidade - 0.03) * 294
-    elif cv_velocidade <= 0.30:
-        velocidade_score = 100
-    elif cv_velocidade <= 0.45:
-        velocidade_score = 100 - (cv_velocidade - 0.30) * 333
-    else:
-        velocidade_score = max(0, 50 - (cv_velocidade - 0.45) * 200)
-
-    # 4. Variacao de volume (CV entre janelas) — peso 20%
-    # B13-real calibration: AGC de smartphone comprime dinamica em 6-10 dB vs
-    # mic condensador studio. Threshold antigo cv_vol<0.03 penalizava palestrantes
-    # controlados gravando em celular. Piso rebaixado pra 0.015.
-    cv_vol = prosody.get("cv_volume", 0)
-    if cv_vol < 0.015:
-        volume_score = 20
-    elif cv_vol <= 0.08:
-        volume_score = 50 + (cv_vol - 0.015) * 769
-    elif cv_vol <= 0.25:
-        volume_score = 100
-    elif cv_vol <= 0.40:
-        volume_score = 100 - (cv_vol - 0.25) * 333
-    else:
-        volume_score = max(0, 50 - (cv_vol - 0.40) * 200)
-
-    # 5. Qualidade das pausas — peso 20%
+    # 3. Qualidade das pausas — peso 35%
     # Scoring por DENSIDADE absoluta (estrategicas/min), nao ratio.
     # Ratio penalizava palestrantes com boa respiracao (mais pausas totais).
     # Calibrado 2026-04-18 via Gui (6.67 estrategicas/min = tier TEDx).
@@ -517,13 +573,11 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
     if pausa_score < 50 and wpm <= 180 and qtd_hesitacao_por_min <= 5:
         pausa_score = max(pausa_score, 50)
 
-    # Score final ponderado
+    # Score final ponderado (3 componentes)
     voice_score = round(
-        wpm_score * 0.20
-        + pitch_score * 0.20
-        + velocidade_score * 0.20
-        + volume_score * 0.20
-        + pausa_score * 0.20
+        wpm_score * 0.35  # Cadencia fundamental
+        + pitch_score * 0.30  # Range melodico
+        + pausa_score * 0.35  # Estrutura ritmica
     )
     voice_score = max(0, min(100, voice_score))
 
@@ -534,8 +588,6 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
         sub_scores={
             "wpm": round(wpm_score),
             "pitch": round(pitch_score),
-            "velocidade": round(velocidade_score),
-            "volume": round(volume_score),
             "pausa": round(pausa_score),
         },
     )
@@ -555,8 +607,6 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
             "sub_scores": {
                 "wpm_score": round(wpm_score),
                 "pitch_score": round(pitch_score),
-                "velocidade_score": round(velocidade_score),
-                "volume_score": round(volume_score),
                 "pausa_score": round(pausa_score),
             },
             # Prosodia
