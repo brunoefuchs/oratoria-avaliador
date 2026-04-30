@@ -328,6 +328,27 @@ async def _run_pipeline(req: ProcessRequest):
                     "warnings": [str(e)],
                 }
 
+        # Step 5.6: Articulation (Foundation 5 — clareza tecnica vocal)
+        # Reusa jitter/shimmer/HNR + spectral_clarity (4-8kHz). Cobertura 75%
+        # confiavel em mobile. Formantes excluidos por baixa confiabilidade.
+        if config.TRUTH_CONTRACT_ENABLED:
+            from workers.articulation_analyzer import analyze_articulation
+
+            articulation_result = analyze_articulation(audio_path)
+        else:
+            try:
+                from workers.articulation_analyzer import analyze_articulation_legacy
+
+                articulation_result = analyze_articulation_legacy(audio_path)
+            except Exception as e:
+                logger.error("articulation_analysis_failed", error=str(e))
+                articulation_result = {"score": 0, "confidence": "failed", "metrics": {}}
+
+        # Articulation NAO usa _save_analysis — DB check_constraint legacy nao
+        # permite dimension='articulation'. Dado flui via detailed_metrics
+        # do aggregator (JSON, sem constraint). Migration futura adicionara
+        # constraint pra promover articulation a SCORING.
+
         # Step 6: Deteccao de vicios de linguagem
         # Story 8.2: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_fillers")
@@ -612,13 +633,14 @@ async def _run_pipeline(req: ProcessRequest):
                 duration_seconds=video_metadata.get("duration_seconds", 0),
             )
 
-            # Construir dict[str, WorkerResult] com todas 13 dimensoes
+            # Construir dict[str, WorkerResult] com todas 14 dimensoes
             all_results: dict = {
                 "posture": posture_result,
                 "gesture": gesture_result,
                 "voice": voice_result,
                 "fillers": filler_result,
                 "variety": variety_result,
+                "articulation": articulation_result,
                 "archetypes": archetype_result,
                 "facial": facial_result,
                 "tonality": tonality_result,
@@ -761,6 +783,11 @@ async def _run_pipeline(req: ProcessRequest):
                     _save_analysis(supabase, req.evaluation_id, _dim_name, _res)
                 except Exception as _e:
                     logger.warning("secondary_save_failed", dimension=_dim_name, error=str(_e))
+
+        # Family scores (2026-04-30) — armazenados em detailed_metrics ate
+        # migration adicionar coluna dedicada. UI consome via this path.
+        if aggregated.get("family_scores"):
+            full_detailed["family_scores"] = aggregated["family_scores"]
 
         supabase.table("aggregated_metrics").insert(
             {

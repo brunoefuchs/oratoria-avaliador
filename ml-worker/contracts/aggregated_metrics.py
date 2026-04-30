@@ -26,6 +26,9 @@ class AggregatedMetrics(BaseModel):
     model_config = ConfigDict(extra="allow")  # aggregator retorna campos extras
 
     overall_score: int | None
+    # Family scores (2026-04-29) — esqueleto pedagogico Tecnica vs Narrativa.
+    # tecnica = overall_score (mesmas dims/pesos). narrativa = subset SECONDARY.
+    family_scores: dict[str, int | None] = Field(default_factory=dict)
     dimension_scores: dict[str, int] = Field(default_factory=dict)
     detailed_metrics: dict[str, Any] = Field(default_factory=dict)
     incomplete_dimensions: list[str] = Field(default_factory=list)

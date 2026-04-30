@@ -28,6 +28,9 @@ from typing import Literal
 
 # 6 scoring dimensions — compoem overall_score via aggregator com pesos novos.
 # Todas sao 🟢 Alta confianca (>85%). variety entra como meta-dim sobre outputs 🟢.
+# NOTA (2026-04-30): articulation removida do SCORING. Smoke test mobile mostrou
+# spectral_clarity 0.003 pra Gui E aluna (codec corta 4-8kHz). Nao discrimina.
+# Mantida em SECONDARY pra coleta passiva ate validar com audio studio-grade.
 SCORING_DIMENSIONS: tuple[str, ...] = (
     "posture",
     "gesture",
@@ -48,6 +51,38 @@ SECONDARY_DIMENSIONS: tuple[str, ...] = (
     "temporal",
     "congruence",
     "gesture_semantic",  # Story 9.6 — Gemini Vision gesto semantico (LLM)
+    "articulation",  # 2026-04-30 — coleta passiva ate audio studio validar
+)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FAMILY GROUPS (2026-04-29) — esqueleto pedagogico Tecnica vs Narrativa
+# ─────────────────────────────────────────────────────────────────────────────
+# Decisao arquitetural: separar overall em 2 family_scores pra:
+# 1. Isolar calibracao (tecnica nao afeta narrativa e vice-versa)
+# 2. Cliente ve 2 verdades (ferramenta vs uso)
+# 3. Espelha pedagogia Vinh Giang (5 Foundations vs Storytelling/Archetypes)
+#
+# TECNICA_DIMENSIONS = SCORING_DIMENSIONS (calibradas, ja entram em overall_score)
+# NARRATIVA_DIMENSIONS = subset SECONDARY pendente calibracao Gate 3
+# congruence permanece como modificador separado (Look-Feel-Sound triangle)
+
+TECNICA_DIMENSIONS: tuple[str, ...] = (
+    "voice",
+    "variety",
+    "fillers",
+)
+
+PRESENCA_DIMENSIONS: tuple[str, ...] = (
+    "gesture",
+    "posture",
+    "facial",
+)
+
+NARRATIVA_DIMENSIONS: tuple[str, ...] = (
+    "storytelling",
+    "archetypes",
+    "tonality",
+    "identity",
 )
 
 # 3 augmentation dimensions — subset de SECONDARY consumido pelo report_generator
@@ -102,6 +137,7 @@ Dimension = Literal[
     "temporal",
     "congruence",
     "gesture_semantic",
+    "articulation",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -131,6 +167,8 @@ DIMENSION_CONFIDENCE: dict[str, ConfidenceLevel] = {
     "congruence": "baixa",
     # 🟡 Media — Story 9.6 LLM structured output, em calibracao (Gemini Vision)
     "gesture_semantic": "media",
+    # 🔴 Baixa — articulation em mobile (codec corta 4-8kHz, AGC infla jitter)
+    "articulation": "baixa",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────

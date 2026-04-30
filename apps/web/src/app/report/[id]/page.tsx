@@ -18,11 +18,16 @@ import { CONFIDENCE_BADGES } from "@/lib/report-labels";
 
 const DIMENSION_LABELS: Record<string, string> = {
   variety: "Variedade Vocal",
-  voice: "Voz e Dicção",
-  gesture: "Presença Visual",
-  posture: "Postura e Presença",
+  voice: "Voz",
+  articulation: "Articulação",
+  gesture: "Gestos",
+  posture: "Postura",
   fillers: "Clareza Verbal",
   facial: "Expressão Facial",
+  storytelling: "Storytelling",
+  archetypes: "Arquétipos",
+  tonality: "Tonalidade",
+  identity: "Identidade",
 };
 
 const DIMENSION_ORDER = ["variety", "voice", "gesture", "facial", "posture", "fillers"];
@@ -42,6 +47,61 @@ function getScoreTone(score: number) {
   if (score >= 40) return "text-tertiary";
   return "text-error";
 }
+
+const FAMILIES: Array<{
+  key: "tecnica" | "presenca" | "narrativa";
+  label: string;
+  icon: string;
+  desc: string;
+  dims: string[];
+  feedback: (score: number) => string;
+}> = [
+  {
+    key: "tecnica",
+    label: "Técnica Vocal",
+    icon: "mic",
+    desc: "Como sua voz funciona como instrumento.",
+    dims: ["voice", "variety", "fillers"],
+    feedback: (s) =>
+      s >= 85
+        ? "Sua voz é um instrumento afiado — cadência, range melódico e dicção em nível alto."
+        : s >= 65
+        ? "Boa base técnica. Há espaço pra ampliar variação intencional."
+        : s >= 40
+        ? "Técnica funcional, mas previsível. Cycle entre cadências e volumes pra criar contraste."
+        : "Anytime anything becomes default, it becomes non-functional — sua voz precisa quebrar padrão.",
+  },
+  {
+    key: "presenca",
+    label: "Presença Física",
+    icon: "accessibility_new",
+    desc: "O que seu corpo está dizendo paralelo à fala.",
+    dims: ["gesture", "posture", "facial"],
+    feedback: (s) =>
+      s >= 85
+        ? "Presença confiante — corpo, gestos e rosto reforçam o que você diz."
+        : s >= 65
+        ? "Boa presença. Refine gesto intencional e ocupe mais espaço visual."
+        : s >= 40
+        ? "Corpo poderia abrir mais — gesto repetitivo ou postura fechada está te limitando."
+        : "Seu corpo está apagando sua mensagem. Be as big as the room.",
+  },
+  {
+    key: "narrativa",
+    label: "Narrativa",
+    icon: "auto_stories",
+    desc: "Se sua mensagem está conectando ou só ocupando ar.",
+    dims: ["storytelling", "archetypes", "tonality", "identity"],
+    feedback: (s) =>
+      s >= 85
+        ? "Sua mensagem prende e transforma — bridge, arquétipos e tonalidade alinhados."
+        : s >= 65
+        ? "Boa estrutura narrativa. Bridge sentence e cycling de arquétipos podem amplificar."
+        : s >= 40
+        ? "Sua mensagem precisa do bridge — 'a razão de eu estar te dizendo isso é...'"
+        : "Você está tocando as notas certas, mas não tocou a música. Foque em conectar.",
+  },
+];
 
 function getCongruenceTone(score: number) {
   if (score >= 70) return "text-secondary";
@@ -174,6 +234,85 @@ export default function ReportPage() {
           </div>
           <div className="absolute bottom-0 left-0 right-0 fluency-wave opacity-60" />
         </section>
+
+        {/* Family scores (2026-04-29) — Look-Feel-Sound Triangle */}
+        {data.family_scores && (
+          <section className="space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-secondary text-2xl">
+                category
+              </span>
+              <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight">
+                Famílias de Performance
+              </h2>
+            </div>
+            <div className="space-y-4">
+              {FAMILIES.map((fam) => {
+                const score = data.family_scores?.[fam.key];
+                const tone = getScoreTone(score ?? 0);
+                return (
+                  <article
+                    key={fam.key}
+                    className="rounded-2xl bg-surface-container-low ghost-border overflow-hidden"
+                  >
+                    {/* Header da família — score grande + descrição */}
+                    <div className="p-6 border-b border-outline-variant/20">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex items-start gap-4 flex-1 min-w-0">
+                          <span className="material-symbols-outlined text-secondary text-4xl shrink-0">
+                            {fam.icon}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-headline text-xl md:text-2xl font-bold mb-1">
+                              {fam.label}
+                            </h3>
+                            <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-3">
+                              {fam.desc}
+                            </p>
+                            <p className="text-sm text-on-surface leading-relaxed italic">
+                              {score != null ? fam.feedback(score) : "Sem dados suficientes."}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className={`font-mono font-bold text-5xl md:text-6xl ${tone}`}>
+                            {score ?? "—"}
+                          </div>
+                          <div className="text-xs text-on-surface-variant mt-1">/ 100</div>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Sub-dimensões nested */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-surface-container">
+                      {fam.dims.map((dim) => {
+                        const dimScore =
+                          data.dimension_scores?.[dim] ??
+                          data.detailed_metrics?.[dim]?.score;
+                        const subTone = getScoreTone(dimScore ?? 0);
+                        const label = DIMENSION_LABELS[dim] || dim;
+                        if (dimScore == null) return null;
+                        return (
+                          <button
+                            key={dim}
+                            onClick={() => router.push(`/report/${id}/${dim}`)}
+                            className="rounded-xl bg-surface-container-low p-3 hover:bg-surface-container-high transition-colors text-left"
+                          >
+                            <div className="text-xs text-on-surface-variant mb-1 truncate">
+                              {label}
+                            </div>
+                            <div className={`font-mono font-bold text-2xl ${subTone}`}>
+                              {dimScore}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Story 7.2 — Sua Abertura (antes das dimensões — momento crítico) */}
         <OpeningCard data={data.detailed_metrics?.opening} evaluationId={id} />

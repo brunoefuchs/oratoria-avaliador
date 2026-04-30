@@ -111,6 +111,35 @@ PESOS_DEFAULT_V060: dict[str, float] = {
     "fillers": 0.11,
 }
 
+# ─────────────────────────────────────────────────────────────────────────────
+# FAMILY SCORES (2026-04-29) — Look-Feel-Sound Triangle de Vinh Giang
+# ─────────────────────────────────────────────────────────────────────────────
+# 3 familias pedagogicas mapeadas em 1-pra-1 com o triangle:
+#   TECNICA VOCAL    (Sound) — voz como instrumento
+#   PRESENCA FISICA  (Look)  — corpo paralelo a fala
+#   NARRATIVA        (Feel)  — mensagem que conecta
+# Pesos iniciais HEURISTIC — calibracao real virá apos Vinh validar primeira
+# leva. overall_score continua usando PESOS_DEFAULT (todas dims) por compat.
+
+PESOS_TECNICA: dict[str, float] = {
+    "voice": 0.40,
+    "variety": 0.40,
+    "fillers": 0.20,
+}
+
+PESOS_PRESENCA: dict[str, float] = {
+    "gesture": 0.35,
+    "posture": 0.30,
+    "facial": 0.35,
+}
+
+PESOS_NARRATIVA: dict[str, float] = {
+    "storytelling": 0.35,  # Bridge/hook/chemicals — coracao da mensagem
+    "archetypes": 0.25,  # Cycling de 4 personas (anti-default)
+    "tonality": 0.25,  # VAD emocional (arousal/valence/dominance)
+    "identity": 0.15,  # Coerencia da persona ao longo do video
+}
+
 PESOS_POR_CONTEXTO_V060: dict[str, dict[str, float]] = {
     "palco": {"variety": 0.25, "voice": 0.20, "gesture": 0.18, "posture": 0.22, "fillers": 0.15},
     "podcast": {"variety": 0.30, "voice": 0.35, "gesture": 0.10, "posture": 0.05, "fillers": 0.20},
@@ -278,6 +307,35 @@ def aggregate_metrics(
     else:
         overall_score = None
 
+    # ─────────────────────────────────────────────────────────────────
+    # FAMILY SCORES (2026-04-29) — Look-Feel-Sound Triangle
+    # ─────────────────────────────────────────────────────────────────
+    # 3 familias com pesos proprios. Quando uma dim falha, peso ignorado e
+    # os restantes renormalizam. Score family = None se nenhuma dim sucesso.
+    def _compute_family_score(pesos: dict[str, float]) -> int | None:
+        total = 0.0
+        peso_acum = 0.0
+        for dim, peso in pesos.items():
+            score_dim = (
+                dimension_scores.get(dim)
+                if dim in dimension_scores
+                else (detailed_metrics.get(dim) or {}).get("score")
+            )
+            if isinstance(score_dim, (int, float)):
+                total += float(score_dim) * peso
+                peso_acum += peso
+        return round(total / peso_acum) if peso_acum > 0 else None
+
+    tecnica_score = _compute_family_score(PESOS_TECNICA)
+    presenca_score = _compute_family_score(PESOS_PRESENCA)
+    narrativa_score = _compute_family_score(PESOS_NARRATIVA)
+
+    family_scores = {
+        "tecnica": tecnica_score,
+        "presenca": presenca_score,
+        "narrativa": narrativa_score,
+    }
+
     partial_aggregation = len(incomplete_dimensions) > 0
 
     dimensoes_fortes = [dim for dim, score in dimension_scores.items() if score >= 70]
@@ -287,6 +345,9 @@ def aggregate_metrics(
         "metrics_aggregated",
         evaluation_id=evaluation_id,
         overall_score=overall_score,
+        tecnica_score=tecnica_score,
+        presenca_score=presenca_score,
+        narrativa_score=narrativa_score,
         dimensions_complete=len(dimension_scores),
         incomplete=incomplete_dimensions,
         partial=partial_aggregation,
@@ -297,6 +358,7 @@ def aggregate_metrics(
 
     payload: dict = {
         "overall_score": overall_score,
+        "family_scores": family_scores,
         "partial_aggregation": partial_aggregation,
         "dimension_scores": dimension_scores,
         "detailed_metrics": detailed_metrics,

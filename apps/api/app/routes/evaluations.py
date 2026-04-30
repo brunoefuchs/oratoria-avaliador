@@ -157,6 +157,7 @@ async def get_evaluation_report(evaluation_id: str):
     report_data = report.data[0] if report.data else {}
     agg_data = agg.data[0] if agg.data else {}
 
+    detailed = agg_data.get("detailed_metrics", {}) or {}
     return {
         "evaluation": {
             "id": evaluation["id"],
@@ -164,8 +165,9 @@ async def get_evaluation_report(evaluation_id: str):
             "duration_seconds": evaluation.get("duration_seconds"),
         },
         "overall_score": agg_data.get("overall_score", 0),
+        "family_scores": detailed.get("family_scores"),
         "dimension_scores": agg_data.get("dimension_scores", {}),
-        "detailed_metrics": agg_data.get("detailed_metrics", {}),
+        "detailed_metrics": detailed,
         "incomplete_dimensions": agg_data.get("incomplete_dimensions", []),
         "report": {
             # Campos novos (v2)
