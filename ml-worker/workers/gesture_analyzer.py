@@ -22,49 +22,93 @@ FIXACAO_MAX_FRAMES = 10  # 5s maximo antes de ficar desconfortavel
 
 
 def _estimar_direcao_olhar(face_landmarks) -> dict:
-    """Estima direcao do olhar com mais granularidade que apenas centrado/nao.
+    """Estima direcao do olhar usando landmarks de IRIS (gaze real).
+
+    2026-05-04: refator B. Antes media inclinacao da CABECA (offset nariz vs
+    olhos), o que falhava em selfie (camera abaixo dos olhos faz cabeca
+    inclinar levemente, marcando falsos "baixo"). Agora usa posicao das iris
+    (landmarks 468 esq, 473 dir) RELATIVA aos cantos do olho — mede pra onde
+    os OLHOS estao olhando, nao pra onde a cabeca aponta.
 
     Retorna:
         direcao: 'camera', 'baixo', 'esquerda', 'direita', 'cima'
         centrado: bool
-        angulo_vertical: float (negativo = baixo, positivo = cima)
+        gaze_x: float (-1 esquerda, 0 centro, +1 direita)
+        gaze_y: float (-1 cima, 0 centro, +1 baixo)
     """
     lm = face_landmarks
-    olho_esq = np.array([lm[33].x, lm[33].y])
-    olho_dir = np.array([lm[263].x, lm[263].y])
-    nariz = np.array([lm[1].x, lm[1].y])
-    queixo = np.array([lm[152].x, lm[152].y])
-    testa = np.array([lm[10].x, lm[10].y])
 
-    centro_olhos = (olho_esq + olho_dir) / 2
-    offset = nariz - centro_olhos
-    dist_olhos = np.linalg.norm(olho_dir - olho_esq)
+    # Iris centers (MediaPipe Face Landmarker — refine_landmarks=True dá 478)
+    iris_esq = np.array([lm[468].x, lm[468].y])
+    iris_dir = np.array([lm[473].x, lm[473].y])
 
-    offset_normalizado_x = offset[0] / (dist_olhos + 1e-8)
-    offset_normalizado_y = offset[1] / (dist_olhos + 1e-8)
+    # Cantos do olho esquerdo (do speaker): 33 outer, 133 inner
+    olho_esq_outer = np.array([lm[33].x, lm[33].y])
+    olho_esq_inner = np.array([lm[133].x, lm[133].y])
+    olho_esq_top = np.array([lm[159].x, lm[159].y])
+    olho_esq_bottom = np.array([lm[145].x, lm[145].y])
 
-    centrado = (
-        abs(offset_normalizado_x) < GAZE_THRESHOLD
-        and abs(offset_normalizado_y) < GAZE_THRESHOLD * 1.2
+    # Cantos do olho direito: 362 inner, 263 outer
+    olho_dir_inner = np.array([lm[362].x, lm[362].y])
+    olho_dir_outer = np.array([lm[263].x, lm[263].y])
+    olho_dir_top = np.array([lm[386].x, lm[386].y])
+    olho_dir_bottom = np.array([lm[374].x, lm[374].y])
+
+    def _iris_relative(iris, outer, inner, top, bottom):
+        """Retorna (x_rel, y_rel) onde iris está dentro do bounding box do olho.
+        x_rel: -1 = encostado outer, +1 = encostado inner (ou vice-versa)
+        y_rel: -1 = topo, +1 = baixo
+        """
+        eye_center = (outer + inner + top + bottom) / 4
+        eye_width = float(np.linalg.norm(outer - inner))
+        eye_height = float(np.linalg.norm(top - bottom))
+        if eye_width < 1e-6 or eye_height < 1e-6:
+            return 0.0, 0.0
+        offset = iris - eye_center
+        # Normaliza pra metade do tamanho (offset máximo razoável)
+        x_rel = float(offset[0]) / (eye_width / 2)
+        y_rel = float(offset[1]) / (eye_height / 2)
+        return x_rel, y_rel
+
+    # Olho esquerdo: outer < inner em X (no speaker, esquerda do rosto)
+    le_x, le_y = _iris_relative(
+        iris_esq, olho_esq_outer, olho_esq_inner, olho_esq_top, olho_esq_bottom
+    )
+    re_x, re_y = _iris_relative(
+        iris_dir, olho_dir_outer, olho_dir_inner, olho_dir_top, olho_dir_bottom
     )
 
-    # Angulo vertical da cabeca (inclinacao)
-    vetor_face = testa - queixo
-    angulo_vertical = float(np.degrees(np.arctan2(vetor_face[0], vetor_face[1])))
+    # Media dos 2 olhos (gaze é binocular)
+    gaze_x = (le_x + re_x) / 2
+    gaze_y = (le_y + re_y) / 2
 
-    # Classificar direcao
+    # 2026-05-04: Thresholds ASSIMETRICOS pra acomodar selfie.
+    # Em selfie tipica, speaker olha pra propria face no preview (acima do
+    # lens). Iris fica deslocada PRA CIMA dentro do olho (gaze_y negativo).
+    # Threshold simetrico penalizava esse padrao normal de selfie.
+    # GAZE_Y_DOWN: olhar pra baixo (notas/chao) é problema real, threshold
+    # apertado (0.30). GAZE_Y_UP: olhar pra cima (preview da camera) é
+    # selfie normal, threshold permissivo (0.55).
+    GAZE_X_THRESHOLD = 0.30  # ligeiramente mais permissivo
+    GAZE_Y_DOWN_THRESHOLD = 0.30  # olhar pra baixo = problema
+    GAZE_Y_UP_THRESHOLD = 0.55  # olhar pra cima = selfie OK
+
+    centrado = (
+        abs(gaze_x) < GAZE_X_THRESHOLD
+        and -GAZE_Y_UP_THRESHOLD < gaze_y < GAZE_Y_DOWN_THRESHOLD
+    )
+
     if centrado:
         direcao = "camera"
-    elif offset_normalizado_y > GAZE_THRESHOLD * 1.2:
+    elif gaze_y > GAZE_Y_DOWN_THRESHOLD:
         direcao = "baixo"
-    elif offset_normalizado_y < -GAZE_THRESHOLD:
+    elif gaze_y < -GAZE_Y_UP_THRESHOLD:
         direcao = "cima"
-    elif offset_normalizado_x > GAZE_THRESHOLD:
+    elif gaze_x > GAZE_X_THRESHOLD:
         direcao = "direita"
     else:
         direcao = "esquerda"
 
-    # MP-1: Classificar tipo de desvio (positivo/negativo/neutro)
     if centrado:
         tipo_desvio = "nenhum"
     elif direcao == "baixo":
@@ -74,13 +118,21 @@ def _estimar_direcao_olhar(face_landmarks) -> dict:
     else:
         tipo_desvio = "neutro"
 
+    # Angulo vertical da cabeca (mantido pra debug, NAO usado pra decisao)
+    queixo = np.array([lm[152].x, lm[152].y])
+    testa = np.array([lm[10].x, lm[10].y])
+    vetor_face = testa - queixo
+    angulo_vertical = float(np.degrees(np.arctan2(vetor_face[0], vetor_face[1])))
+
     return {
         "direcao": direcao,
         "centrado": centrado,
         "tipo_desvio": tipo_desvio,
         "angulo_vertical": round(angulo_vertical, 1),
-        "offset_x": round(float(offset_normalizado_x), 3),
-        "offset_y": round(float(offset_normalizado_y), 3),
+        "gaze_x": round(gaze_x, 3),
+        "gaze_y": round(gaze_y, 3),
+        "offset_x": round(gaze_x, 3),  # alias pra compat com codigo legado
+        "offset_y": round(gaze_y, 3),
     }
 
 
@@ -174,7 +226,9 @@ def _compute_gesture_metrics(video_path: str) -> dict:
     zona_alta_count = 0
     zona_media_count = 0
     zona_baixa_count = 0
-    posicoes_grid_vistas = set()  # vocabulario de posicoes
+    posicoes_grid_vistas = set()  # vocabulario de posicoes (legado)
+    posicoes_grid_freq: dict = {}  # frequencia de cada posicao (entropia)
+    posicoes_grid_sequencia: list = []  # sequencia temporal pra bigramas
     maos_abertas_count = 0
     maos_fechadas_count = 0
     frames_com_mao_detectada = 0  # maos visiveis no frame
@@ -226,6 +280,10 @@ def _compute_gesture_metrics(video_path: str) -> dict:
                     maos_fechadas_count += 1
 
                 posicoes_grid_vistas.add(info["posicao_grid"])
+                posicoes_grid_freq[info["posicao_grid"]] = (
+                    posicoes_grid_freq.get(info["posicao_grid"], 0) + 1
+                )
+                posicoes_grid_sequencia.append(info["posicao_grid"])
                 ultimas_posicoes.append(info["posicao_grid"])
 
             # Medir MOVIMENTO real: comparar posicao com frame anterior
@@ -286,6 +344,53 @@ def _compute_gesture_metrics(video_path: str) -> dict:
     # Vocabulario de gestos (quantas posicoes diferentes usa)
     vocabulario_gestos = len(posicoes_grid_vistas)
 
+    # 2026-05-04: Entropia da distribuicao por zona (DIVERSIDADE real, nao
+    # apenas cobertura). Speaker que passa 70% numa zona tem cobertura alta
+    # mas entropia baixa = repetitivo. Speaker bem distribuido = entropia
+    # alta. Range: 0 (concentrado) → 1 (perfeitamente distribuido entre 9
+    # zonas do grid 3x3). Score multiplica vocabulario base.
+    if posicoes_grid_freq:
+        total_freq = sum(posicoes_grid_freq.values())
+        probs_zonas = [c / total_freq for c in posicoes_grid_freq.values()]
+        entropia_zonas = -sum(p * np.log2(p + 1e-10) for p in probs_zonas)
+        # Max entropia = log2(9) = 3.17 (9 zonas igualmente distribuidas)
+        max_entropia_zonas = np.log2(9)
+        diversidade_gestos = round(
+            float(entropia_zonas / (max_entropia_zonas + 1e-10)), 3
+        )
+    else:
+        diversidade_gestos = 0.0
+
+    # 2026-05-04: Entropia de BIGRAMAS (pares consecutivos) — captura ciclos
+    # repetitivos que diversidade_gestos perde. Speaker A-B-A-B-A-B tem
+    # entropia_zonas alta (50/50) mas entropia_bigramas baixa (so 2 pares
+    # unicos: AB,BA). Speaker A-B-C-D-A-B tem ambas altas. Detecta "maos
+    # batendo" cíclico que iniciantes ansiosos fazem.
+    if len(posicoes_grid_sequencia) >= 3:
+        bigramas: dict = {}
+        for i in range(len(posicoes_grid_sequencia) - 1):
+            par = (posicoes_grid_sequencia[i], posicoes_grid_sequencia[i + 1])
+            bigramas[par] = bigramas.get(par, 0) + 1
+        total_bigramas = sum(bigramas.values())
+        probs_bigramas = [c / total_bigramas for c in bigramas.values()]
+        entropia_bigramas = -sum(p * np.log2(p + 1e-10) for p in probs_bigramas)
+        # Max teorico: 9 zonas × 9 zonas = 81 bigramas distintos
+        # Pratico: limitado pelo total observado (frames_total - 1)
+        max_bigramas_pratico = min(81, total_bigramas)
+        max_entropia_bigramas = (
+            np.log2(max_bigramas_pratico) if max_bigramas_pratico > 1 else 1
+        )
+        diversidade_bigramas = round(
+            float(entropia_bigramas / (max_entropia_bigramas + 1e-10)), 3
+        )
+    else:
+        diversidade_bigramas = 0.0
+
+    # Diversidade composta: gargalo do mais fraco entre zonas e bigramas.
+    # Speaker oscilando A-B-A-B → zonas alta, bigramas baixa → score baixo.
+    # Speaker variado → ambas altas → score alto.
+    diversidade_composta = round(min(diversidade_gestos, diversidade_bigramas), 3)
+
     # Distribuicao do olhar (entropia — quao bem distribui entre direcoes)
     if direcoes_olhar:
         from collections import Counter
@@ -322,22 +427,26 @@ def _compute_gesture_metrics(video_path: str) -> dict:
     # Story 7.1 AC-3: bell curve com banda ideal 70-90%.
     # 100% contato continuo e penalizado como "staring" (~50).
     # 85% = 100 (zona ideal). 40% = ~57. 0% = 0.
-    if 70 <= eye_contact_pct <= 90:
+    # 2026-05-04: threshold superior ampliado 90% → 100%. Em selfie/
+    # talking-head (formato dominante), olhar pra camera o tempo todo é
+    # ENGAJAMENTO, nao fixacao. Penalty de excesso fazia sentido pra palco
+    # (varrer audiencia) mas inverte logica em redes sociais.
+    if 70 <= eye_contact_pct <= 100:
         contato_base = 100.0
-    elif eye_contact_pct < 70:
+    else:  # < 70
         contato_base = max(0.0, (eye_contact_pct / 70.0) * 100)
-    else:  # > 90
-        contato_base = max(0.0, 100 - (eye_contact_pct - 90) * 5)
     # MP-1: penalizar só desvios negativos (evasivo). Positivos não penalizam.
     penalidade_desvio_negativo = min(30, desvio_negativo_pct * 0.8)
     contato_score = max(0, contato_base - penalidade_desvio_negativo)
 
     # 2. Gesticulacao com qualidade — peso 30%
-    # Story 7.1 AC-4: bidirectional bell curve. Pouco gesto E excesso sao ruins.
-    # Banda ideal: 40-70% do tempo gesticulando (calibrado em 2026-04 com video
-    # de referencia — ajustar se feedback do user divergir).
+    # 2026-05-04: banda ideal AMPLIADA para 40-85% (era 40-70). Mentor TEDx
+    # engajado fica naturalmente em 70-90%. Threshold antigo punia speaker
+    # energético e premiava aluno discreto. Tier acima de 85% = "engajado-alto"
+    # (90 baseline). Acima de 95% = exagerado (decay).
     IDEAL_GESTURES_MIN = 40.0
-    IDEAL_GESTURES_MAX = 70.0
+    IDEAL_GESTURES_MAX = 85.0
+    HIGH_GESTURES_MAX = 95.0
     if IDEAL_GESTURES_MIN <= gesticulation_pct <= IDEAL_GESTURES_MAX:
         gesto_base = 100.0
         gesto_zona = "ideal"
@@ -345,13 +454,20 @@ def _compute_gesture_metrics(video_path: str) -> dict:
         # Pouca variacao: 0% → 0, 40% → 100, linear
         gesto_base = max(0.0, (gesticulation_pct / IDEAL_GESTURES_MIN) * 100)
         gesto_zona = "pouca_variacao"
+    elif gesticulation_pct <= HIGH_GESTURES_MAX:
+        # Engajado-alto: 85% → 100, 95% → 90, decay leve
+        gesto_base = max(0.0, 100 - (gesticulation_pct - IDEAL_GESTURES_MAX) * 1.0)
+        gesto_zona = "engajado_alto"
     else:
-        # Excesso: 70% → 100, 100% → ~50, linear decay
-        gesto_base = max(0.0, 100 - (gesticulation_pct - IDEAL_GESTURES_MAX) * (50 / 30))
+        # Exagerado: 95% → 90, 100% → 60, decay forte
+        gesto_base = max(0.0, 90 - (gesticulation_pct - HIGH_GESTURES_MAX) * 6)
         gesto_zona = "excesso"
 
-    # Bonus vocabulario (mais posicoes = mais expressivo)
-    bonus_vocabulario = min(20, vocabulario_gestos * 3)
+    # Bonus vocabulario AGORA via DIVERSIDADE COMPOSTA (zonas + bigramas).
+    # Composta = min(zonas, bigramas) — gargalo do mais fraco.
+    # Speaker A-B-A-B (cíclico): zonas altas, bigramas baixas → composta baixa.
+    # Speaker A-B-C-D-E (variado): ambas altas → composta alta.
+    bonus_vocabulario = round(diversidade_composta * 25)
     # Penalidade repeticao — PROPORCIONAL ao unique_ratio (validado 2026-04-18
     # via Gemini Vision). Binario -15 tratava igual borderline (0.30) e severo
     # (0.15). Gradiente reflete severidade real do lock-in gestual.
@@ -424,6 +540,9 @@ def _compute_gesture_metrics(video_path: str) -> dict:
             "desvio_neutro_pct": desvio_neutro_pct,
             "duas_maos_pct": duas_maos_pct,
             "vocabulario_gestos": vocabulario_gestos,
+            "diversidade_gestos": diversidade_gestos,
+            "diversidade_bigramas": diversidade_bigramas,
+            "diversidade_composta": diversidade_composta,
             "zona_ideal_pct": zona_ideal_pct,
             "distribuicao_olhar": distribuicao_olhar,
             "gesto_repetitivo": gesto_repetitivo,

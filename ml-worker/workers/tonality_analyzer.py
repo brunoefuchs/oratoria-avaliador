@@ -150,21 +150,38 @@ def _classify_textura(vad: dict) -> str:
     """Classifica VAD em uma das 6 texturas interpretaveis.
 
     Texturas ortogonais (NAO emocoes explicitas — abstratas por design).
-    """
-    v, a, d = vad["v"], vad["a"], vad["d"]
 
-    # B9-real-v2: thresholds relaxados pra real-world mobile audio
-    # (valence fica negativa por default em mobile devido a jitter/HNR)
-    if v > 0.3 and a > 0.5 and d > 0.3:
-        return "entusiasmado"
-    if v < -0.4 and a > 0.6 and d <= 0.5:
-        return "tenso"
-    if v < -0.3 and a < 0.3 and d < 0.3:
-        return "apatico"
-    if -0.3 <= v < 0.1 and a < 0.4 and d < 0.4:
-        return "hesitante"
-    if v >= -0.2 and 0.3 <= a <= 0.7 and d > 0.4:
+    2026-05-05: aplicado offset +0.5 no valence pra compensar bias estrutural
+    de mobile (AGC + jitter/HNR derrubam valence ~0.5pts vs studio mic).
+    Sem offset, todo mentor TEDx era classificado como "tenso/negativo".
+    Thresholds tambem rebalanceados pra dar mais peso a arousal+dominance
+    (mais estaveis em mobile que valence).
+    """
+    MOBILE_VALENCE_OFFSET = 0.4
+    v = max(-1.0, min(1.0, vad["v"] + MOBILE_VALENCE_OFFSET))
+    a, d = vad["a"], vad["d"]
+
+    # 2026-05-05: discriminador principal mudou pra AROUSAL (mais estavel em
+    # mobile que valence). Bias de mobile derruba valence pra todos — usar
+    # arousal+dominance pra distinguir tier alto vs medio.
+
+    # Confiante: arousal alto (>=0.85) + dominance medio-alto (autoridade real).
+    # Mentor TEDx-tier cai aqui — energia + autoridade tecnica.
+    if a >= 0.85 and d >= 0.4 and v > -0.5:
         return "confiante"
+    # Entusiasmado: arousal alto + valence positiva (raro em mobile).
+    if v > 0.2 and a >= 0.7 and d > 0.4:
+        return "entusiasmado"
+    # Tenso: arousal alto-medio (0.7-0.85) + dominance baixo. Aluna
+    # ansiosa fala forte mas sem comando — cai aqui.
+    if 0.65 <= a < 0.85 and d < 0.55:
+        return "tenso"
+    # Apatico: baixa energia geral
+    if a < 0.3 and v < 0:
+        return "apatico"
+    # Hesitante: arousal baixo-medio + dominance baixo
+    if a < 0.5 and d < 0.4:
+        return "hesitante"
     return "neutro"
 
 
@@ -299,23 +316,40 @@ def _compute_tonality_metrics(audio_path: str) -> dict:
     pct_dominante = distribuicao[textura_dominante]
     num_texturas_usadas = sum(1 for c in texturas_count.values() if c > 0)
 
-    # Diversidade base
-    # B9-real-v2: sobe baseline — 1 textura=45, 6=95
-    score = 45 + (num_texturas_usadas - 1) * 10
+    # 2026-05-05 v2: scoring reestruturado por TEXTURA DOMINANTE primeiro,
+    # depois diversidade. Mentor TEDx em 100% "confiante" deve pontuar alto
+    # porque a textura certa = autoridade tecnica. Speaker em 100% "tenso"
+    # deve pontuar baixo porque a textura errada = ansiedade.
+    textura_positiva = textura_dominante in ("confiante", "entusiasmado")
+    textura_negativa = textura_dominante in ("tenso", "apatico", "hesitante")
 
-    # Penalty se >70% em uma textura (default)
-    if pct_dominante > 80:
-        score -= 25
-    elif pct_dominante > 70:
-        score -= 15
+    # Baseline por qualidade da textura dominante
+    if textura_positiva:
+        score = 75  # textura "certa" — autoridade/energia
+    elif textura_dominante == "neutro":
+        score = 55
+    elif textura_negativa:
+        score = 35  # textura "errada" — corrigir
+    else:
+        score = 50
 
-    # Penalty se dominante é negativo (apatico/tenso > 50%)
-    if distribuicao["apatico"] > 50 or distribuicao["tenso"] > 50:
-        score -= 15
-
-    # Bonus se variacao boa entre 3+ texturas em proporcao saudavel
-    if num_texturas_usadas >= 3 and pct_dominante < 60:
+    # Bonus por diversidade (variar é sempre bom)
+    if num_texturas_usadas >= 4:
         score += 15
+    elif num_texturas_usadas == 3:
+        score += 10
+    elif num_texturas_usadas == 2:
+        score += 5
+
+    # Penalty SO se a textura negativa toma o video todo
+    if textura_negativa and pct_dominante > 70:
+        score -= 10
+
+    # Penalty extra acumulada por presença significativa de tenso/apatico
+    if distribuicao.get("apatico", 0) > 50:
+        score -= 10
+    if distribuicao.get("tenso", 0) > 50 and not textura_positiva:
+        score -= 5
 
     score = max(0, min(100, round(score)))
 

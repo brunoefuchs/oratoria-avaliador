@@ -26,89 +26,276 @@ const DIMENSION_ICONS: Record<string, string> = {
 
 const METRIC_LABELS: Record<
   string,
-  Record<string, { label: string; reference?: string }>
+  Record<string, { label: string; reference?: string; description?: string }>
 > = {
   voice: {
-    wpm: { label: "Palavras por minuto", reference: "Ideal: 130-170" },
-    pitch_mean_hz: { label: "Tom médio (Hz)" },
+    wpm: {
+      label: "Palavras por minuto",
+      reference: "Ideal: 130-170",
+      description: "Sua cadência de fala. Acima de 180 cansa o ouvinte; abaixo de 120 perde atenção.",
+    },
+    pitch_mean_hz: {
+      label: "Tom médio (Hz)",
+      description: "Frequência fundamental média da sua voz. Não é bom nem ruim — é seu ponto de partida pra modular.",
+    },
     pitch_range_semitones: {
       label: "Variação de tom (semitons)",
       reference: "10+ = expressivo",
+      description: "Distância do seu tom mais grave ao mais agudo. Range maior = mais teclas do piano em uso.",
     },
-    intensity_mean_db: { label: "Volume médio (dB)" },
+    intensity_mean_db: {
+      label: "Volume médio (dB)",
+      description: "Intensidade média. Speakers TEDx ficam em 60-70 dB com picos pra modular ênfase.",
+    },
     cv_velocidade: {
       label: "Variação de velocidade",
       reference: "0.08-0.30 = ideal",
+      description: "Quanto a cadência muda ao longo da fala. Anytime anything becomes default, it becomes non-functional.",
     },
     monotonia_score: {
       label: "Pontuação anti-monotonia (0-100)",
       reference: "70+ = ótima variação",
+      description: "Composto de variação de tom, volume, velocidade e pausas estratégicas.",
+    },
+    pitch_accent_per_minute: {
+      label: "Ênfases por minuto",
+      reference: "TEDx ~50-80/min",
+      description: "Picos proeminentes em F0 que marcam palavras-chave. Quantidade de ênfases.",
+    },
+    pitch_accent_mean_prominence_st: {
+      label: "Proeminência média (semitons)",
+      reference: "10+ = ênfase dramática",
+      description: "Quão DRAMÁTICA é cada ênfase. Distingue modulação intencional de tremor.",
+    },
+    pitch_accent_strong_per_minute: {
+      label: "Ênfases fortes por minuto",
+      reference: "≥8 semitons de proeminência",
+      description: "Saltos melódicos significativos. Mentores TEDx têm 25-35/min.",
     },
   },
   fillers: {
     fillers_per_minute: {
       label: "Vícios de linguagem por minuto",
       reference: "Meta: < 3/min",
+      description: "Quantas vezes 'né', 'tipo', 'sabe', 'então' aparecem por minuto. Substitua por pausas.",
     },
     hesitacoes_per_minute: {
       label: "Hesitações por minuto",
       reference: "< 2/min ideal",
+      description: "Frequência de 'ahn', 'eh', 'hum'. Mostra busca de palavra. Pausa silenciosa lê melhor.",
     },
-    total_fillers: { label: "Total de vícios de linguagem" },
-    total_clusters: { label: "Problemas de fluência", reference: "0 = ideal" },
+    total_fillers: {
+      label: "Total de vícios de linguagem",
+      description: "Contagem absoluta no vídeo todo.",
+    },
+    total_clusters: {
+      label: "Problemas de fluência",
+      reference: "0 = ideal",
+      description: "Trechos com múltiplos vícios em sequência. Sinaliza ansiedade ou falta de preparo.",
+    },
     type_token_ratio: {
       label: "Riqueza de vocabulário",
       reference: "0.5+ = bom vocabulário",
+      description: "Razão entre palavras únicas e total. Quanto maior, mais variado seu repertório.",
     },
   },
   posture: {
-    alignment_score: { label: "Alinhamento postural (0-100)" },
-    open_posture_pct: { label: "% postura aberta" },
-    ombros_nivelados_pct: { label: "% ombros nivelados" },
+    alignment_score: {
+      label: "Alinhamento postural (0-100)",
+      description: "Coluna ereta, ombros alinhados. Postura forte = autoridade percebida.",
+    },
+    open_posture_pct: {
+      label: "% postura aberta",
+      description: "Tempo com peito aberto vs braços cruzados/fechado. Aberto convida conexão.",
+    },
+    ombros_nivelados_pct: {
+      label: "% ombros nivelados",
+      description: "Estabilidade lateral. Ombros tortos sinalizam tensão ou desbalanceio.",
+    },
     grounding_score: {
       label: "Estabilidade corporal (0-100)",
       reference: "Base firme = força",
+      description: "Pés firmes no chão, sem balanço lateral. Base sólida = presença sólida.",
     },
-    proposital_score: { label: "Movimento proposital (0-100)" },
-    padrao_movimento: { label: "Padrão de movimento" },
+    proposital_score: {
+      label: "Movimento proposital (0-100)",
+      description: "Cada movimento tem intenção (não é tique nervoso). Be as big as the room — mas com propósito.",
+    },
+    padrao_movimento: {
+      label: "Padrão de movimento",
+      description: "Categoria detectada: estático, oscilante, intencional, etc.",
+    },
+    shoulder_to_ear_ratio: {
+      label: "Razão orelha→ombro / largura ombros",
+      reference: ">1.0 = relaxado",
+      description: "Body-relative (não depende do crop da câmera). Tenso <0.7. Killer da presença.",
+    },
+    shoulder_relax_score: {
+      label: "Soltura de ombros (0-100)",
+      reference: "85+ = relaxado",
+      description: "Score derivado da distância orelha→ombro. Tensão = ansiedade percebida.",
+    },
   },
   gesture: {
-    eye_contact_pct: { label: "% contato visual", reference: "Zona ideal: 70-90%" },
-    olhar_baixo_pct: { label: "% olhar para baixo", reference: "< 10% ideal" },
+    eye_contact_pct: {
+      label: "% contato visual",
+      reference: "Zona ideal: 70-90%",
+      description: "Tempo olhando pra câmera. Audiência precisa sentir que você está com ela.",
+    },
+    olhar_baixo_pct: {
+      label: "% olhar para baixo",
+      reference: "< 10% ideal",
+      description: "Olhar pra notas/chão diminui conexão. Ensaie até dispensar slides.",
+    },
     gesticulation_pct: {
       label: "% tempo gesticulando",
       reference: "Zona ideal: 40-70%",
+      description: "Mãos visíveis e ativas. Mãos paradas = energia parada. Mãos demais = distrai.",
     },
-    gesto_zona: { label: "Zona de gesticulação" },
+    gesto_zona: {
+      label: "Zona de gesticulação",
+      description: "Faixa vertical onde os gestos acontecem. Peitoral é a zona de poder.",
+    },
     duas_maos_pct: {
       label: "% gestos com duas mãos",
       reference: "30%+ = mais expressivo",
+      description: "Duas mãos amplificam ideias grandes. Uma mão sozinha limita o palco.",
     },
     vocabulario_gestos: {
       label: "Vocabulário de gestos",
       reference: "6+ posições = variado",
+      description: "Quantas regiões diferentes você ocupa. Mais posições = mais 'paleta' visual.",
     },
     distribuicao_olhar: {
       label: "Distribuição do olhar",
       reference: "1.0 = bem distribuído",
+      description: "Quão equilibradamente você varre a audiência ou enquadra a câmera.",
     },
   },
   variety: {
-    diagnostico_geral: { label: "Diagnóstico geral" },
-    pct_tempo_monotono: { label: "% tempo monótono", reference: "< 20% ideal" },
+    diagnostico_geral: {
+      label: "Diagnóstico geral",
+      description: "Resumo qualitativo da sua variação prosódica.",
+    },
+    pct_tempo_monotono: {
+      label: "% tempo monótono",
+      reference: "< 20% ideal",
+      description: "Tempo em que volume, tom ou velocidade ficaram estáveis demais. Cérebro desliga em previsão.",
+    },
+  },
+  facial: {
+    smile_frequency_percent: {
+      label: "% tempo sorrindo",
+      reference: "30-60% = caloroso natural",
+      description: "Quanto do tempo aparece um sorriso. Calor humano sem cair em sorriso forçado.",
+    },
+    brow_raises_per_minute: {
+      label: "Sobrancelhas (movimentos claros) /min",
+      reference: "1-5/min = expressivo",
+      description: "Movimentos marcantes de sobrancelha — surpresa, ênfase, dúvida.",
+    },
+    brow_subtle_per_minute: {
+      label: "Sobrancelhas (sutis) /min",
+      reference: "complementa os claros",
+      description: "Microelevações que captam expressões discretas.",
+    },
+    brow_combined_per_minute: {
+      label: "Sobrancelhas combinadas /min",
+      reference: "claros + sutis × 0.5",
+      description: "Score combinado usado pra diagnóstico (claros valem 1.0, sutis 0.5).",
+    },
+    smile_variability: {
+      label: "Variabilidade do sorriso",
+      reference: ">0.05 = expressivo",
+      description: "Quanto seu sorriso muda de intensidade. Sorriso estático = inautêntico.",
+    },
+    eye_openness_stddev: {
+      label: "Variação abertura dos olhos",
+      reference: ">0.03 = expressivo",
+      description: "Olhos arregalando vs apertando. Captura surpresa, foco, ênfase emocional.",
+    },
+    detection_pct: {
+      label: "% rosto detectado",
+      reference: "90+ = bom enquadramento",
+      description: "Quanto do tempo o rosto está visível pelo MediaPipe.",
+    },
+    diagnostico: {
+      label: "Diagnóstico",
+      description: "Classificação qualitativa: rosto_estatico, expressivo, exagerado, neutro.",
+    },
+    feedback: {
+      label: "Feedback do sistema",
+      description: "Recomendação automática baseada no padrão detectado.",
+    },
+  },
+  tonality: {
+    diagnostico: {
+      label: "Diagnóstico de tonalidade",
+      description: "Classificação emocional via VAD (arousal/valence/dominance).",
+    },
+    textura_dominante: {
+      label: "Textura dominante",
+      description: "Padrão emocional mais frequente na fala (alegre, neutro, tenso, etc).",
+    },
+    n_texturas_usadas: {
+      label: "Texturas distintas usadas",
+      reference: "3+ = variação",
+      description: "Quantas categorias emocionais aparecem ao longo do vídeo.",
+    },
   },
   archetypes: {
-    arquetipo_dominante: { label: "Arquétipo dominante" },
+    arquetipo_dominante: {
+      label: "Arquétipo dominante",
+      description: "Coach (diretivo), Educador (estruturado), Motivador (aspiracional) ou Amigo (caloroso).",
+    },
     pct_dominante: {
       label: "% no arquétipo dominante",
       reference: "< 50% = equilibrado",
+      description: "Se um arquétipo passa de 50%, você travou nele. Cycling cria contraste.",
     },
     num_arquetipos_usados: {
       label: "Arquétipos usados",
       reference: "4 = ideal",
+      description: "Quantos dos 4 arquétipos apareceram. Faltar um = faltar uma cor.",
     },
-    trocas_por_minuto: { label: "Trocas por minuto", reference: "2-5 = ideal" },
-    lock_in: { label: "Lock-in detectado", reference: "false = bom" },
+    trocas_por_minuto: {
+      label: "Trocas por minuto",
+      reference: "2-5 = ideal",
+      description: "Frequência de mudança entre arquétipos. Pouca = monotonia. Muita = caos.",
+    },
+    lock_in: {
+      label: "Lock-in detectado",
+      reference: "false = bom",
+      description: "Quando você fica preso num único arquétipo. Default = não-funcional.",
+    },
+  },
+  storytelling: {
+    diagnostico: {
+      label: "Diagnóstico narrativo",
+      description: "Estrutura detectada: narrativa_basica, com_bridge, completa, etc.",
+    },
+  },
+  identity: {
+    diagnostico: {
+      label: "Diagnóstico de identidade",
+      description: "Coerência da persona ao longo do vídeo.",
+    },
+  },
+  opening: {
+    type: {
+      label: "Tipo de abertura",
+      description: "Categoria de hook detectada (pergunta, dado, vulnerabilidade, etc).",
+    },
+    strength: {
+      label: "Força do hook",
+      description: "Avaliação qualitativa: weak, moderate, strong.",
+    },
+  },
+  congruence: {
+    diagnostico: {
+      label: "Congruência verbal-vocal-visual",
+      description: "Quão alinhado está o que você diz com tom de voz e linguagem corporal.",
+    },
   },
 };
 
@@ -127,6 +314,7 @@ const SUB_SCORE_LABELS: Record<string, string> = {
   alinhamento: "Alinhamento",
   postura_aberta: "Postura Aberta",
   movimento_proposital: "Movimento Proposital",
+  ombros_relaxados: "Ombros Relaxados",
   zona: "Zona",
   duas_maos: "Duas Mãos",
   gesticulacao: "Gesticulação",
@@ -135,6 +323,32 @@ const SUB_SCORE_LABELS: Record<string, string> = {
   cycling: "Alternância",
   anti_lockin: "Anti Lock-in",
   diversidade: "Diversidade",
+};
+
+const SUB_SCORE_DESC: Record<string, string> = {
+  wpm_score: "Cadência ideal: 130-170 palavras/min. Acima cansa, abaixo perde.",
+  wpm: "Cadência ideal: 130-170 palavras/min. Acima cansa, abaixo perde.",
+  pausa_score: "Pausas estratégicas (pré conteúdo) puxam atenção; hesitação dispersa.",
+  pausa: "Pausas estratégicas (pré conteúdo) puxam atenção; hesitação dispersa.",
+  pitch_score: "Range total entre seu tom mais grave e mais agudo. 15+ semitons = TEDx.",
+  pitch: "Range total entre seu tom mais grave e mais agudo. 15+ semitons = TEDx.",
+  volume_score: "Quanto seu volume modula ao longo da fala. Variar = peaks and troughs.",
+  volume: "Quanto seu volume modula ao longo da fala. Variar = peaks and troughs.",
+  velocidade_score: "Quanto sua cadência muda. Não é só rápido vs devagar — é o ritmo mudar.",
+  velocidade: "Quanto sua cadência muda. Não é só rápido vs devagar — é o ritmo mudar.",
+  grounding: "Pés firmes, corpo estável. Base solida = presença sólida.",
+  alinhamento: "Coluna ereta, ombros alinhados. Postura forte vende autoridade.",
+  postura_aberta: "Peito aberto vs fechado. Aberto convida conexão.",
+  movimento_proposital: "Cada movimento com intenção, não tique nervoso.",
+  ombros_relaxados: "Distância orelha→ombro. Ombros encolhidos = tensão = ansiedade percebida.",
+  zona: "Faixa vertical onde gesticula. Peitoral é zona de poder.",
+  duas_maos: "Gesticular com 2 mãos amplifica ideias grandes.",
+  gesticulacao: "Tempo com mãos visíveis e ativas. Mãos paradas = energia parada.",
+  contato_visual: "Tempo olhando pra câmera. Audiência precisa sentir presença.",
+  distribuicao_olhar: "Quão equilibradamente você varre o enquadramento.",
+  cycling: "Frequência de troca entre os 4 arquétipos.",
+  anti_lockin: "Você não trava num único arquétipo. Default = não-funcional.",
+  diversidade: "Quantos dos 4 arquétipos você usou no vídeo.",
 };
 
 const ARCHETYPE_LABELS: Record<string, string> = {
@@ -269,13 +483,18 @@ export default function DimensionDetailPage() {
                     key={key}
                     className="flex items-center justify-between rounded-xl bg-surface-container-low p-4 ghost-border gap-4"
                   >
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-on-surface">
                         {def.label}
                       </p>
                       {def.reference && (
-                        <p className="text-xs text-on-surface-variant mt-0.5">
+                        <p className="text-xs text-secondary/80 mt-0.5">
                           {def.reference}
+                        </p>
+                      )}
+                      {def.description && (
+                        <p className="text-[11px] text-on-surface-variant/80 mt-1.5 leading-snug">
+                          {def.description}
                         </p>
                       )}
                     </div>
@@ -316,6 +535,11 @@ export default function DimensionDetailPage() {
                         style={{ width: `${Math.min(100, value)}%` }}
                       />
                     </div>
+                    {SUB_SCORE_DESC[key] && (
+                      <p className="text-[11px] text-on-surface-variant/80 leading-snug pt-0.5">
+                        {SUB_SCORE_DESC[key]}
+                      </p>
+                    )}
                   </div>
                 );
               })}

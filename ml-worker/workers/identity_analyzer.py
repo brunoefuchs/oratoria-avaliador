@@ -81,6 +81,7 @@ VICIOS_EMOCIONAIS = {
 }
 
 LINGUAGEM_AUTORIDADE = [
+    # Originais
     r"\beu vou\b",
     r"\ba melhor forma [eé]\b",
     r"\bfa[cç]a isso\b",
@@ -98,6 +99,46 @@ LINGUAGEM_AUTORIDADE = [
     r"\bvou te mostrar\b",
     r"\bvou te ensinar\b",
     r"\bo que funciona\b",
+    # 2026-05-05: ampliado — mentor/coach assertivo usa AFIRMAÇÕES DECLARATIVAS
+    # e VERBOS DE AÇÃO em primeira pessoa (destravo, ensino, mostro, transformo).
+    r"\bmeu nome [eé]\b",
+    r"\beu (destravo|ensino|ajudo|mostro|transformo|construo|crio|fa[cç]o|gero|fecho|implemento)\b",
+    r"\beu (te |voc[eê] )?(provo|comprovo|mostro|garanto|afirmo)\b",
+    r"\bvou (te |voc[eê] )?(provar|comprovar|mostrar|garantir)\b",
+    r"\bte (provo|comprovo|mostro|ensino) que\b",
+    r"\b[eé] melhor (voc[eê]|tu) (n[aã]o )?\w+\b",  # "é melhor você não X" (assertion)
+    r"\b[eé] a (unica|melhor|verdadeira) (forma|maneira|coisa)\b",
+    r"\bsempre que (voc[eê]|tu)\b",  # "sempre que você"
+    r"\b(use|evite|contrate|fa[cç]a|pare de|nunca|sempre) \w+\b",  # imperativo
+    r"\baprendi\s+(que|com|fazendo)\b",
+    r"\bdescobri\s+(que|como|o)\b",
+    r"\b(j[aá] )?(vi|atendi|trabalhei com) (mais de )?\d+\b",  # "vi mais de 100"
+    r"\btenho \d+ anos\b",
+    r"\bao longo (de|dos) \d+ anos\b",
+    r"\b(em|h[aá]) \d+ anos (de|atuando|trabalhando)\b",
+    r"\bminha experi[eê]ncia (mostra|prova|comprova)\b",
+    r"\bo que define\b",
+    r"\btudo que (voc[eê]|tu) precisa\b",
+    r"\b(quanto|maior) for o\b",  # "quanto maior for o..."
+    r"\bdo contr[aá]rio,?\b",
+    # 2026-05-05 v3: estilo didático/explicativo (professor assertivo)
+    r"\bveja\s+bem\b",
+    r"\bolha\s+s[oó]\b",
+    r"\bna\s+verdade,?\b",
+    r"\bde\s+fato,?\b",
+    r"\bna\s+realidade,?\b",
+    r"\bent[aã]o,?\s+(se|veja|olha|voc[eê])\b",
+    r"\bbasicamente,?\b",
+    r"\bo\s+que\s+acontece\s+[eé]\b",
+    r"\bcomo\s+funciona\b",
+    r"\bcomo\s+[eé]\s+feito\b",
+    r"\bperceba\b",
+    r"\bobserve\b",
+    r"\batente\s+para\b",
+    r"\b(repare|note|saiba)\s+(que|bem)\b",
+    r"\bisso\s+significa\s+que\b",
+    r"\bem\s+resumo,?\b",
+    r"\bpor\s+isso\s+(que|mesmo)\b",
 ]
 
 LINGUAGEM_VITIMA = [

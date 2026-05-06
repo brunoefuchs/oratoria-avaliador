@@ -49,7 +49,11 @@ def _angle_between(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
     return float(np.degrees(np.arccos(np.clip(cosine, -1.0, 1.0))))
 
 
-def _classificar_movimento(centers_of_mass: list, detected_frames: int) -> dict:
+def _classificar_movimento(
+    centers_of_mass: list,
+    detected_frames: int,
+    alignment_score: float = 80,
+) -> dict:
     """Classifica padrao de movimento com base no centro de massa.
 
     Padroes:
@@ -91,10 +95,34 @@ def _classificar_movimento(centers_of_mass: list, detected_frames: int) -> dict:
     deslocamento_medio = float(np.mean(deslocamentos)) if deslocamentos else 0.0
 
     # Classificar
+    # 1. Rigido (estatua) — variancia minima + congelado (>95% frames parados)
     if variancia < 0.0005 and ratio_parado > 0.95:
         padrao = "rigido"
         grounding_score = 40
         proposital_score = 20
+    # 2. Plantado natural (2026-04-30): variancia espacial baixa = NAO se mexe
+    # globalmente, mesmo que ratio_parado seja moderado. Padrao selfie/
+    # talking-head: camera fixa, speaker plantado modulando com mãos/face/voz.
+    # Microvariações de tronco passam pelo threshold de 0.005 e inflam
+    # num_deslocamentos, mas a dispersao espacial total (variancia) revela
+    # que ele NAO se desloca.
+    # 2026-05-04: tier por alignment — plantado INTENCIONAL (alinhado, ereto)
+    # vs plantado POR INERCIA (postura tortinha/cabisbaixo). Selfie de mentor
+    # tem coluna ereta + ombros nivelados; selfie de iniciante tem postura
+    # passiva. Discrimina com alignment_score.
+    elif variancia < 0.001:
+        if alignment_score >= 92:
+            padrao = "plantado"  # plantado intencional, postura forte
+            grounding_score = 90
+            proposital_score = 70
+        elif alignment_score >= 75:
+            padrao = "plantado_passivo"  # plantado mas postura mediana
+            grounding_score = 75
+            proposital_score = 55
+        else:
+            padrao = "plantado_passivo"  # plantado com postura fraca
+            grounding_score = 60
+            proposital_score = 40
     elif ratio_parado > 0.75 and num_deslocamentos <= 2:
         padrao = "plantado"
         grounding_score = 90
@@ -157,6 +185,7 @@ def _compute_posture_metrics(video_path: str) -> dict:
     centers_of_mass = []
     detected_frames = 0
     hip_visibility_scores = []  # Para detectar video de busto
+    shoulder_tension_distances = []  # 2026-05-04: ear-to-shoulder distance
 
     with PoseLandmarker.create_from_options(options) as landmarker:
         for frame_path in frames:
@@ -173,6 +202,24 @@ def _compute_posture_metrics(video_path: str) -> dict:
             right_shoulder = np.array([lm[12].x, lm[12].y])
             left_hip = np.array([lm[23].x, lm[23].y])
             right_hip = np.array([lm[24].x, lm[24].y])
+            left_ear = np.array([lm[7].x, lm[7].y])
+            right_ear = np.array([lm[8].x, lm[8].y])
+            ear_visibility = (
+                getattr(lm[7], "visibility", 0) + getattr(lm[8], "visibility", 0)
+            ) / 2
+
+            # 2026-05-04: Tensão de ombros — razao orelha→ombro / largura dos
+            # ombros. NORMALIZADO POR CORPO (nao por frame). Funciona em
+            # selfie/closeup E palco — independente do crop.
+            # Speaker tenso: razao 0.5-0.8. Relaxado: 1.0-1.5+.
+            # Skip se orelhas pouco visiveis (cabelo).
+            if ear_visibility >= 0.5:
+                ear_y_avg = (left_ear[1] + right_ear[1]) / 2
+                shoulder_y_avg = (left_shoulder[1] + right_shoulder[1]) / 2
+                shoulder_width = float(np.linalg.norm(left_shoulder - right_shoulder))
+                if shoulder_width > 0.01:  # evita divisao por zero
+                    ear_to_shoulder_ratio = (shoulder_y_avg - ear_y_avg) / shoulder_width
+                    shoulder_tension_distances.append(ear_to_shoulder_ratio)
 
             # Visibilidade do quadril (detecta video de busto)
             hip_vis = (getattr(lm[23], "visibility", 0) + getattr(lm[24], "visibility", 0)) / 2
@@ -221,6 +268,30 @@ def _compute_posture_metrics(video_path: str) -> dict:
     open_posture_pct_raw = round(open_posture_count / detected_frames * 100, 1)
     ombros_nivelados_pct = round(ombros_nivelados_count / detected_frames * 100, 1)
 
+    # 2026-05-04: Tensão de ombros — score baseado em RAZAO ear→shoulder
+    # normalizada por shoulder_width (body-relative, nao frame-relative).
+    # Razao = (shoulder_y - ear_y) / shoulder_width.
+    # Tenso: razao < 0.7 (ombros encolhidos perto das orelhas).
+    # Neutro: 0.7-1.0.
+    # Relaxado: > 1.0 (ombros bem abaixo das orelhas).
+    # Funciona em selfie E palco — independente do crop.
+    if shoulder_tension_distances:
+        avg_ratio = float(np.mean(shoulder_tension_distances))
+        if avg_ratio >= 1.2:
+            shoulder_relax_score = 95 + min(5, (avg_ratio - 1.2) * 25)
+        elif avg_ratio >= 1.0:
+            shoulder_relax_score = 80 + (avg_ratio - 1.0) * 75
+        elif avg_ratio >= 0.7:
+            shoulder_relax_score = 50 + (avg_ratio - 0.7) * 100
+        else:
+            shoulder_relax_score = max(20, 50 - (0.7 - avg_ratio) * 100)
+        shoulder_relax_score = round(max(0, min(100, shoulder_relax_score)))
+        shoulder_tension_confidence = "high"
+    else:
+        avg_ratio = None
+        shoulder_relax_score = 70  # Neutro quando sem dados
+        shoulder_tension_confidence = "low_no_ear_data"
+
     # Detectar video de busto (quadril pouco visivel = postura aberta nao confiavel)
     avg_hip_visibility = float(np.mean(hip_visibility_scores)) if hip_visibility_scores else 0
     is_bust_video = avg_hip_visibility < 0.7  # Baixa visibilidade do quadril
@@ -235,7 +306,9 @@ def _compute_posture_metrics(video_path: str) -> dict:
         posture_confidence_note = None
 
     # Classificacao de movimento
-    movimento = _classificar_movimento(centers_of_mass, detected_frames)
+    movimento = _classificar_movimento(
+        centers_of_mass, detected_frames, alignment_score=avg_alignment
+    )
 
     # MP-2: Dinamismo postural — distingue "parado com braços abertos"
     # de "presença dinâmica". Combina variância + propositalidade.
@@ -257,10 +330,13 @@ def _compute_posture_metrics(video_path: str) -> dict:
         dinamismo_postural = 60 if short_video else 30  # neutral pra video curto
 
     # =============================================
-    # SCORE DE POSTURA (0-100) — 5 componentes (MP-2 rebalance)
+    # SCORE DE POSTURA (0-100) — 5 componentes
     # =============================================
     # 30% Alignment + 10% Open + 25% Grounding + 20% Proposital + 15% Dinamismo
-    # Open reduzido 20→10% (mede só "braços não cruzados", inflava score)
+    # NOTA (2026-05-04): shoulder_relax_score REMOVIDO do score — em selfie
+    # mobile, MediaPipe Pose 2D não tem resolução pra discriminar tensão
+    # muscular. Ambos Gui (mentor) e Aluna (iniciante) deram ratio 0.373/0.374.
+    # Métrica passiva no JSON pra futura calibracao com video studio-grade.
 
     posture_score = round(
         avg_alignment * 0.30
@@ -304,6 +380,11 @@ def _compute_posture_metrics(video_path: str) -> dict:
                 "deslocamento_medio": movimento["deslocamento_medio"],
             },
             "dinamismo_postural": dinamismo_postural,
+            "shoulder_relax_score": shoulder_relax_score,
+            "shoulder_to_ear_ratio": (
+                round(avg_ratio, 3) if avg_ratio else None
+            ),
+            "shoulder_tension_confidence": shoulder_tension_confidence,
             "sub_scores": {
                 "alinhamento": avg_alignment,
                 "postura_aberta": round(min(100, open_posture_pct)),

@@ -37,15 +37,61 @@ CONTRADICOES = [
         "canal_2": ("gesture", "gesticulation_pct", "<", 20),
         "penalidade": 8,
     },
+    # 2026-05-05: 5 regras adicionais — cobertura mais ampla de contradicoes
+    {
+        "id": "sorriso_vs_tom_tenso",
+        "descricao": "Sorrindo bastante mas voz classificada como tensa",
+        "canal_1": ("facial", "smile_frequency_percent", ">=", 40),
+        "canal_2": ("tonality", "textura_dominante", "==", "tenso"),
+        "penalidade": 12,
+    },
+    {
+        "id": "fala_rapida_vs_voz_plana",
+        "descricao": "Velocidade alta mas voz plana (CV pitch baixo)",
+        "canal_1": ("voice", "wpm", ">=", 170),
+        "canal_2": ("voice", "cv_pitch", "<", 0.06),
+        "penalidade": 12,
+    },
+    {
+        "id": "postura_forte_vs_voz_fraca",
+        "descricao": "Postura ereta mas voz com pouco volume",
+        "canal_1": ("posture", "alignment_score", ">=", 85),
+        "canal_2": ("voice", "intensity_mean_db", "<", 55),
+        "penalidade": 10,
+    },
+    {
+        "id": "expressao_facial_vs_voz_apatica",
+        "descricao": "Sobrancelhas ativas mas voz sem energia",
+        "canal_1": ("facial", "brow_raises_per_minute", ">=", 5),
+        "canal_2": ("tonality", "vad_medio.arousal", "<", 0.4),
+        "penalidade": 10,
+    },
+    {
+        "id": "coach_vs_rosto_estatico",
+        "descricao": "Arquetipo Coach dominante mas rosto sem expressao",
+        "canal_1": ("archetypes", "pct_dominante", ">=", 60),
+        "canal_2": ("facial", "smile_frequency_percent", "<", 10),
+        "penalidade": 8,
+    },
 ]
 
 
 def _check_condition(
     metrics: dict, dimension: str, metric_key: str, op: str, threshold: float
 ) -> bool:
-    """Verifica se uma condicao e atendida nas metricas."""
-    dim_metrics = metrics.get(dimension, {})
-    value = dim_metrics.get(metric_key)
+    """Verifica se uma condicao e atendida nas metricas.
+
+    2026-05-05: suporta dot notation (ex: 'vad_medio.arousal') pra acessar
+    campos aninhados em metrics dicts.
+    """
+    dim_metrics = metrics.get(dimension, {}) or {}
+    value: any = dim_metrics
+    for part in metric_key.split("."):
+        if isinstance(value, dict):
+            value = value.get(part)
+        else:
+            value = None
+            break
     if value is None:
         return False
 
@@ -57,6 +103,10 @@ def _check_condition(
         return value <= threshold
     elif op == "<":
         return value < threshold
+    elif op == "==":
+        return value == threshold
+    elif op == "!=":
+        return value != threshold
     return False
 
 

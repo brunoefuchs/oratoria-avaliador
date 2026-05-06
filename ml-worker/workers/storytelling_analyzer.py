@@ -83,6 +83,166 @@ HOOK_PATTERNS = {
         # Reservado para humor/surpresa — dificil detectar com regex sem falso positivo.
         # Mantemos vazio: detection vira "none" se nenhum outro tipo bater.
     ],
+    # 2026-05-05: hook de ANTITESE/DICOTOMIA — "ou X, ou Y" (template Vinh classico)
+    "antithesis": [
+        r"\bou\s+\w+(?:\s+\w+){0,3}\s*,\s*ou\s+\w+",  # "ou ela te X, ou ela te Y"
+        r"\b(existem|tem|s[oó])\s+(duas|2|tres|3)\s+(funcoes|funções|tipos|opcoes|opções|caminhos)\b",
+        r"\b(ou voce|ou tu)\s+\w+,?\s*(ou voce|ou tu)\s+\w+",
+    ],
+    # 2026-05-05: hook de AFIRMACAO CORAJOSA / declaracao chocante
+    "bold_claim": [
+        r"\bse voce nao \w+,?\s+e melhor voce nao\b",  # "se vc nao X, e melhor vc nao"
+        r"\bninguem (te |vai te)?\w+ isso\b",
+        r"\bo que (te|voce)\s+(nao\s+)?(contam|contaram|disseram)\b",
+        r"\b(toda|qualquer|todo)\s+\w+\s+(falha|fracassa|morre|some)\s+(porque|por causa)",
+    ],
+    # 2026-05-05 v2: 6 hooks novos
+    # Pergunta retorica sem "?" — speaker afirma como pergunta retorica
+    "rhetorical_question": [
+        r"\bsera que (voce|tu|a gente|nos)\b",
+        r"\bcomo e que\b",
+        r"\bpor que (sera|que)\b",
+        r"\b(voce|tu) ja se perguntou\b",
+        r"\bquem nunca\b",
+    ],
+    # Cenario hipotetico — coloca audiencia em situacao imaginaria
+    "hypothetical": [
+        r"\bsuponha que\b",
+        r"\bimagine se\b",
+        r"\be se (voce|tu|fosse|tivesse)\b",
+        r"\bpense (numa|num|no momento)\b",
+        r"\bvamos supor\b",
+    ],
+    # Observacao cotidiana — fisga via familiaridade
+    "everyday_observation": [
+        r"\bja (reparou|notou|viu) que\b",
+        r"\btoda vez que\b",
+        r"\b(voce|tu) (ja|provavelmente) (passou|passa|sentiu) por\b",
+        r"\bsempre (que|tem)\b",
+    ],
+    # Confronto direto — call-out provocativo
+    "direct_challenge": [
+        r"\b(voce|tu) (esta|est[áa]) (fazendo|achando|pensando) (errado|isso errado)\b",
+        r"\b(voce|tu) acha mesmo que\b",
+        r"\bse (voce|tu) acredita\b",
+        r"\bpara de\s+(achar|pensar|fazer)\b",
+    ],
+    # Paradoxo / contra-intuitivo
+    "paradox": [
+        r"\bquanto mais .{1,40} menos\b",
+        r"\bquanto menos .{1,40} mais\b",
+        r"\bo que parece\s+\w+\s+e\s+(na verdade|na realidade)\b",
+        r"\b(exatamente|justamente) o contrario\b",
+    ],
+    # Comparacao metaforica — "X é como Y"
+    "metaphor": [
+        r"\b(e|sao) como (uma|um|os|as)?\s*\w+\b",  # "é como uma orquestra"
+        r"\bfunciona como (uma|um|os|as)?\s*\w+\b",
+        r"\bigual a (uma|um|os|as)?\s*\w+\b",
+        r"\bse parece com\b",
+        r"\b(tipo|que nem) (uma|um)\s+\w+\b",
+    ],
+    # 2026-05-05 v3 — 9 familias do guia Conrado Adolpho (108 ganchos)
+    # Cat 1: Curiosidade & Segredo
+    "mystery_secret": [
+        r"\bos? segredos? d[aeo]s?\b",
+        r"\bo que .{1,30} nao (quer|querem) que (voce|tu) saiba\b",
+        r"\b(descubra|descobre) (como|o que|o segredo|a estrategia)\b",
+        r"\ba verdade (sobre|que ninguem te conta|escondida)\b",
+        r"\bo que ninguem (te|voce) (conta|fala|diz)\b",
+        r"\bdesconstruindo\b",
+        r"\bo? \w+ (que|quem) voce nao conhece\b",
+        r"\bvoce sabia que\b",
+        r"\bos? \w+ \w+ (nao revelados?|escondidos?|ocultos?)\b",
+        r"\ba historia (nao contada|por tras) de\b",
+    ],
+    # Cat 2: Medo & Urgência
+    "fear_urgency": [
+        r"\bse previna (agora|antes)\b",
+        r"\bantes de (assinar|contratar|investir|comprar|tomar)\b",
+        r"\bantes (que|de) .{1,40} (aconteca|seja tarde|voce)",
+        r"\bperigo oculto\b",
+        r"\bnunca\.? nunca\b",
+        r"\bnunca (faca|contrate|invista)\b",
+        r"\bleia isso antes\b",
+        r"\bnao (invista|contrate|faca|assine) antes\b",
+        r"\bos? \w+ sinais? de que\b",
+        r"\bcomo se livrar do perigo\b",
+    ],
+    # Cat 3: Ganância & FOMO
+    "fomo_desire": [
+        r"\b(que|conteudo|leads?|oportunidades?) (voce|tu) (esta|estao) perdendo\b",
+        r"\bimagine acordar (todo dia|com|toda semana)\b",
+        r"\bimagine poder\b",
+        r"\btenha um \w+ (todo|todos? os) (mes|mes|ano|semana)\b",
+        r"\ba maneira mais (facil|rapida|barata|previsivel|simples)\b",
+        r"\bcomo transformar .{1,30} sem (risco|esforco|dor)\b",
+        r"\bos? \w+ (escondidos?|ocultos?) (debaixo|dentro) (do|da)\b",
+        r"\b(qual|quais) desses\b",
+    ],
+    # Cat 4: Autoridade & Prova Social
+    "authority_proof": [
+        r"\bveja e copie (o|a) (metodo|processo|estrategia)\b",
+        r"\b(novo )?estudo comprova\b",
+        r"\b(cientistas|especialistas|dados) comprovam\b",
+        r"\bciencia comprova\b",
+        r"\ba biblia (do|da|de)\b",
+        r"\b\w+ descobre (uma|um|sistema|metodo)\b",
+        r"\bo que .{1,30} faz quando\b",
+        r"\b\w+ mostra o que (usa|tem|faz) no dia a dia\b",
+    ],
+    # Cat 5: Herói Improvável
+    "unlikely_hero": [
+        r"\beles riram quando eu\b",
+        r"\bcomo eu (fiz|consegui|gerei) .{1,30} (sem|com)\b",
+        r"\bcomo (uma|um) \w+ (de|do|da) \w+ (se tornou|virou|conseguiu)\b",
+        r"\b\w+ humilha\b",
+        r"\bcomo .{1,30} descobriu uma maneira (simples|rapida|segura)\b",
+        r"\bcomo uma nova descoberta transformou\b",
+    ],
+    # Cat 6: Números & Especificidade (lista numerada)
+    "numbered_list": [
+        r"\bos? (\d+|cinco|seis|sete|oito|nove|dez) (mitos?|mentiras?|sinais?|erros?|razoes?|formas?|maneiras?|estrategias?|passos?) (sobre|para|de|que)\b",
+        r"\b(\d+|cinco|seis|sete) razoes? (para|pra) voce\b",
+        r"\b(\d+|cinco|seis|sete|oito|nove|dez) (passos?|formas?|maneiras?|jeitos?) (simples|para|pra)\b",
+        r"\b\w+: o que fazer e o que nunca fazer\b",
+        r"\bem (\d+|cinco|seis|sete|tres|quatro) passos\b",
+    ],
+    # Cat 7: Diagnóstico & Autoconhecimento
+    "diagnostic_quiz": [
+        r"\bque tipo de \w+ (voce|tu) e\??\b",
+        r"\bfaca (este|esse) teste\b",
+        r"\bvoce esta (cometendo|fazendo) (esse|um) erro\??\b",
+        r"\bvoce esta \w+ do jeito errado\??\b",
+        r"\bvoce sabe (quais|os) (sao os )?sintomas\b",
+        r"\bos? \w+ sintomas (ocultos?|de)\b",
+        r"\bdescubra como resolver o problema de\b",
+        r"\bvoce comete (uma|alguma|um|esse|esses) (dessas|desses)?\s*\d*\s*(coisas?|erros?|comportamentos?)\b",
+        r"\bo que aconteceria se voce\b",
+        r"\bvoce ja verificou\b",
+    ],
+    # Cat 8: Segmentação
+    "targeting": [
+        r"\bpara (voce|voces|donos?|empresarios?|profissionais?) que\b",
+        r"\bvoce que (esta|tem|sofre|trabalha)\b",
+        r"\buma mensagem (rapida|importante) para\b",
+        r"\batencao,?\s+\w+",
+        r"\bvoce sofre de\b",
+        r"\bcontinue lendo (somente )?se voce\b",
+        r"\bvoce ja se sentiu como\b",
+        r"\bo maior erro que .{1,30} (comete|cometem)\b",
+        r"\bchegou (a|sua) (sua )?vez de\b",
+    ],
+    # Cat 9: Quebra de Crença & Mitos
+    "belief_break": [
+        r"\btudo (que|o que) (voce|tu) (aprendeu|sabe|viu) sobre .{1,40} (esta errado|nao funciona)\b",
+        r"\besquec[ae] tudo (que|o que) (voce|tu) (aprendeu|sabe|viu)\b",
+        r"\b\w+ (esta|estao) mort[oa]\b",
+        r"\bos? \d+ mentiras? que te contam\b",
+        r"\bpor que .{1,30} nao quer que (voce|tu)\b",
+        r"\bposso ser cancelado (por|pela) isso\b",
+        r"\b(o que|tudo) .{1,30} ensinou esta errado\b",
+    ],
 }
 
 # Chemicals — dopamine (loops abertos, suspense)
@@ -112,21 +272,42 @@ CORTISOL_TEXT_PATTERNS = [
     r"\bcatastr[óo]f(e|ico)",
 ]
 
+# 2026-05-05: Loss aversion — proxy textual de cortisol "negativo" suave.
+# Usado em pitchs ("se voce nao fizer, vai perder X"). Diferente de catastrofe.
+LOSS_AVERSION_PATTERNS = [
+    r"\b(de forma|de maneira)\s+(mais\s+)?(negativa|pejorativa|negativamente)",
+    r"\b(perde|perder|perdendo)\s+(autoridade|valor|credibilidade|chance|oportunidade)",
+    r"\bvai (te |voce )?(custar|perder|fracassar|falhar)",
+    r"\b(no|do)\s+contrario,",
+    r"\bse voce nao \w+,?\s+(e melhor|voce vai|nao tem)",
+]
+
 OPENING_PCT = 0.20  # primeiros 20% do transcript
 CLOSING_PCT = 0.15  # ultimos 15%
 
 
+def _normalize_text(text: str) -> str:
+    """Remove acentos pra matching mais robusto (2026-05-05).
+
+    Patterns regex sao escritos sem acento por convencao. Texto whisper
+    vem com acentos em PT-BR — sem normalizar, "ja" nao casa "ja"."""
+    import unicodedata
+
+    nfkd = unicodedata.normalize("NFKD", text)
+    return "".join([c for c in nfkd if not unicodedata.combining(c)])
+
+
 def _count_matches(text: str, patterns: list) -> tuple[int, list[str]]:
     """Conta matches de uma lista de padroes regex e retorna excerpts."""
+    text_norm = _normalize_text(text)
     excerpts = []
     count = 0
     for pat in patterns:
-        for m in re.finditer(pat, text, re.IGNORECASE):
+        for m in re.finditer(pat, text_norm, re.IGNORECASE):
             count += 1
-            # Excerpt: 40 chars around the match
             start = max(0, m.start() - 20)
-            end = min(len(text), m.end() + 40)
-            excerpts.append(text[start:end].strip())
+            end = min(len(text_norm), m.end() + 40)
+            excerpts.append(text_norm[start:end].strip())
     return count, excerpts[:3]
 
 
@@ -148,13 +329,48 @@ def _detect_cta(closing_text: str) -> dict:
 
 
 def _classify_hook(opening_text: str) -> dict:
-    """Identifica tipo dominante de hook nos primeiros 20%."""
+    """Identifica tipo dominante de hook nos primeiros 20%.
+
+    2026-05-05: scoring com PESOS por especificidade. Hooks especificos
+    (rhetorical, hypothetical, paradox, metaphor, antithesis) tem peso 2 —
+    vencem matches genericos como "question" (peso 0.5) ou "story" (peso 1).
+    Sem isso, "imagine se voce X" caia em "story" pelo "imagine".
+    """
+    SPECIFICITY_WEIGHTS = {
+        # Tier alto — específicos, Vinh-style
+        "rhetorical_question": 2.0,
+        "hypothetical": 2.0,
+        "paradox": 2.0,
+        "metaphor": 2.0,
+        "everyday_observation": 2.0,
+        "direct_challenge": 2.0,
+        "antithesis": 2.0,
+        "bold_claim": 1.5,
+        "vulnerability": 1.5,
+        # Tier alto — Conrado Adolpho 9 categorias (2026-05-05)
+        "mystery_secret": 2.0,
+        "fear_urgency": 2.0,
+        "fomo_desire": 2.0,
+        "authority_proof": 2.0,
+        "unlikely_hero": 2.0,
+        "numbered_list": 1.8,
+        "diagnostic_quiz": 2.0,
+        "targeting": 1.7,
+        "belief_break": 2.0,
+        # Tier medio
+        "story": 1.0,
+        "stat": 1.0,
+        "challenge": 1.0,
+        # Tier baixo (muito generico)
+        "question": 0.5,
+    }
     scores = {}
     for hook_type, patterns in HOOK_PATTERNS.items():
         if not patterns:
             continue
         count, _ = _count_matches(opening_text, patterns)
-        scores[hook_type] = count
+        weight = SPECIFICITY_WEIGHTS.get(hook_type, 1.0)
+        scores[hook_type] = count * weight
 
     if not any(scores.values()):
         return {"type": "none", "strength": "weak"}
@@ -172,6 +388,7 @@ def _detect_chemicals(text: str, variety_metrics: dict | None) -> dict:
     dopamine_count, dopamine_ex = _count_matches(text, DOPAMINE_PATTERNS)
     oxytocin_count, oxytocin_ex = _count_matches(text, OXYTOCIN_PATTERNS)
     cortisol_text_count, _ = _count_matches(text, CORTISOL_TEXT_PATTERNS)
+    loss_aversion_count, loss_aversion_ex = _count_matches(text, LOSS_AVERSION_PATTERNS)
 
     # Cortisol risk: cross-reference com variety (monotonia) se disponivel.
     # Story 7.3 fix QA — mensagem com mais contexto pedagogico pro usuario.
@@ -204,6 +421,10 @@ def _detect_chemicals(text: str, variety_metrics: dict | None) -> dict:
             "examples": oxytocin_ex,
         },
         "endorphins": "not_yet_implemented",
+        "loss_aversion": {
+            "detected": loss_aversion_count > 0,
+            "examples": loss_aversion_ex,
+        },
         "cortisol_risk": {
             "detected": cortisol_risk,
             "reason": cortisol_reason,
@@ -211,27 +432,82 @@ def _detect_chemicals(text: str, variety_metrics: dict | None) -> dict:
     }
 
 
-def _compute_score(bridge: dict, hook: dict, cta: dict, chemicals: dict) -> tuple[int, str]:
-    """Score 0-100 + diagnostico textual."""
-    score = 20  # base
+def _compute_score(
+    bridge: dict,
+    hook: dict,
+    cta: dict,
+    chemicals: dict,
+    duration_seconds: float = 60.0,
+) -> tuple[int, str]:
+    """Score 0-100 + diagnostico textual.
 
-    if bridge["detected"]:
-        score += 15
-    if hook["type"] != "none":
-        if hook["strength"] == "strong":
+    2026-05-05: scoring AGORA adaptativo a duracao. Reels (<90s) tem
+    estrutura compacta — hook + argumento + CTA. Bridge sentence e
+    vulnerabilidade profunda sao luxos de formatos longos.
+
+    Tiers:
+    - <90s (reel/short): essenciais = hook + CTA. Bridge bonus.
+    - 90s-3min (apresentacao curta): bridge esperado.
+    - >3min (palestra): full arco + chemicals.
+    """
+    is_short = duration_seconds < 90
+    is_medium = 90 <= duration_seconds < 180
+
+    if is_short:
+        # Formato Reel: hook + argumento + CTA. Estrutura compacta.
+        score = 35  # baseline mais alto (formato premia objetividade)
+        if hook["type"] != "none":
+            if hook["strength"] == "strong":
+                score += 25  # hook forte é metade do jogo em Reel
+            elif hook["strength"] == "medium":
+                score += 15
+            else:
+                score += 5
+        if cta["detected"]:
+            score += 20  # CTA é objetivo do Reel
+        if chemicals.get("loss_aversion", {}).get("detected"):
+            score += 10  # técnica de pitch curto
+        if bridge["detected"]:
+            score += 10  # bonus, não obrigatório
+        if chemicals["oxytocin"]["detected"]:
+            score += 10  # vulnerabilidade rara em Reel = ouro
+        if chemicals["dopamine"]["detected"]:
+            score += 5
+        if chemicals["cortisol_risk"]["detected"]:
+            score -= 15  # menos punitivo em Reel
+    elif is_medium:
+        score = 25
+        if bridge["detected"]:
+            score += 15
+        if hook["type"] != "none":
+            score += 12 if hook["strength"] == "strong" else 7
+        if cta["detected"]:
+            score += 15
+        if chemicals["dopamine"]["detected"]:
+            score += 10
+        if chemicals["oxytocin"]["detected"]:
+            score += 10
+        if chemicals.get("loss_aversion", {}).get("detected"):
+            score += 5
+        if chemicals["cortisol_risk"]["detected"]:
+            score -= 18
+    else:
+        # Palestra >=3min: full arco esperado
+        score = 20
+        if bridge["detected"]:
+            score += 18  # bridge é critico em formato longo
+        if hook["type"] != "none":
+            score += 12 if hook["strength"] == "strong" else 7
+        if cta["detected"]:
             score += 12
-        elif hook["strength"] == "medium":
-            score += 7
-        else:
-            score += 3
-    if cta["detected"]:
-        score += 15
-    if chemicals["dopamine"]["detected"]:
-        score += 10
-    if chemicals["oxytocin"]["detected"]:
-        score += 10
-    if chemicals["cortisol_risk"]["detected"]:
-        score -= 20
+        if chemicals["dopamine"]["detected"]:
+            score += 12
+        if chemicals["oxytocin"]["detected"]:
+            score += 15  # vulnerabilidade essencial em palestra
+        if chemicals.get("loss_aversion", {}).get("detected"):
+            score += 5
+        if chemicals["cortisol_risk"]["detected"]:
+            score -= 20
 
     score = max(0, min(100, score))
 
@@ -300,10 +576,14 @@ def _hook_from_opening_result(opening_result: dict) -> dict | None:
         "pergunta_casual": "question",
         "dado_chocante": "stat",
         "gancho_historia": "story",
-        "frase_impacto": "vulnerability",
+        "frase_impacto": "bold_claim",
         "quebra_gelo": "challenge",
         "conexao_audiencia": "challenge",
         "citacao_autoridade": "stat",
+        # 2026-05-05: faltavam mapeamentos — opening detectava mas storytelling
+        # caia em "none" quando hook era axiomatico/dichotomy/identity.
+        "declaracao_axiomatica": "antithesis",
+        "identity_led": "bold_claim",
     }
     hook_type = type_map.get(tecnica_id, "none")
     # qualidade: opening_analyzer usa "boa"/"fraca", storytelling usa "weak/medium/strong"
@@ -343,7 +623,17 @@ def _compute_storytelling_metrics(
     hook = hook_from_opening if hook_from_opening else _classify_hook(opening_text)
     cta = _detect_cta(closing_text)
     chemicals = _detect_chemicals(text_lower, variety_metrics)
-    score, diagnostico = _compute_score(bridge, hook, cta, chemicals)
+
+    # Duration-aware scoring (2026-05-05)
+    duration_seconds = transcript.get("duration_seconds", 0.0)
+    if not duration_seconds and transcript.get("words"):
+        last_word = transcript["words"][-1] if transcript["words"] else {}
+        duration_seconds = float(last_word.get("end", 60.0))
+    duration_seconds = duration_seconds or 60.0
+
+    score, diagnostico = _compute_score(
+        bridge, hook, cta, chemicals, duration_seconds=duration_seconds
+    )
     suggestions = _generate_suggestions(bridge, hook, cta, chemicals) if score < 70 else []
 
     # AC-9 — fallback LLM opcional (default off)

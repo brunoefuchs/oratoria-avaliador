@@ -198,19 +198,38 @@ def _compute_facial_metrics(video_path: str) -> dict:
             window_means.append(float(np.mean(window)))
     smile_variability = round(float(np.std(window_means)), 3) if len(window_means) > 1 else 0.0
 
-    # AC-3 — brow_raises_per_minute
-    # Deteccao: subida rapida (delta > threshold em frames consecutivos)
-    brow_raises_count = 0
+    # AC-3 — brow_raises_per_minute (tiered)
+    # 2026-05-05: 2 tiers de deteccao — claro (delta > 0.005) e sutil (>0.003).
+    # Aluna fazia microelevacao 2-3x/min mas threshold antigo so via "claro".
+    # Sutil pesa metade no score combinado pra refletir intensidade real.
+    BROW_SUBTLE_THRESHOLD = 0.003
+    brow_raises_count = 0  # claros (movimento expressivo)
+    brow_subtle_count = 0  # sutis (micromovimento)
     in_raise = False
+    in_subtle = False
     for i in range(1, len(brow_arr)):
         delta = brow_arr[i] - brow_arr[i - 1]
         if delta > BROW_RAISE_DELTA_THRESHOLD and not in_raise:
             brow_raises_count += 1
             in_raise = True
-        elif delta < -BROW_RAISE_DELTA_THRESHOLD * 0.5:
+            in_subtle = True  # claro tambem conta como sutil (ja contabilizado)
+        elif (
+            delta > BROW_SUBTLE_THRESHOLD
+            and not in_raise
+            and not in_subtle
+        ):
+            brow_subtle_count += 1
+            in_subtle = True
+        elif delta < -BROW_SUBTLE_THRESHOLD * 0.5:
             in_raise = False
+            in_subtle = False
     duration_seconds = len(smile_arr) / TARGET_FPS
     brow_raises_per_minute = round(brow_raises_count / max(duration_seconds / 60, 0.01), 1)
+    brow_subtle_per_minute = round(brow_subtle_count / max(duration_seconds / 60, 0.01), 1)
+    # Score combinado: claros valem 1.0, sutis valem 0.5
+    brow_combined_per_minute = round(
+        brow_raises_per_minute + brow_subtle_per_minute * 0.5, 1
+    )
 
     # AC-4 — eye_openness_stddev (filtrando piscadas para nao confundir com fadiga)
     ear_filtered = ear_arr[ear_arr > BLINK_EAR_THRESHOLD]
@@ -248,10 +267,16 @@ def _compute_facial_metrics(video_path: str) -> dict:
     elif smile_frequency_percent > 80 and smile_variability < 0.005:
         score -= 15  # sorriso travado
 
+    # 2026-05-05: penalty especifica pra "smile congelado/falso"
+    # smile aparece pouco (5-15%) E sem variacao = sorriso forcado/discreto.
+    # Indica falta de conexao emocional real, mesmo com sobrancelha ativa.
+    if 5 <= smile_frequency_percent < 15 and smile_variability < 0.01:
+        score -= 15
+
     # Brow ativo — B10: reduz peso; ausencia de brow nao e tao grave quanto ausencia de smile
-    if brow_raises_per_minute >= 2:
+    if brow_combined_per_minute >= 2:
         score += 10
-    elif brow_raises_per_minute >= 1:
+    elif brow_combined_per_minute >= 1:
         score += 5
     else:
         score -= 5  # rosto estatico (reduzido de -10)
@@ -267,13 +292,26 @@ def _compute_facial_metrics(video_path: str) -> dict:
     # Diagnostico — Story 7.4 fix QA (2026-04-14)
     # Critério rosto_estatico AGORA usa frequency (mais robusto que variability).
     # Variability falha quando smile esporadico passa do threshold 0.005 mesmo com 90%+ rosto serio.
-    if smile_frequency_percent < 15 and brow_raises_per_minute < 1:
+    # 2026-05-05: criterio rosto_estatico ampliado.
+    # Antes: so pegava combined<1 (zero brow real). Ignorava aluno que tem
+    # microelevacoes (sutis 8/min) mas smile congelado/falso.
+    # Agora 2 caminhos:
+    # 1. combined<1 (zero expressao mesmo)
+    # 2. smile<10 + smile_variability<0.01 (smile estatico/forcado, pouca expressao real)
+    if smile_frequency_percent < 15 and brow_combined_per_minute < 1:
         diagnostico = "rosto_estatico"
         feedback = (
             "Sua expressao facial permaneceu praticamente constante "
             f"(sorriso ativo em apenas {round(smile_frequency_percent)}% do tempo, "
-            f"{round(brow_raises_per_minute, 1)} elevacao de sobrancelhas por minuto). "
+            f"{round(brow_combined_per_minute, 1)} elevacao de sobrancelhas por minuto). "
             "Adicionar variacao no sorriso e movimento de sobrancelhas aumenta o engajamento da audiencia."
+        )
+    elif smile_frequency_percent < 10 and smile_variability < 0.01:
+        diagnostico = "rosto_estatico"
+        feedback = (
+            f"Sorriso aparece em apenas {round(smile_frequency_percent)}% do tempo "
+            f"e quase sem variacao de intensidade ({smile_variability}). "
+            "Mesmo com sobrancelha ativa, a falta de sorriso real reduz a conexao emocional."
         )
     elif smile_frequency_percent > 80 and smile_variability < 0.01:
         diagnostico = "expressao_travada"
@@ -281,17 +319,26 @@ def _compute_facial_metrics(video_path: str) -> dict:
             "Sorriso constante (>80% do tempo) com pouca variacao tende a parecer ensaiado. "
             "Permita seu rosto descansar entre momentos de sorriso."
         )
-    elif smile_frequency_percent < 5 and brow_raises_per_minute < 1:
+    elif smile_frequency_percent < 5 and brow_combined_per_minute < 1:
         diagnostico = "expressao_monotona"
         feedback = (
             "Rosto serio durante quase todo o video. "
             "Pequenas variacoes (sorriso leve, sobrancelha em momentos-chave) ajudam a transmitir emocao."
         )
-    elif brow_raises_per_minute > 8:
+    elif brow_raises_per_minute > 14:
         diagnostico = "expressao_exagerada"
         feedback = (
             "Movimento facial muito frequente pode distrair da mensagem. "
             "Use brow raises com mais intencao (1 a 3 vezes por minuto em pontos-chave)."
+        )
+    elif brow_combined_per_minute > 6:
+        # 2026-05-05: tier "muito_expressivo" antes de "exagerado". Mentor TEDx
+        # tipicamente faz 6-12 brow raises/min sem ser exagero. Threshold antigo
+        # > 8 marcava engajamento natural como excesso.
+        diagnostico = "muito_expressivo"
+        feedback = (
+            "Expressao facial muito ativa — sinal de engajamento e energia. "
+            "Mantenha esse nivel; se quiser, reserve os movimentos mais marcantes para os pontos-chave."
         )
     else:
         diagnostico = "expressao_equilibrada"
@@ -318,6 +365,8 @@ def _compute_facial_metrics(video_path: str) -> dict:
         "smile_frequency_percent": smile_frequency_percent,
         "smile_variability": smile_variability,
         "brow_raises_per_minute": brow_raises_per_minute,
+        "brow_subtle_per_minute": brow_subtle_per_minute,
+        "brow_combined_per_minute": brow_combined_per_minute,
         "eye_openness_stddev": eye_openness_stddev,
         "emocional_texture": emocional_texture,
         "feedback": feedback,

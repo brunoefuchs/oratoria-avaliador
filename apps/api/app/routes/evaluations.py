@@ -33,7 +33,21 @@ STEP_LABELS = {
     "generating_report": "Gerando relatorio de coaching...",
 }
 
-VALID_DIMENSIONS = ["posture", "gesture", "voice", "fillers", "variety", "archetypes"]
+VALID_DIMENSIONS = [
+    "posture",
+    "gesture",
+    "voice",
+    "fillers",
+    "variety",
+    "archetypes",
+    "facial",
+    "tonality",
+    "identity",
+    "storytelling",
+    "opening",
+    "congruence",
+    "articulation",
+]
 
 ALLOWED_CONTENT_TYPES = {"video/mp4", "video/webm"}
 MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB

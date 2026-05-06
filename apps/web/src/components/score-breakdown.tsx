@@ -88,11 +88,17 @@ export function ScoreBreakdown({
       </button>
 
       {open && (
-        <div
-          className="absolute right-0 top-full mt-3 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-2xl bg-surface-container-high shadow-2xl ghost-border p-5"
-          role="dialog"
-          aria-label="Detalhamento da pontuação"
-        >
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+            aria-hidden
+          />
+          <div
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[min(92vw,28rem)] max-h-[80vh] overflow-y-auto rounded-2xl bg-surface-container-high shadow-2xl ghost-border p-5"
+            role="dialog"
+            aria-label="Detalhamento da pontuação"
+          >
           <div className="flex items-start justify-between mb-3">
             <h3 className="font-headline text-base font-bold">
               Como sua pontuação foi calculada
@@ -143,7 +149,8 @@ export function ScoreBreakdown({
           <p className="text-[10px] text-on-surface-variant border-t border-on-surface-variant/20 pt-2 italic">
             Fórmula: Pontuação = Σ(dimensão × peso contextual)
           </p>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

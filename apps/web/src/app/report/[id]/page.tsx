@@ -30,6 +30,19 @@ const DIMENSION_LABELS: Record<string, string> = {
   identity: "Identidade",
 };
 
+const DIMENSION_DESC: Record<string, string> = {
+  voice: "Cadência (WPM), range melódico em semitons e qualidade das pausas.",
+  variety: "Variação de volume, entonação e velocidade ao longo do tempo.",
+  fillers: "Frequência de vícios de linguagem (né, tipo, ahn, sabe).",
+  gesture: "Frequência, vocabulário e propósito dos gestos das mãos.",
+  posture: "Estabilidade corporal, alinhamento e abertura postural.",
+  facial: "Variação de expressão e contato visual com a câmera.",
+  storytelling: "Hook de abertura, bridge sentence e ativação de chemicals.",
+  archetypes: "Cycling entre Coach, Educador, Motivador e Amigo.",
+  tonality: "Carga emocional (arousal/valence) ao longo da fala.",
+  identity: "Coerência da persona ao longo do vídeo.",
+};
+
 const DIMENSION_ORDER = ["variety", "voice", "gesture", "facial", "posture", "fillers"];
 
 // Mapping inglês → PT usado pelas chaves do Gemini em report.dimensoes
@@ -40,6 +53,27 @@ const DIMENSION_TO_PT_KEY: Record<string, string> = {
   posture: "postura",
   fillers: "clareza_verbal",
   facial: "expressao_facial",
+};
+
+const CONGRUENCE_EXPLAIN: Record<string, string> = {
+  entusiasmo_vs_postura:
+    "Sua voz transmite energia (range melódico amplo) mas o corpo fica fechado. Audiência sente que algo não bate — energia vocal sem abertura corporal cria sensação de teatro.",
+  confianca_vs_olhar:
+    "Volume forte indica autoridade, mas olhar pra baixo desmonta. Som diz 'eu mando aqui', visual diz 'estou inseguro'.",
+  abertura_vs_volume:
+    "Gestos amplos pedem voz amplificada. Quando o corpo abre mas o volume não acompanha, o espectador percebe descompasso (parece tímido performando).",
+  urgencia_vs_parado:
+    "Cadência rápida sugere urgência. Corpo parado anula o efeito — voz pede ação, corpo desmente.",
+  sorriso_vs_tom_tenso:
+    "Sorriso é o sinal universal de relaxamento. Quando aparece sobre voz tensa, vira sorriso forçado — cérebro detecta como teatralidade.",
+  fala_rapida_vs_voz_plana:
+    "Falar rápido sem variar pitch transmite ansiedade. Velocidade pede modulação pra criar engajamento; sem isso, vira fala monótona acelerada.",
+  postura_forte_vs_voz_fraca:
+    "Postura ereta projeta autoridade física. Voz baixa contradiz — corpo diz 'estou aqui', voz sussurra 'não me ouça'.",
+  expressao_facial_vs_voz_apatica:
+    "Sobrancelhas ativas indicam engajamento facial. Voz apática anula — rosto vivo + voz morta vira sinal de ensaio mecânico.",
+  coach_vs_rosto_estatico:
+    "Arquetipo Coach é diretivo, energético — pede expressão facial à altura. Quando a face fica estática enquanto a voz comanda, parece autoritarismo frio em vez de liderança calorosa.",
 };
 
 function getScoreTone(score: number) {
@@ -220,6 +254,41 @@ export default function ReportPage() {
                   {resumo}
                 </p>
               )}
+              {data.detailed_metrics?.congruence?.score != null && (() => {
+                const cong = data.detailed_metrics.congruence;
+                const score = cong.score;
+                const total = cong.total_contradicoes ?? 0;
+                const tier = score >= 90 ? {
+                  label: "Verbal-Vocal-Visual alinhados",
+                  bg: "bg-secondary/15 text-secondary border-secondary/30",
+                  icon: "verified",
+                } : score >= 70 ? {
+                  label: "Pequenas incongruências",
+                  bg: "bg-tertiary/15 text-tertiary border-tertiary/30",
+                  icon: "warning",
+                } : {
+                  label: "Incongruências significativas",
+                  bg: "bg-error/15 text-error border-error/30",
+                  icon: "error",
+                };
+                return (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/report/${id}/congruence`)}
+                    className={`mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${tier.bg} text-xs font-medium hover:opacity-90 transition-opacity`}
+                  >
+                    <span className="material-symbols-outlined text-base">
+                      {tier.icon}
+                    </span>
+                    Congruência {score}/100 — {tier.label}
+                    {total > 0 && (
+                      <span className="opacity-70">
+                        ({total} {total === 1 ? "alerta" : "alertas"})
+                      </span>
+                    )}
+                  </button>
+                );
+              })()}
             </div>
             <div
               className={`shrink-0 ${getScoreTone(data.overall_score)}`}
@@ -283,7 +352,7 @@ export default function ReportPage() {
                       </div>
                     </div>
                     {/* Sub-dimensões nested */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-surface-container">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 bg-surface-container">
                       {fam.dims.map((dim) => {
                         const dimScore =
                           data.dimension_scores?.[dim] ??
@@ -295,14 +364,21 @@ export default function ReportPage() {
                           <button
                             key={dim}
                             onClick={() => router.push(`/report/${id}/${dim}`)}
-                            className="rounded-xl bg-surface-container-low p-3 hover:bg-surface-container-high transition-colors text-left"
+                            className="rounded-xl bg-surface-container-low p-3 hover:bg-surface-container-high transition-colors text-left flex flex-col"
                           >
-                            <div className="text-xs text-on-surface-variant mb-1 truncate">
-                              {label}
+                            <div className="flex items-baseline justify-between mb-1">
+                              <div className="text-xs text-on-surface-variant truncate">
+                                {label}
+                              </div>
+                              <div className={`font-mono font-bold text-2xl ${subTone}`}>
+                                {dimScore}
+                              </div>
                             </div>
-                            <div className={`font-mono font-bold text-2xl ${subTone}`}>
-                              {dimScore}
-                            </div>
+                            {DIMENSION_DESC[dim] && (
+                              <p className="text-[11px] text-on-surface-variant/80 leading-snug mt-1">
+                                {DIMENSION_DESC[dim]}
+                              </p>
+                            )}
                           </button>
                         );
                       })}
@@ -492,7 +568,7 @@ export default function ReportPage() {
         )}
 
         {/* Congruência */}
-        {data.detailed_metrics?.congruence?.total_contradicoes > 0 && (
+        {data.detailed_metrics?.congruence?.score != null && (
           <section className="rounded-2xl bg-surface-container-low p-6 ghost-border space-y-4">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -511,19 +587,68 @@ export default function ReportPage() {
                 {data.detailed_metrics.congruence.score}
               </span>
             </div>
-            <div className="space-y-2">
+            <div className="rounded-xl bg-surface-container p-4 text-sm text-on-surface-variant leading-relaxed space-y-2">
+              <p>
+                <strong className="text-on-surface">Congruência</strong> mede se
+                seus 3 canais de comunicação estão dizendo a mesma coisa:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Verbal</strong> — o que você fala (palavras)</li>
+                <li><strong>Vocal</strong> — como você fala (tom, ritmo, energia)</li>
+                <li><strong>Visual</strong> — o que seu corpo mostra (rosto, gesto, postura)</li>
+              </ul>
+              <p>
+                Quando os 3 estão alinhados, a audiência sente verdade. Quando
+                contradizem (ex: sorriso forçado + voz tensa), o cérebro do
+                espectador detecta — mesmo que ele não saiba explicar.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {(data.detailed_metrics.congruence.total_contradicoes ?? 0) === 0 ? (
+                <div className="rounded-xl bg-secondary/10 border border-secondary/30 p-4 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-secondary text-xl mt-0.5">
+                    verified
+                  </span>
+                  <div className="text-sm text-on-surface-variant leading-relaxed">
+                    <p className="font-medium text-on-surface">
+                      Nenhuma incongruência detectada.
+                    </p>
+                    <p className="mt-1">
+                      Seus 3 canais (verbal, vocal e visual) estão alinhados.
+                      Não houve sinais conflitantes — a mensagem que você fala,
+                      o tom da voz e o que o corpo mostra dizem a mesma coisa.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs uppercase tracking-wider text-on-surface-variant font-medium">
+                  Alertas detectados
+                </p>
+              )}
               {data.detailed_metrics.congruence.contradicoes.map(
-                (c: any, i: number) => (
-                  <p
-                    key={i}
-                    className="flex items-start gap-2 text-sm text-on-surface-variant"
-                  >
-                    <span className="material-symbols-outlined text-tertiary text-base mt-0.5">
-                      flash_on
-                    </span>
-                    <span>{c.descricao}</span>
-                  </p>
-                )
+                (c: any, i: number) => {
+                  const explicacao = CONGRUENCE_EXPLAIN[c.id] ?? "";
+                  return (
+                    <div
+                      key={i}
+                      className="rounded-xl bg-tertiary/10 border border-tertiary/30 p-3 space-y-1.5"
+                    >
+                      <div className="flex items-start gap-2 text-sm">
+                        <span className="material-symbols-outlined text-tertiary text-base mt-0.5">
+                          flash_on
+                        </span>
+                        <span className="font-medium text-on-surface">
+                          {c.descricao}
+                        </span>
+                      </div>
+                      {explicacao && (
+                        <p className="text-xs text-on-surface-variant leading-snug pl-7">
+                          {explicacao}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
               )}
             </div>
           </section>
