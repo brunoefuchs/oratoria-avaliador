@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oratória Avaliador — Planejamento de Custos por Volume</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --surface: #1a1f2e;
+    --surface-2: #232938;
+    --border: #2d3548;
+    --text: #e6e9ef;
+    --text-dim: #9aa3b2;
+    --accent: #6ee7b7;
+    --accent-2: #fbbf24;
+    --danger: #f87171;
+    --info: #60a5fa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  header {
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    color: var(--accent);
+  }
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+  .meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+  }
+  .meta span strong { color: var(--text); }
+
+  h2 {
+    color: var(--accent-2);
+    margin-top: 2.5rem;
+    border-left: 4px solid var(--accent-2);
+    padding-left: 0.75rem;
+  }
+  h3 { color: var(--info); margin-top: 1.5rem; }
+
+  .premissas {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .premissas ul { margin: 0.5rem 0 0 0; padding-left: 1.5rem; }
+  .premissas li { margin: 0.25rem 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 2rem 0;
+    background: var(--surface);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 0.92rem;
+  }
+  th, td {
+    padding: 0.85rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    background: var(--surface-2);
+    color: var(--accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface-2); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.center { text-align: center; }
+
+  tr.total td {
+    background: var(--surface-2);
+    font-weight: 700;
+    color: var(--accent);
+    border-top: 2px solid var(--accent);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  .card h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--accent-2);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .card .big {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin: 0.25rem 0;
+  }
+  .card .desc { color: var(--text-dim); font-size: 0.85rem; }
+
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.4rem;
+  }
+  .badge.ok { background: rgba(110, 231, 183, 0.2); color: var(--accent); }
+  .badge.warn { background: rgba(251, 191, 36, 0.2); color: var(--accent-2); }
+  .badge.alert { background: rgba(248, 113, 113, 0.2); color: var(--danger); }
+
+  .callout {
+    background: rgba(96, 165, 250, 0.08);
+    border-left: 4px solid var(--info);
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+  }
+  .callout.warn {
+    background: rgba(251, 191, 36, 0.08);
+    border-left-color: var(--accent-2);
+  }
+
+  .price-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+  .price-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .price-card.featured {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, var(--surface) 0%, rgba(110,231,183,0.05) 100%);
+  }
+  .price-card h4 { margin: 0; color: var(--text-dim); text-transform: uppercase; font-size: 0.85rem; }
+  .price-card .price { font-size: 2.2rem; font-weight: 700; color: var(--accent); margin: 0.5rem 0; }
+  .price-card .quota { color: var(--text-dim); font-size: 0.9rem; }
+  .price-card .margin { margin-top: 0.75rem; font-size: 0.8rem; color: var(--accent-2); }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  .timeline {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+  }
+  .timeline li {
+    position: relative;
+    padding: 0.75rem 0 0.75rem 2rem;
+    border-left: 2px solid var(--border);
+    margin-left: 0.5rem;
+  }
+  .timeline li::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 1.1rem;
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .timeline li strong { color: var(--accent-2); }
+
+  @media print {
+    body { background: white; color: black; }
+    .container { padding: 1rem; }
+    table, .card, .premissas, .price-card { background: white; border: 1px solid #ccc; }
+    th { background: #f0f0f0; color: black; }
+    h1, h2, h3, h4 { color: black; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <h1>Oratória Avaliador — Planejamento de Custos por Volume</h1>
+  <p class="subtitle">Estrutura comercial, infra e pricing — escala MVP até produção</p>
+  <div class="meta">
+    <span><strong>Data:</strong> 2026-04-28</span>
+    <span><strong>Stack:</strong> Next.js + FastAPI + Python ML + Supabase</span>
+    <span><strong>Status:</strong> Planejamento de migração local → produção</span>
+  </div>
+</header>
+
+<section class="premissas">
+  <h3 style="margin-top:0;">Premissas de cálculo</h3>
+  <ul>
+    <li>Vídeo médio: <strong>3 minutos</strong>, 50MB</li>
+    <li>Tempo de análise: ~4min em CPU / ~30s em GPU T4</li>
+    <li>Cada análise = <strong>1 chamada Gemini Vision</strong> on-demand ≈ <strong>$0,02</strong></li>
+    <li>Bandwidth Supabase: ~100MB egress por análise (vídeo + assets)</li>
+    <li>Câmbio referência: <strong>$1 USD ≈ R$5,00</strong></li>
+  </ul>
+</section>
+
+<h2>Arquitetura de produção recomendada</h2>
+
+<table>
+  <thead>
+    <tr><th>Camada</th><th>Serviço</th><th>Provider</th><th>Custo base</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>CDN + DNS + WAF</td><td>Edge global</td><td>Cloudflare</td><td class="num">$0</td></tr>
+    <tr><td>Web (Next.js)</td><td>Frontend SSR</td><td>Vercel Pro</td><td class="num">$20/mês</td></tr>
+    <tr><td>API (FastAPI)</td><td>Backend</td><td>Railway / Fly.io</td><td class="num">$10–30/mês</td></tr>
+    <tr><td>ML Worker</td><td>MediaPipe + Whisper + Gemini</td><td>Fly.io GPU ou Modal</td><td class="num">$30–1000/mês</td></tr>
+    <tr><td>Database</td><td>Postgres + Auth + Realtime</td><td>Supabase Pro</td><td class="num">$25/mês</td></tr>
+    <tr><td>Storage de vídeos</td><td>Object storage</td><td>Supabase / Cloudflare R2</td><td class="num">incluído / $0,015/GB</td></tr>
+    <tr><td>Fila de jobs</td><td>Redis</td><td>Upstash</td><td class="num">$0–10/mês</td></tr>
+    <tr><td>Observabilidade</td><td>Errors + logs</td><td>Sentry + Logflare</td><td class="num">$0–26/mês</td></tr>
+  </tbody>
+</table>
+
+<h2>Custos por volume mensal</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Componente</th>
+      <th class="num">100/dia<br><span style="font-weight:400;color:var(--text-dim)">3k/mês</span></th>
+      <th class="num">500/dia<br><span style="font-weight:400;color:var(--text-dim)">15k/mês</span></th>
+      <th class="num">1k/dia<br><span style="font-weight:400;color:var(--text-dim)">30k/mês</span></th>
+      <th class="num">5k/dia<br><span style="font-weight:400;color:var(--text-dim)">150k/mês</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Vercel (web)</td><td class="num">$0</td><td class="num">$20</td><td class="num">$20</td><td class="num">$20</td></tr>
+    <tr><td>Supabase</td><td class="num">$25</td><td class="num">$25</td><td class="num">$25</td><td class="num">$599</td></tr>
+    <tr><td>Storage Supabase</td><td class="num">incluído</td><td class="num">$30</td><td class="num">$75</td><td class="num">$400</td></tr>
+    <tr><td>API host (Railway/Fly)</td><td class="num">$10</td><td class="num">$20</td><td class="num">$30</td><td class="num">$80</td></tr>
+    <tr><td>ML worker (Modal T4)</td><td class="num">$30</td><td class="num">$150</td><td class="num">$300</td><td class="num">$1.500</td></tr>
+    <tr><td>Redis (Upstash)</td><td class="num">$0</td><td class="num">$10</td><td class="num">$10</td><td class="num">$30</td></tr>
+    <tr><td>Gemini Vision</td><td class="num">$60</td><td class="num">$300</td><td class="num">$600</td><td class="num">$3.000</td></tr>
+    <tr><td>Sentry + logs</td><td class="num">$0</td><td class="num">$26</td><td class="num">$26</td><td class="num">$80</td></tr>
+    <tr><td>Cloudflare</td><td class="num">$0</td><td class="num">$0</td><td class="num">$0</td><td class="num">$20</td></tr>
+    <tr><td>Domínio + SSL</td><td class="num">$1</td><td class="num">$1</td><td class="num">$1</td><td class="num">$1</td></tr>
+    <tr class="total"><td>TOTAL/mês (USD)</td><td class="num">~$126</td><td class="num">~$582</td><td class="num">~$1.087</td><td class="num">~$5.730</td></tr>
+    <tr class="total"><td>TOTAL/mês (BRL)</td><td class="num">~R$630</td><td class="num">~R$2.910</td><td class="num">~R$5.435</td><td class="num">~R$28.650</td></tr>
+    <tr><td><strong>Custo por análise</strong></td><td class="num">$0,042</td><td class="num">$0,039</td><td class="num">$0,036</td><td class="num">$0,038</td></tr>
+  </tbody>
+</table>
+
+<div class="cards">
+  <div class="card">
+    <h4>MVP Comercial</h4>
+    <div class="big">$126<span style="font-size:0.6em;color:var(--text-dim)">/mês</span></div>
+    <div class="desc">Até 100 análises/dia. Suficiente para validar com primeiros clientes pagantes.</div>
+  </div>
+  <div class="card">
+    <h4>Operação Saudável</h4>
+    <div class="big">$1.087<span style="font-size:0.6em;color:var(--text-dim)">/mês</span></div>
+    <div class="desc">1.000 análises/dia. Negócio rodando com receita previsível.</div>
+  </div>
+  <div class="card">
+    <h4>Escala</h4>
+    <div class="big">$5.730<span style="font-size:0.6em;color:var(--text-dim)">/mês</span></div>
+    <div class="desc">5.000 análises/dia. Operação multi-cliente B2B.</div>
+  </div>
+</div>
+
+<h2>Otimizações de alto impacto</h2>
+
+<table>
+  <thead>
+    <tr><th>Otimização</th><th>Economia</th><th>Esforço</th><th>Quando aplicar</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Cache Gemini</strong> (reuso 30%)</td>
+      <td class="num">−30% Gemini = −$180 a −$900/mês</td>
+      <td><span class="badge ok">Baixo</span></td>
+      <td>A partir de 500/dia</td>
+    </tr>
+    <tr>
+      <td><strong>Cloudflare R2</strong> ($0 egress)</td>
+      <td class="num">−50% storage acima de 500GB</td>
+      <td><span class="badge warn">Médio</span></td>
+      <td>A partir de 1k/dia</td>
+    </tr>
+    <tr>
+      <td><strong>Whisper.cpp</strong> (5x CPU)</td>
+      <td class="num">Troca GPU por CPU</td>
+      <td><span class="badge warn">Médio</span></td>
+      <td>Se quiser sair do Modal/GPU</td>
+    </tr>
+    <tr>
+      <td><strong>Modal vs Fly GPU 24/7</strong></td>
+      <td class="num">−70% se uso variável</td>
+      <td><span class="badge ok">Baixo</span></td>
+      <td>Sempre, exceto carga constante alta</td>
+    </tr>
+    <tr>
+      <td><strong>Compressão client-side</strong> (vídeo &lt;50MB)</td>
+      <td class="num">−60% storage e bandwidth</td>
+      <td><span class="badge ok">Baixo</span></td>
+      <td>Desde o MVP</td>
+    </tr>
+    <tr>
+      <td><strong>TTL 30 dias</strong> em vídeos</td>
+      <td class="num">−90% storage histórico</td>
+      <td><span class="badge ok">Baixo</span></td>
+      <td>Desde o MVP</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>Aplicando as 3 primeiras otimizações no cenário de 1k/dia:</strong>
+  custo cai de <strong>$1.087</strong> para <strong>~$650/mês</strong> (−40%).
+</div>
+
+<h2>Modelo de pricing sugerido</h2>
+
+<div class="price-cards">
+  <div class="price-card">
+    <h4>Free</h4>
+    <div class="price">R$0</div>
+    <div class="quota">3 análises/mês</div>
+    <div class="margin">— aquisição —</div>
+  </div>
+  <div class="price-card featured">
+    <h4>Pro</h4>
+    <div class="price">R$49</div>
+    <div class="quota">30 análises/mês</div>
+    <div class="margin">margem ~85%</div>
+  </div>
+  <div class="price-card">
+    <h4>Business</h4>
+    <div class="price">R$249</div>
+    <div class="quota">200 análises/mês</div>
+    <div class="margin">margem ~80%</div>
+  </div>
+  <div class="price-card">
+    <h4>Enterprise</h4>
+    <div class="price">R$1.500+</div>
+    <div class="quota">1.000+ análises/mês</div>
+    <div class="margin">margem ~75%</div>
+  </div>
+</div>
+
+<div class="callout warn">
+  <strong>Custo unitário real:</strong> ~$0,04 = R$0,20 por análise.
+  No plano <strong>Pro (R$49 / 30 análises = R$1,63 cada)</strong>, a margem é gigante.
+  O risco real não é custo — é <strong>abuso de free tier</strong> (usuários criando múltiplas contas).
+  Mitigação: rate limit por device fingerprint + verificação de e-mail real.
+</div>
+
+<h2>Ponto de equilíbrio</h2>
+
+<table>
+  <thead>
+    <tr><th>Métrica</th><th>Valor</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Break-even em 1k análises/dia</td><td><strong>~25 clientes Business/mês</strong> cobrem todo o custo de infra</td></tr>
+    <tr><td>Free tier sustentável até</td><td>~500 usuários free × 3 análises/mês = 1.500 análises ≈ <strong>$60/mês</strong></td></tr>
+    <tr><td>Receita potencial em 1k/dia</td><td>Mix saudável: 200 Pro + 30 Business = <strong>R$17.270/mês</strong> de MRR</td></tr>
+    <tr><td>Margem bruta esperada</td><td><strong>75–85%</strong> (após otimizações)</td></tr>
+  </tbody>
+</table>
+
+<h2>Roadmap de implementação</h2>
+
+<ul class="timeline">
+  <li>
+    <strong>Semana 1–2: Sair do localhost.</strong>
+    Dockerfile otimizado + Fly.io CPU + Supabase Pro. Custo $50/mês. Suporta 5–10 análises/dia.
+  </li>
+  <li>
+    <strong>Semana 3: Fila assíncrona.</strong>
+    RQ + Upstash Redis + Supabase Realtime no front. Elimina timeouts e síncronos.
+  </li>
+  <li>
+    <strong>Semana 4: Profissionalização.</strong>
+    Sentry + Cloudflare + domínio próprio + SSL + monitoring básico.
+  </li>
+  <li>
+    <strong>Quando análise virar reclamação de tempo:</strong>
+    Migrar ML worker para Modal T4 (GPU serverless, paga por segundo).
+  </li>
+  <li>
+    <strong>Ao passar de 500 análises/dia:</strong>
+    Storage Cloudflare R2, cache Gemini agressivo, scale horizontal de workers.
+  </li>
+  <li>
+    <strong>Ao passar de 5k análises/dia:</strong>
+    Considerar cluster GPU dedicado, Postgres dedicado, multi-region.
+  </li>
+</ul>
+
+<h2>Pontos críticos não-negociáveis</h2>
+
+<table>
+  <thead>
+    <tr><th>Item</th><th>Por quê</th><th>Risco se ignorar</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Fila de jobs</strong> desde dia 1</td>
+      <td>Análise leva 3–5min, proxy timeout = 100s</td>
+      <td><span class="badge alert">Alto</span> Análises caem em 100% das requests longas</td>
+    </tr>
+    <tr>
+      <td><strong>Gemini on-demand</strong> (não default)</td>
+      <td>É o item mais caro do stack</td>
+      <td><span class="badge alert">Alto</span> Conta de $600 vira $3.000+ sem aviso</td>
+    </tr>
+    <tr>
+      <td><strong>Rate limit por fingerprint</strong></td>
+      <td>Free tier sem proteção = abuso garantido</td>
+      <td><span class="badge warn">Médio</span> 10x usuários free queimando margem</td>
+    </tr>
+    <tr>
+      <td><strong>Storage TTL</strong> em vídeos</td>
+      <td>Vídeos não precisam ficar para sempre</td>
+      <td><span class="badge warn">Médio</span> Custo de storage cresce linear sem teto</td>
+    </tr>
+    <tr>
+      <td><strong>Observabilidade desde MVP</strong></td>
+      <td>ML pipeline tem muitos pontos de falha silenciosa</td>
+      <td><span class="badge alert">Alto</span> Bug em produção fica dias sem ser notado</td>
+    </tr>
+  </tbody>
+</table>
+
+<footer>
+  Documento gerado em 2026-04-28 — Oratória Avaliador<br>
+  Atualizar trimestralmente conforme volume real e câmbio
+</footer>
+
+</div>
+</body>
+</html>
