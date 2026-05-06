@@ -126,7 +126,95 @@ def _detectar_trechos_monotonos(
                 "num_janelas": len(valores_janela) - inicio_monotono,
             }
         )
+    return trechos
 
+
+def _detectar_trechos_multidim(
+    wpm_janelas: list,
+    volume_janelas: list,
+    pitch_janelas: list,
+    janela_segundos: float = 15.0,
+    min_dim_planas: int = 2,
+    limiar_velocidade: float = 0.05,
+    limiar_volume: float = 0.02,
+    limiar_pitch: float = 0.03,
+) -> list:
+    """Detector multi-dimensional de monotonia perceptual.
+
+    Diferenca vs _detectar_trechos_monotonos: aqui exigimos que MULTIPLAS
+    dimensoes (volume + pitch + velocidade) estejam planas SIMULTANEAMENTE
+    na mesma janela pra contar como monotono. Mentor com volume controlado
+    mas pitch ativo + velocidade variada NAO eh monotono perceptual — sistema
+    antigo punia esse caso (cv_volume baixo = "100% mono falso").
+
+    min_dim_planas=2 (default): "AND-2" — 2 das 3 dim planas no mesmo trecho.
+    min_dim_planas=3: "AND-3 estrito" — todas 3 planas (pega so mono extrema).
+
+    Retorna lista de trechos com inicio/fim/duracao/dim_count/dim_planas.
+    """
+    n = min(len(wpm_janelas), len(volume_janelas), len(pitch_janelas))
+    if n < 4:
+        return []
+
+    # Pra cada janela i (a partir de i=1), conta quantas dim sao planas
+    # comparado com janela i-1.
+    flags_por_janela = []
+    for i in range(1, n):
+        var_vel = abs(wpm_janelas[i] - wpm_janelas[i - 1]) / (
+            abs(wpm_janelas[i - 1]) + 1e-8
+        )
+        var_vol = abs(volume_janelas[i] - volume_janelas[i - 1]) / (
+            abs(volume_janelas[i - 1]) + 1e-8
+        )
+        var_pit = abs(pitch_janelas[i] - pitch_janelas[i - 1]) / (
+            abs(pitch_janelas[i - 1]) + 1e-8
+        )
+        dims_planas = []
+        if var_vel < limiar_velocidade:
+            dims_planas.append("velocidade")
+        if var_vol < limiar_volume:
+            dims_planas.append("volume")
+        if var_pit < limiar_pitch:
+            dims_planas.append("pitch")
+        flags_por_janela.append(dims_planas)
+
+    # Encontra runs de janelas onde len(dims_planas) >= min_dim_planas
+    trechos = []
+    inicio = None
+    dims_acumuladas = set()
+    for i, dims in enumerate(flags_por_janela):
+        if len(dims) >= min_dim_planas:
+            if inicio is None:
+                inicio = i
+                dims_acumuladas = set(dims)
+            else:
+                dims_acumuladas |= set(dims)
+        else:
+            if inicio is not None and (i - inicio) >= 3:
+                trechos.append(
+                    {
+                        "inicio_segundos": inicio * janela_segundos,
+                        "fim_segundos": (i + 1) * janela_segundos,
+                        "duracao_segundos": (i - inicio + 1) * janela_segundos,
+                        "num_janelas": i - inicio + 1,
+                        "dim_planas": sorted(dims_acumuladas),
+                    }
+                )
+            inicio = None
+            dims_acumuladas = set()
+
+    # trecho terminando no fim
+    if inicio is not None and (len(flags_por_janela) - inicio) >= 3:
+        trechos.append(
+            {
+                "inicio_segundos": inicio * janela_segundos,
+                "fim_segundos": (len(flags_por_janela) + 1) * janela_segundos,
+                "duracao_segundos": (len(flags_por_janela) - inicio + 1)
+                * janela_segundos,
+                "num_janelas": len(flags_por_janela) - inicio + 1,
+                "dim_planas": sorted(dims_acumuladas),
+            }
+        )
     return trechos
 
 
@@ -159,6 +247,9 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     cv_velocidade = voice.get("cv_velocidade", 0.0)
     cv_pitch = voice.get("cv_pitch", 0.0)
     cv_volume = voice.get("cv_volume", 0.0)
+    audio_quality_low = voice.get("audio_quality_low", False)
+    snr_estimated_db = voice.get("snr_estimated_db", None)
+    babble_suspected = voice.get("babble_suspected", False)
 
     # =============================================
     # SCORES POR DIMENSAO (puramente vocais)
@@ -175,23 +266,51 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     # Speaker que varia globalmente tem direito a platos locais (estabilidade
     # tematica intencional). Sem isso, mentor TEDx era marcado tao monotono
     # quanto aluno iniciante por causa de 3 janelas estaveis no meio.
-    SKIP_FACTOR = 1.5
     janela_segundos = voice.get("janela_size_seconds") or 15.0
-    trechos_monotonos_velocidade = (
-        []
-        if cv_velocidade > CV_RANGES["velocidade"]["min_ideal"] * SKIP_FACTOR
-        else _detectar_trechos_monotonos(wpm_janelas, 0.05, janela_segundos)
-    )
-    trechos_monotonos_volume = (
-        []
-        if cv_volume > CV_RANGES["volume"]["min_ideal"] * SKIP_FACTOR
-        else _detectar_trechos_monotonos(volume_janelas, 0.02, janela_segundos)
-    )
-    trechos_monotonos_pitch = (
-        []
-        if cv_pitch > CV_RANGES["pitch"]["min_ideal"] * SKIP_FACTOR
-        else _detectar_trechos_monotonos(pitch_janelas, 0.03, janela_segundos)
-    )
+    # 2026-05-06: gate por qualidade de audio. SNR baixo distorce cv_volume e
+    # cv_pitch (caso Gui 0f776d94: SNR 9.3dB → 100% monotono falso). Quando
+    # audio_quality_low, pular deteccao de monotonia pra evitar falso positivo.
+    #
+    # 2026-05-06: SKIP_FACTOR ajustado de 1.5 → 3.0. Antes 1.5x piso era muito
+    # permissivo (5 de 7 videos zeravam monotono). 3.0x preserva mentor
+    # calibrado (cv >> piso = nao detecta) mas roda deteccao em medianos.
+    # Penalidades tambem suavizadas (local 0.5→0.3 max 20, global 0.4→0.3
+    # max 15) pra evitar tombo draconiano de 26pts num video de score 92.
+    # 2026-05-06 v4: detector MULTI-DIMENSIONAL substitui detector per-dim.
+    # Razao: cv_volume baixo isolado NAO indica monotonia perceptual. Mentor
+    # com controle de volume + pitch ativo + velocidade variada nao soa
+    # monotono. Sistema antigo punia esse caso (GUI WENDEL/PRIME: 100% mono FP).
+    # Multi-dim so marca trecho quando >= 2 dimensoes estao planas SIMULTANEAS
+    # na mesma janela — captura monotonia perceptual real (ALUNO MONO) sem FP.
+    if audio_quality_low or babble_suspected:
+        trechos_multidim = []
+    else:
+        trechos_multidim = _detectar_trechos_multidim(
+            wpm_janelas,
+            volume_janelas,
+            pitch_janelas,
+            janela_segundos=janela_segundos,
+            min_dim_planas=2,
+        )
+
+    # Por compatibilidade com codigo downstream (penalidade local per-dim,
+    # UI mostra trechos_monotonos.{volume,entonacao,velocidade}), decompoe
+    # os trechos multidim por dimensao — cada trecho aparece nas dim que
+    # estavam planas naquele intervalo.
+    def _split_dim(trechos_md: list, dim: str) -> list:
+        return [
+            {
+                k: v
+                for k, v in t.items()
+                if k != "dim_planas"
+            }
+            for t in trechos_md
+            if dim in t.get("dim_planas", [])
+        ]
+
+    trechos_monotonos_velocidade = _split_dim(trechos_multidim, "velocidade")
+    trechos_monotonos_volume = _split_dim(trechos_multidim, "volume")
+    trechos_monotonos_pitch = _split_dim(trechos_multidim, "pitch")
 
     todos_trechos = (
         trechos_monotonos_velocidade + trechos_monotonos_volume + trechos_monotonos_pitch
@@ -227,7 +346,8 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
             return resultado
         tempo_plano = sum(t["duracao_segundos"] for t in trechos)
         pct_dim = (tempo_plano / dur) * 100
-        penalidade = min(30, pct_dim * 0.5)
+        # 2026-05-06: penalidade suavizada (0.5 → 0.3, max 30 → 20).
+        penalidade = min(20, pct_dim * 0.3)
         novo_score = max(0, round(resultado["score"] - penalidade))
         return {
             **resultado,
@@ -264,8 +384,9 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
     # Penalidade GLOBAL pct_tempo_monotono mantida — penalidade local mostra
     # onde, global mostra impacto no overall. Sozinha local nao puxa overall
     # forte o bastante por causa dos pesos 0.32-0.35 amortizando o tombo.
+    # 2026-05-06: penalidade global suavizada (0.4 → 0.3, max 20 → 15).
     if pct_tempo_monotono > 30:
-        penalidade_monotonia = min(20, (pct_tempo_monotono - 30) * 0.4)
+        penalidade_monotonia = min(15, (pct_tempo_monotono - 30) * 0.3)
         variety_score = max(0, round(variety_score - penalidade_monotonia))
 
     variety_score = max(0, min(100, variety_score))
@@ -306,6 +427,9 @@ def _compute_variety_metrics(voice_result: dict, gesture_result: dict) -> dict:
         "metrics": {
             "diagnostico_geral": diagnostico_geral,
             "defaults_detectados": defaults_detectados,
+            "audio_quality_low": audio_quality_low,
+            "snr_estimated_db": snr_estimated_db,
+            "babble_suspected": babble_suspected,
             "pct_tempo_monotono": pct_tempo_monotono,
             "dimensoes": {
                 "velocidade": variacao_velocidade,

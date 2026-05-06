@@ -190,17 +190,35 @@ def transcribe_audio(audio_path: str, model_name: str | None = None) -> dict:
             except (ImportError, RuntimeError):
                 pass
 
+    # 2026-05-06: filtro por confidence pra reduzir contaminacao por babble
+    # (burburinho de fundo). Whisper "chuta" palavras pra fragmentos baixos
+    # que parecem PT — descartar < 0.4 limpa transcript pra fillers/wpm/etc.
+    # Threshold conservador: palavras genuinas costumam ter > 0.5; babble
+    # tipicamente fica < 0.3.
+    WORD_CONFIDENCE_THRESHOLD = 0.4
     words = []
+    words_filtered_count = 0
     for segment in result.get("segments", []):
         for word_info in segment.get("words", []):
+            confidence = round(word_info.get("probability", 0.0), 3)
+            if confidence < WORD_CONFIDENCE_THRESHOLD:
+                words_filtered_count += 1
+                continue
             words.append(
                 {
                     "word": word_info["word"].strip(),
                     "start": round(word_info["start"], 3),
                     "end": round(word_info["end"], 3),
-                    "confidence": round(word_info.get("probability", 0.0), 3),
+                    "confidence": confidence,
                 }
             )
+    if words_filtered_count > 0:
+        logger.info(
+            "whisper_words_filtered_low_confidence",
+            filtered=words_filtered_count,
+            kept=len(words),
+            threshold=WORD_CONFIDENCE_THRESHOLD,
+        )
 
     duration = time.time() - start
     logger.info(
@@ -254,6 +272,41 @@ def analyze_prosody(audio_path: str) -> dict:
     total_frames = len(intensity_values)
     speech_ratio = speech_frames / total_frames if total_frames > 0 else 0.0
 
+    # SNR estimado — usado pra qualificar confianca da analise vocal.
+    # speech (p75) - noise floor (p10) em dB de intensidade Praat.
+    # SNR < 12 dB indica audio ruidoso que pode distorcer cv_volume e cv_pitch.
+    if total_frames > 0:
+        speech_db_p75 = float(np.percentile(intensity_values, 75))
+        noise_db_p10 = float(np.percentile(intensity_values, 10))
+        snr_estimated_db = round(speech_db_p75 - noise_db_p10, 1)
+    else:
+        snr_estimated_db = 0.0
+    audio_quality_low = snr_estimated_db < 12.0
+
+    # 2026-05-06: babble detector heuristico (sem modelo ML).
+    # Requer 3 sinais combinados pra evitar falso positivo em mentor falando
+    # contínuo (esse caso passa speech_ratio > 0.85 mas tem pitch_range
+    # natural). pitch_range > 25 semitons é o discriminador — múltiplas
+    # vozes confundem F0 inflando range; mentor sozinho fica em 15-22 st.
+    babble_suspected = bool(
+        speech_ratio > 0.85
+        and pitch_range_semitones > 25.0
+        and snr_estimated_db > 12.0
+        and not audio_quality_low
+    )
+
+    # 2026-05-06: foreground threshold APENAS quando ha sinal de problema de
+    # audio (babble ou ruido). Em audio limpo, p70-5 sobe artificialmente
+    # acima de mean-10 e filtra trechos legitimos do speaker, achatando cv
+    # por janela e gerando falso positivo de monotonia (caso GUI WENDEL:
+    # 91 → 61 score variety com 82% mono falso). Mantem mean-10 quando
+    # audio limpo.
+    if (babble_suspected or audio_quality_low) and total_frames > 0:
+        intensity_p70 = float(np.percentile(intensity_values, 70))
+        foreground_threshold = max(intensity_threshold, intensity_p70 - 5)
+    else:
+        foreground_threshold = intensity_threshold
+
     # Analise por janela temporal
     pitch_timestamps = pitch.xs()
     pitch_all = pitch.selected_array["frequency"]
@@ -272,20 +325,46 @@ def analyze_prosody(audio_path: str) -> dict:
         t_start = j * janela_size
         t_end = (j + 1) * janela_size
 
-        # Pitch medio na janela
+        # Pitch medio na janela — F0 so de frames foreground (proximo do mic).
+        # 2026-05-06 fix: cruza pitch frames com intensidade — F0 detectado
+        # em frames de baixa energia provavelmente vem de babble/voz distante.
         mask_pitch = (pitch_timestamps >= t_start) & (pitch_timestamps < t_end)
+        janela_pitch_ts = pitch_timestamps[mask_pitch]
         janela_pitch = pitch_all[mask_pitch]
-        janela_pitch = janela_pitch[janela_pitch > 0]
-        pitch_por_janela.append(
-            round(float(np.mean(janela_pitch)), 1) if len(janela_pitch) > 0 else 0.0
-        )
+        if len(janela_pitch) > 0 and len(intensity_values) > 0:
+            int_at_pitch = np.interp(
+                janela_pitch_ts, intensity.xs(), intensity_values
+            )
+            mask_voz = (janela_pitch > 0) & (int_at_pitch > foreground_threshold)
+            janela_pitch_voz = janela_pitch[mask_voz]
+            if len(janela_pitch_voz) > 0:
+                pitch_por_janela.append(round(float(np.mean(janela_pitch_voz)), 1))
+            else:
+                janela_pitch_pos = janela_pitch[janela_pitch > 0]
+                pitch_por_janela.append(
+                    round(float(np.mean(janela_pitch_pos)), 1)
+                    if len(janela_pitch_pos) > 0
+                    else 0.0
+                )
+        else:
+            pitch_por_janela.append(0.0)
 
-        # Volume medio na janela
+        # Volume medio na janela — APENAS frames com voz primaria (foreground).
+        # 2026-05-06 fix: usa foreground_threshold (p70 - 5dB ou mean-10, o que
+        # for maior). Filtra silencios + ruido + babble (burburinho de fundo).
+        # Casos cobertos:
+        #  - SNR baixo (Gui Ararangua): mean-10 ja filtrava
+        #  - Babble (Aluna Loira/Morena): p70-5 isola voz proxima do mic
         int_timestamps = intensity.xs()
         mask_int = (int_timestamps >= t_start) & (int_timestamps < t_end)
         janela_int = intensity_values[mask_int]
+        janela_int_voz = janela_int[janela_int > foreground_threshold]
         volume_por_janela.append(
-            round(float(np.mean(janela_int)), 1) if len(janela_int) > 0 else 0.0
+            round(float(np.mean(janela_int_voz)), 1)
+            if len(janela_int_voz) > 0
+            else (
+                round(float(np.mean(janela_int)), 1) if len(janela_int) > 0 else 0.0
+            )
         )
 
     # CV de pitch e volume calculados a partir das MEDIAS POR JANELA (nao valores brutos)
@@ -343,6 +422,9 @@ def analyze_prosody(audio_path: str) -> dict:
         "pitch_accent_mean_prominence_st": pitch_accents["mean_prominence_st"],
         "pitch_accent_max_prominence_st": pitch_accents["max_prominence_st"],
         "speech_silence_ratio": round(speech_ratio, 3),
+        "snr_estimated_db": snr_estimated_db,
+        "audio_quality_low": audio_quality_low,
+        "babble_suspected": babble_suspected,
         "audio_duration_seconds": round(duration_s, 2),
         "pitch_por_janela": pitch_por_janela,
         "volume_por_janela": volume_por_janela,

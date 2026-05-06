@@ -21,7 +21,7 @@ EXERCICIOS = {
         "meta": "Conseguir identificar pelo menos 3 momentos de enfase com velocidade reduzida em 2 minutos de fala.",
     },
     "volume_travado": {
-        "titulo": "Peaks and Troughs de Volume",
+        "titulo": "Altos e Baixos de Volume",
         "exercicio": "Conte uma historia simples. Nos momentos emocionais, REDUZA o volume ao inves de aumentar — o sussurro puxa a atencao. Pratique a transicao entre volume 7 e volume 2.",
         "meta": "Conseguir alternar entre pelo menos 3 niveis de volume numa narrativa de 2 minutos.",
     },

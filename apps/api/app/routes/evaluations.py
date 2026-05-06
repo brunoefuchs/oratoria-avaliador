@@ -363,6 +363,7 @@ async def get_replay_data(evaluation_id: str):
         "total_clusters": 0,
         "pausas_estrategicas": 0,
         "pausas_hesitacao": 0,
+        "pausas_respiracao": 0,
     }
 
     # ============================================================
@@ -453,6 +454,19 @@ async def get_replay_data(evaluation_id: str):
                 }
             )
             stats["pausas_hesitacao"] += 1
+
+        for pausa in pausas.get("respiracao", []):
+            start = pausa.get("start", 0)
+            end = pausa.get("end", start + 1)
+            events.append(
+                {
+                    "type": "pausa_respiracao",
+                    "start": start,
+                    "end": end,
+                    "label": f"Respiracao ({round(end - start, 1)}s)",
+                }
+            )
+            stats["pausas_respiracao"] += 1
 
     # ============================================================
     # Olhar para baixo (presente?)

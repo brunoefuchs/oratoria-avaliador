@@ -89,7 +89,13 @@ def _estimar_direcao_olhar(face_landmarks) -> dict:
     # GAZE_Y_DOWN: olhar pra baixo (notas/chao) é problema real, threshold
     # apertado (0.30). GAZE_Y_UP: olhar pra cima (preview da camera) é
     # selfie normal, threshold permissivo (0.55).
-    GAZE_X_THRESHOLD = 0.30  # ligeiramente mais permissivo
+    # 2026-05-06: GAZE_X 0.30 -> 0.20 apos auditoria (audit_gaze.py).
+    # Em 7 videos amostrados, threshold 0.30 marcava como "camera" frames com
+    # gaze_x 0.20-0.30 que visualmente eram olhar lateral subtle. 0.20 mantem
+    # videos calibrados (mentor 97% -> 95%) e penaliza corretamente quem tem
+    # olhar disperso (aluna 88% -> 73%). Calibrado contra video caa04928
+    # validado visualmente em 4 timestamps (7.7s, 27.4s, 42.8s, 51.8s).
+    GAZE_X_THRESHOLD = 0.20  # apertado pra capturar olhar lateral subtle
     GAZE_Y_DOWN_THRESHOLD = 0.30  # olhar pra baixo = problema
     GAZE_Y_UP_THRESHOLD = 0.55  # olhar pra cima = selfie OK
 

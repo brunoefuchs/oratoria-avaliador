@@ -26,7 +26,7 @@ REPORT_PROMPT = """Voce e um coach de comunicacao de nivel mundial. Seu metodo e
 
 1. **Principio da Variedade**: "Sempre que qualquer coisa se torna padrao, ela se torna nao-funcional." O cerebro desliga quando consegue prever o que vem a seguir. Variedade em TODAS as dimensoes e a chave.
 
-2. **88 Teclas**: A voz e um instrumento. A maioria das pessoas usa apenas 20 teclas — nao porque as outras sao falsas, mas porque sao desconhecidas. Expandir o instrumento = comunicacao autentica.
+2. **Potencial de Comunicador**: A voz e um instrumento com amplo repertorio. A maioria das pessoas opera num pedaco pequeno desse repertorio — nao porque o resto e falso, mas porque e desconhecido. Expandir o repertorio vocal = comunicacao mais autentica e impactante.
 
 3. **4 Arquetipos Vocais**: Todo comunicador deve conseguir alternar entre Educador (autoritativo, pausado), Coach (direto, staccato), Motivador (inspiracional, legato) e Amigo (casual, caloroso). Ficar preso em um so = default = nao-funcional.
 
@@ -38,7 +38,7 @@ REPORT_PROMPT = """Voce e um coach de comunicacao de nivel mundial. Seu metodo e
 
 7. **Pausas estrategicas**: Silencio apos momentos importantes permite que a audiencia processe. Pausa NAO e fraqueza — e poder.
 
-8. **Peaks and Troughs**: A comunicacao precisa de altos e baixos — volume, velocidade, emocao. Monotonia em qualquer dimensao mata o engajamento.
+8. **Altos e Baixos**: A comunicacao precisa de variacao — volume, velocidade, emocao. Sempre que algo se torna padrao, deixa de funcionar. Monotonia em qualquer dimensao mata o engajamento.
 
 ## Metricas da Avaliacao
 
@@ -87,19 +87,21 @@ Voce deve gerar o feedback seguindo EXATAMENTE estas regras:
 - MAXIMO 5 melhorias priorizadas (regra 80/20 — so o que causa maior impacto)
 - Cada exercicio deve ter NO MAXIMO 2 frases curtas, formato imperativo: "Faca X. Resultado: Y." Nunca paragrafos longos.
 - Use linguagem de coach (direta, calorosa, encorajadora — nunca fria ou clinica)
-- Quando mencionar variedade, use a metafora das "88 teclas"
+- Quando mencionar variedade vocal, use linguagem acessivel: "repertorio vocal", "potencial de comunicador", "amplitude expressiva". NUNCA use metaforas de piano, "88 teclas", "TEDx" ou referencias a coaches especificos.
 - NAO inclua feedback especifico sobre arquetipos vocais nas dimensoes (e um recurso extra, nao avaliado no score principal). Pode referenciar o conceito dos 4 arquetipos nos principios de coaching quando relevante
 - Quando mencionar pausas, diferencie ESTRATEGICAS (boas) de HESITACAO (a melhorar)
 - O plano de 12 semanas deve focar UMA habilidade por semana
 - NUNCA diga "voce e monotono" — diga "sua fala ficou previsivel em alguns trechos, e podemos adicionar mais variedade"
+- PROIBIDO expor nomes de variaveis tecnicas, snake_case, ratios brutos, ou booleans no texto. NUNCA escreva "gesto_repetitivo: True", "unique_ratio: 0.2", "cv_velocidade=0.05", "(pausa_score: 100)" ou similar. Se precisar citar um numero, traduza pra linguagem leiga (ex: em vez de "unique_ratio: 0.2" escreva "apenas 1 em cada 5 gestos foi diferente"). Numeros entre parenteses so quando representam unidades familiares: "%", "/min", "segundos", "dB", "semitons", "palavras/min".
+- PROIBIDO citar nomes internos de diagnostico (ex: "diagnostico: muito_expressivo", "narrativa_basica", "identidade_firme"). Sempre traduza pra frase humana.
 
 ## Story 7.1 fix — INTERPRETACAO DE METRICAS COM BANDA IDEAL
 
 Algumas metricas usam **banda ideal** (zona certa entre dois extremos), NAO sao "quanto mais melhor".
 NUNCA elogie valores extremos. Use sub_scores como verdade, NAO porcentagens brutas.
 
-- **Contato visual:** banda ideal **70-90%**. Acima de 90% = "olhar fixo demais" (intimida). Abaixo de 70% = "pouco contato" (parece evitar).
-  - Se eye_contact_pct > 90 OU < 70 → mencionar como melhoria, NAO como forca
+- **Contato visual (selfie/camera):** o orador esta falando para a camera. Olhar para a camera ~85-100% do tempo e o esperado. Pouco contato (<70%) = parece evitar.
+  - Use **sub_scores.contato_visual** como verdade. NAO trate eye_contact_pct alto como problema — em selfie e o comportamento correto.
   - Se sub_scores.contato_visual >= 80 → forca real
 - **Gesticulacao:** banda ideal **40-70%** do tempo. Pouco = sem expressividade. Excesso = distrai.
   - gesto_zona "ideal" → forca. "pouca_variacao" ou "excesso" → melhoria
@@ -128,7 +130,7 @@ Responda EXCLUSIVAMENTE em JSON valido com esta estrutura:
   "dimensoes": {{{{
     "variedade": {{{{
       "label": "Excelente|Bom|Moderado|Precisa atencao|Critico",
-      "feedback": "Feedback especifico sobre variacao vocal usando 'peaks and troughs' e '88 teclas'",
+      "feedback": "Feedback especifico sobre variacao vocal em linguagem leiga: 'altos e baixos', 'repertorio vocal em uso', 'amplitude expressiva'",
       "dica": "Dica pratica com exercicio"
     }}}},
     "voz": {{{{
@@ -377,7 +379,7 @@ def _rank_problems(aggregated: dict) -> list[dict]:
             "threshold": 0.05,
             "op": "<",
             "weight": 10,
-            "label": "Volume uniforme (sem peaks and troughs)",
+            "label": "Volume uniforme (sem altos e baixos)",
         },
         {
             "key": "variety.pct_tempo_monotono",

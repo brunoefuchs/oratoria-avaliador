@@ -337,8 +337,8 @@ def _compute_facial_metrics(video_path: str) -> dict:
         # > 8 marcava engajamento natural como excesso.
         diagnostico = "muito_expressivo"
         feedback = (
-            "Expressao facial muito ativa — sinal de engajamento e energia. "
-            "Mantenha esse nivel; se quiser, reserve os movimentos mais marcantes para os pontos-chave."
+            "Expressao facial muito ativa: sinal de engajamento e energia. "
+            "Mantenha o nivel e reserve os movimentos mais marcantes para os pontos-chave."
         )
     else:
         diagnostico = "expressao_equilibrada"
