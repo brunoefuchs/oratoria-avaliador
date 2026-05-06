@@ -2,10 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ScoreCard } from "@/components/score-card";
 import { StarRating } from "@/components/star-rating";
 import { AppShell } from "@/components/app-shell";
-import { IdentityCard } from "@/components/identity-card";
 import { OpeningCard } from "@/components/opening-card";
 import { ScoreBreakdown } from "@/components/score-breakdown";
 import { FacialCard } from "@/components/facial-card";
@@ -18,28 +16,28 @@ import { CONFIDENCE_BADGES } from "@/lib/report-labels";
 
 const DIMENSION_LABELS: Record<string, string> = {
   variety: "Variedade Vocal",
-  voice: "Voz",
+  voice: "Voz e Dicção",
   articulation: "Articulação",
-  gesture: "Gestos",
-  posture: "Postura",
+  gesture: "Presença Visual",
+  posture: "Postura e Presença",
   fillers: "Clareza Verbal",
   facial: "Expressão Facial",
   storytelling: "Storytelling",
-  archetypes: "Arquétipos",
+  archetypes: "Arquétipos Vocais",
   tonality: "Tonalidade",
   identity: "Identidade",
 };
 
 const DIMENSION_DESC: Record<string, string> = {
-  voice: "Cadência (WPM), range melódico em semitons e qualidade das pausas.",
-  variety: "Variação de volume, entonação e velocidade ao longo do tempo.",
+  voice: "Como sua voz está calibrada agora — ritmo médio, volume base, alcance melódico e estrutura de pausas.",
+  variety: "Quanto você modula sua voz ao longo do tempo — se mantém igual ou cria altos e baixos que prendem atenção.",
   fillers: "Frequência de vícios de linguagem (né, tipo, ahn, sabe).",
   gesture: "Frequência, vocabulário e propósito dos gestos das mãos.",
   posture: "Estabilidade corporal, alinhamento e abertura postural.",
   facial: "Variação de expressão e contato visual com a câmera.",
-  storytelling: "Hook de abertura, bridge sentence e ativação de chemicals.",
-  archetypes: "Cycling entre Coach, Educador, Motivador e Amigo.",
-  tonality: "Carga emocional (arousal/valence) ao longo da fala.",
+  storytelling: "Abertura que prende, conexão entre ideias e gatilhos emocionais ativados.",
+  archetypes: "Alternância entre os 4 modos de falar: Coach, Educador, Motivador e Amigo.",
+  tonality: "Carga emocional da voz — o quanto transmite confiança, calor, energia ou tensão.",
   identity: "Coerência da persona ao longo do vídeo.",
 };
 
@@ -94,7 +92,7 @@ const FAMILIES: Array<{
     key: "tecnica",
     label: "Técnica Vocal",
     icon: "mic",
-    desc: "Como sua voz funciona como instrumento.",
+    desc: "Como sua voz funciona como instrumento.\nO que você fez bem e onde mira a próxima evolução.",
     dims: ["voice", "variety", "fillers"],
     feedback: (s) =>
       s >= 85
@@ -102,14 +100,14 @@ const FAMILIES: Array<{
         : s >= 65
         ? "Boa base técnica. Há espaço pra ampliar variação intencional."
         : s >= 40
-        ? "Técnica funcional, mas previsível. Cycle entre cadências e volumes pra criar contraste."
-        : "Anytime anything becomes default, it becomes non-functional — sua voz precisa quebrar padrão.",
+        ? "Técnica funcional, mas previsível. Alterne cadências e volumes pra criar contraste."
+        : "Sua voz está em piloto automático. Quebre o padrão pra prender atenção.",
   },
   {
     key: "presenca",
     label: "Presença Física",
     icon: "accessibility_new",
-    desc: "O que seu corpo está dizendo paralelo à fala.",
+    desc: "O que seu corpo diz paralelo à fala.\nGesto, postura e rosto somam ou contradizem a mensagem.",
     dims: ["gesture", "posture", "facial"],
     feedback: (s) =>
       s >= 85
@@ -118,22 +116,22 @@ const FAMILIES: Array<{
         ? "Boa presença. Refine gesto intencional e ocupe mais espaço visual."
         : s >= 40
         ? "Corpo poderia abrir mais — gesto repetitivo ou postura fechada está te limitando."
-        : "Seu corpo está apagando sua mensagem. Be as big as the room.",
+        : "Seu corpo está apagando sua mensagem. Ocupe mais espaço, seja maior que o quadro.",
   },
   {
     key: "narrativa",
     label: "Narrativa",
     icon: "auto_stories",
-    desc: "Se sua mensagem está conectando ou só ocupando ar.",
+    desc: "Se sua mensagem está conectando ou só ocupando ar.\nMede o poder de prender atenção pela forma como o conteúdo é apresentado.",
     dims: ["storytelling", "archetypes", "tonality", "identity"],
     feedback: (s) =>
       s >= 85
-        ? "Sua mensagem prende e transforma — bridge, arquétipos e tonalidade alinhados."
+        ? "Sua mensagem prende e transforma — abertura, estrutura e tonalidade alinhados."
         : s >= 65
-        ? "Boa estrutura narrativa. Bridge sentence e cycling de arquétipos podem amplificar."
+        ? "Boa estrutura narrativa. Adicione frase-ponte ('a razão de eu te contar isso...') e variação de arquétipos pra amplificar."
         : s >= 40
-        ? "Sua mensagem precisa do bridge — 'a razão de eu estar te dizendo isso é...'"
-        : "Você está tocando as notas certas, mas não tocou a música. Foque em conectar.",
+        ? "Sua mensagem precisa de uma frase-ponte: 'a razão de eu estar te dizendo isso é...'"
+        : "Você está dizendo palavras certas mas sem narrativa que conecte. Foque em prender atenção e conduzir até o ponto.",
   },
 ];
 
@@ -198,10 +196,6 @@ export default function ReportPage() {
   const plano = report.plano_12_semanas || [];
   const mensagemFinal = report.mensagem_final || "";
 
-  const sortedDimensions = DIMENSION_ORDER.filter(
-    (d) => d in (data.dimension_scores || {})
-  );
-
   const handleShare = async () => {
     try {
       const result = await createShare(id);
@@ -259,15 +253,15 @@ export default function ReportPage() {
                 const score = cong.score;
                 const total = cong.total_contradicoes ?? 0;
                 const tier = score >= 90 ? {
-                  label: "Verbal-Vocal-Visual alinhados",
+                  label: "Verbal-Vocal-Visual alinhados: audiência sente verdade.",
                   bg: "bg-secondary/15 text-secondary border-secondary/30",
                   icon: "verified",
                 } : score >= 70 ? {
-                  label: "Pequenas incongruências",
+                  label: "Pequenas incongruências entre o que diz e como mostra",
                   bg: "bg-tertiary/15 text-tertiary border-tertiary/30",
                   icon: "warning",
                 } : {
-                  label: "Incongruências significativas",
+                  label: "Sinais conflitantes prejudicam credibilidade",
                   bg: "bg-error/15 text-error border-error/30",
                   icon: "error",
                 };
@@ -335,7 +329,7 @@ export default function ReportPage() {
                             <h3 className="font-headline text-xl md:text-2xl font-bold mb-1">
                               {fam.label}
                             </h3>
-                            <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-3">
+                            <p className="text-xs text-on-surface-variant uppercase tracking-wider mb-3 whitespace-pre-line">
                               {fam.desc}
                             </p>
                             <p className="text-sm text-on-surface leading-relaxed italic">
@@ -360,14 +354,17 @@ export default function ReportPage() {
                         const subTone = getScoreTone(dimScore ?? 0);
                         const label = DIMENSION_LABELS[dim] || dim;
                         if (dimScore == null) return null;
+                        const confidence = (
+                          data.dimension_confidence as DimensionConfidence | undefined
+                        )?.[dim];
                         return (
                           <button
                             key={dim}
                             onClick={() => router.push(`/report/${id}/${dim}`)}
-                            className="rounded-xl bg-surface-container-low p-3 hover:bg-surface-container-high transition-colors text-left flex flex-col"
+                            className="rounded-xl bg-surface-container-low p-3 hover:bg-surface-container-high transition-colors text-left flex flex-col relative"
                           >
-                            <div className="flex items-baseline justify-between mb-1">
-                              <div className="text-xs text-on-surface-variant truncate">
+                            <div className="flex items-baseline justify-between mb-1 gap-2">
+                              <div className="text-xs text-on-surface-variant truncate flex-1">
                                 {label}
                               </div>
                               <div className={`font-mono font-bold text-2xl ${subTone}`}>
@@ -379,13 +376,116 @@ export default function ReportPage() {
                                 {DIMENSION_DESC[dim]}
                               </p>
                             )}
+                            {confidence && (
+                              <div className="absolute top-2 right-2 pointer-events-none">
+                                <ConfidenceBadge confidence={confidence} compact />
+                              </div>
+                            )}
                           </button>
                         );
                       })}
                     </div>
+                    {fam.key === "tecnica" && (
+                      <div className="px-4 pb-4 pt-2 bg-surface-container">
+                        <p className="text-xs font-medium text-on-surface mb-1">
+                          Combinação Voz + Variedade Vocal
+                        </p>
+                        <p className="text-xs text-on-surface-variant leading-relaxed whitespace-pre-line">
+                          <span className="font-medium text-on-surface">Voz</span> = como sua voz está calibrada. <span className="font-medium text-on-surface">Variedade</span> = quanto ela muda ao longo do tempo.{"\n"}As duas trabalham juntas: voz forte sem variedade vira monótona; variedade sem base perde impacto.
+                        </p>
+                      </div>
+                    )}
                   </article>
                 );
               })}
+            </div>
+          </section>
+        )}
+
+        {/* Congruência (movido 2026-05-06: logo apos family cards pra
+            cliente entender que e a "validacao" das 3 familias) */}
+        {data.detailed_metrics?.congruence?.score != null && (
+          <section className="rounded-2xl bg-surface-container-low p-6 ghost-border space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-secondary text-2xl">
+                  balance
+                </span>
+                <h2 className="font-headline text-xl md:text-2xl font-bold tracking-tight">
+                  Congruência corpo-voz
+                </h2>
+              </div>
+              <span
+                className={`font-headline text-3xl md:text-4xl font-bold ${getCongruenceTone(
+                  data.detailed_metrics.congruence.score
+                )}`}
+              >
+                {data.detailed_metrics.congruence.score}
+              </span>
+            </div>
+            <div className="rounded-xl bg-surface-container p-4 text-sm text-on-surface-variant leading-relaxed space-y-2">
+              <p>
+                <strong className="text-on-surface">Congruência</strong> mede se
+                seus 3 canais de comunicação estão dizendo a mesma coisa:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li><strong>Verbal</strong> — o que você fala (palavras)</li>
+                <li><strong>Vocal</strong> — como você fala (tom, ritmo, energia)</li>
+                <li><strong>Visual</strong> — o que seu corpo mostra (rosto, gesto, postura)</li>
+              </ul>
+              <p>
+                Quando os 3 estão alinhados, a audiência sente verdade. Quando
+                contradizem (ex: sorriso forçado + voz tensa), o cérebro do
+                espectador detecta — mesmo que ele não saiba explicar.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {(data.detailed_metrics.congruence.total_contradicoes ?? 0) === 0 ? (
+                <div className="rounded-xl bg-secondary/10 border border-secondary/30 p-4 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-secondary text-xl mt-0.5">
+                    verified
+                  </span>
+                  <div className="text-sm text-on-surface-variant leading-relaxed">
+                    <p className="font-medium text-on-surface">
+                      Nenhuma incongruência detectada.
+                    </p>
+                    <p className="mt-1">
+                      Seus 3 canais (verbal, vocal e visual) estão alinhados.
+                      Não houve sinais conflitantes — a mensagem que você fala,
+                      o tom da voz e o que o corpo mostra dizem a mesma coisa.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs uppercase tracking-wider text-on-surface-variant font-medium">
+                  Alertas detectados
+                </p>
+              )}
+              {data.detailed_metrics.congruence.contradicoes?.map(
+                (c: any, i: number) => {
+                  const explicacao = CONGRUENCE_EXPLAIN[c.id] ?? "";
+                  return (
+                    <div
+                      key={i}
+                      className="rounded-xl bg-tertiary/10 border border-tertiary/30 p-3 space-y-1.5"
+                    >
+                      <div className="flex items-start gap-2 text-sm">
+                        <span className="material-symbols-outlined text-tertiary text-base mt-0.5">
+                          flash_on
+                        </span>
+                        <span className="font-medium text-on-surface">
+                          {c.descricao}
+                        </span>
+                      </div>
+                      {explicacao && (
+                        <p className="text-xs text-on-surface-variant leading-snug pl-7">
+                          {explicacao}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }
+              )}
             </div>
           </section>
         )}
@@ -427,75 +527,10 @@ export default function ReportPage() {
           </section>
         )}
 
-        {/* Dimensões */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined text-secondary text-2xl">
-              analytics
-            </span>
-            <h2 className="font-headline text-2xl md:text-3xl font-bold tracking-tight">
-              Dimensões analisadas
-            </h2>
-          </div>
-          <p className="text-on-surface-variant text-sm">
-            Clique em qualquer dimensão para ver métricas e feedback detalhados.
-          </p>
-          {/* Story 9.1 — legenda de confiança (só aparece quando flag ON popula dimension_confidence) */}
-          {data.dimension_confidence && (
-            <div className="flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
-              <span className="opacity-70">Confiança:</span>
-              <span title={CONFIDENCE_BADGES.alta.tooltip}>🟢 ML validado</span>
-              <span title={CONFIDENCE_BADGES.media.tooltip}>🟡 Heurística</span>
-              <span title={CONFIDENCE_BADGES.baixa.tooltip}>🔴 Complementar</span>
-            </div>
-          )}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            {sortedDimensions.map((dimension) => {
-              const score = data.dimension_scores[dimension] as number;
-              const ptKey = DIMENSION_TO_PT_KEY[dimension];
-              const feedback = dimensoes[dimension] || dimensoes[ptKey];
-              const confidence = (data.dimension_confidence as DimensionConfidence | undefined)?.[
-                dimension
-              ];
-              return (
-                <div key={dimension} className="relative">
-                  <ScoreCard
-                    title={DIMENSION_LABELS[dimension] || dimension}
-                    dimensionKey={dimension}
-                    score={score}
-                    summary={feedback?.dica || feedback?.tip}
-                    onClick={() => router.push(`/report/${id}/${dimension}`)}
-                  />
-                  {confidence && (
-                    <div className="absolute top-2 right-2 pointer-events-none">
-                      <ConfidenceBadge confidence={confidence} compact />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Locked archetype */}
-          <div className="rounded-2xl bg-surface-container-low p-4 flex items-center gap-4 ghost-border opacity-70">
-            <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center ghost-border">
-              <span className="material-symbols-outlined text-tertiary">
-                lock
-              </span>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-on-surface">
-                Arquétipos Vocais
-              </p>
-              <p className="text-xs text-on-surface-variant">
-                Recurso avançado · em breve
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Story 7.2 — Sua Identidade (após dimensões — sub-dimensão qualitativa) */}
-        <IdentityCard data={data.detailed_metrics?.identity} evaluationId={id} />
+        {/* Section "Dimensões analisadas" + Locked archetype removidos
+            (2026-05-06): info ja consolidada nas 3 family cards acima com
+            sub-dims clickaveis. Archetypes ja existe como dimensao real,
+            "lock em breve" estava obsoleto. */}
 
         {/* Story 7.4 — Expressão Facial (sub-dimensão qualitativa, junto com Identidade) */}
         <FacialCard data={data.detailed_metrics?.facial} />
@@ -563,93 +598,6 @@ export default function ReportPage() {
                     </div>
                   </details>
                 ))}
-            </div>
-          </section>
-        )}
-
-        {/* Congruência */}
-        {data.detailed_metrics?.congruence?.score != null && (
-          <section className="rounded-2xl bg-surface-container-low p-6 ghost-border space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <span className="material-symbols-outlined text-secondary text-2xl">
-                  balance
-                </span>
-                <h2 className="font-headline text-xl md:text-2xl font-bold tracking-tight">
-                  Congruência corpo-voz
-                </h2>
-              </div>
-              <span
-                className={`font-headline text-3xl md:text-4xl font-bold ${getCongruenceTone(
-                  data.detailed_metrics.congruence.score
-                )}`}
-              >
-                {data.detailed_metrics.congruence.score}
-              </span>
-            </div>
-            <div className="rounded-xl bg-surface-container p-4 text-sm text-on-surface-variant leading-relaxed space-y-2">
-              <p>
-                <strong className="text-on-surface">Congruência</strong> mede se
-                seus 3 canais de comunicação estão dizendo a mesma coisa:
-              </p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li><strong>Verbal</strong> — o que você fala (palavras)</li>
-                <li><strong>Vocal</strong> — como você fala (tom, ritmo, energia)</li>
-                <li><strong>Visual</strong> — o que seu corpo mostra (rosto, gesto, postura)</li>
-              </ul>
-              <p>
-                Quando os 3 estão alinhados, a audiência sente verdade. Quando
-                contradizem (ex: sorriso forçado + voz tensa), o cérebro do
-                espectador detecta — mesmo que ele não saiba explicar.
-              </p>
-            </div>
-            <div className="space-y-3">
-              {(data.detailed_metrics.congruence.total_contradicoes ?? 0) === 0 ? (
-                <div className="rounded-xl bg-secondary/10 border border-secondary/30 p-4 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-secondary text-xl mt-0.5">
-                    verified
-                  </span>
-                  <div className="text-sm text-on-surface-variant leading-relaxed">
-                    <p className="font-medium text-on-surface">
-                      Nenhuma incongruência detectada.
-                    </p>
-                    <p className="mt-1">
-                      Seus 3 canais (verbal, vocal e visual) estão alinhados.
-                      Não houve sinais conflitantes — a mensagem que você fala,
-                      o tom da voz e o que o corpo mostra dizem a mesma coisa.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs uppercase tracking-wider text-on-surface-variant font-medium">
-                  Alertas detectados
-                </p>
-              )}
-              {data.detailed_metrics.congruence.contradicoes.map(
-                (c: any, i: number) => {
-                  const explicacao = CONGRUENCE_EXPLAIN[c.id] ?? "";
-                  return (
-                    <div
-                      key={i}
-                      className="rounded-xl bg-tertiary/10 border border-tertiary/30 p-3 space-y-1.5"
-                    >
-                      <div className="flex items-start gap-2 text-sm">
-                        <span className="material-symbols-outlined text-tertiary text-base mt-0.5">
-                          flash_on
-                        </span>
-                        <span className="font-medium text-on-surface">
-                          {c.descricao}
-                        </span>
-                      </div>
-                      {explicacao && (
-                        <p className="text-xs text-on-surface-variant leading-snug pl-7">
-                          {explicacao}
-                        </p>
-                      )}
-                    </div>
-                  );
-                }
-              )}
             </div>
           </section>
         )}

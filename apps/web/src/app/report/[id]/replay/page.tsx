@@ -134,7 +134,7 @@ export default function ReplayPage() {
             Como usar
           </p>
           <p className="text-sm text-on-surface-variant leading-relaxed">
-            Cada lane mostra um tipo de evento. Clique em qualquer marcador
+            Cada timeline mostra um tipo de evento. Clique em qualquer marcador
             para pular para aquele momento do vídeo.
           </p>
         </div>

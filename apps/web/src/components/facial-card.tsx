@@ -60,7 +60,7 @@ export function FacialCard({ data }: FacialCardProps) {
         />
       </div>
 
-      <p className="text-sm text-on-surface leading-relaxed mb-4">{data.feedback}</p>
+      <p className="text-sm text-on-surface leading-relaxed mb-4 break-words">{data.feedback}</p>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
         <div className="rounded-lg bg-surface-container px-3 py-2">

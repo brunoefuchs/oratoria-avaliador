@@ -30,7 +30,6 @@ export const DIMENSIONS = {
 export const METRICS = {
   // Voz e Dicção
   pitch: "Tom",
-  pitch_mean: "Tom médio",
   pitch_variation: "Variação de Tom",
   wpm: "Palavras por Minuto",
   volume: "Volume",

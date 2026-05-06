@@ -14,6 +14,20 @@ const VICIO_LABELS: Record<string, string> = {
   comparacao: "Comparação",
 };
 
+const DIAGNOSTIC_LABELS: Record<string, string> = {
+  identidade_firme:
+    "Identidade firme: você sustenta uma persona coerente e usa linguagem de autoridade. Quem assiste percebe consistência entre quem você diz ser e como fala.",
+  identidade_fragil:
+    "Identidade frágil: a persona oscila ao longo da fala. Em alguns trechos você soa autoridade; em outros, dúvida ou justificativa. Trabalhar essa coerência fortalece percepção.",
+  identidade_bloqueada:
+    "Identidade bloqueada: linguagem de vítima ou vícios emocionais dominam, e isso se sobrepõe ao conteúdo. É o que mais corrói credibilidade — prioridade #1 a destravar.",
+  dados_insuficientes:
+    "Dados insuficientes: o vídeo não teve marcadores de linguagem suficientes (frases de autoridade tipo \"eu acredito/defendo/tenho certeza\" ou de vítima tipo \"talvez/acho/não sei\") pra avaliar identidade comunicativa. Vídeos curtos ou fala muito descritiva costumam cair aqui — tente um trecho onde você se posiciona sobre algo.",
+};
+
+const IDENTITY_INTRO =
+  "Identidade comunicativa mede a coerência da sua persona ao longo do vídeo: linguagem de autoridade vs vítima, vícios emocionais, e se a forma de falar bate com o que você diz querer transmitir.";
+
 function getTone(score: number) {
   if (score >= 70) return { accent: "text-secondary", bar: "bg-secondary" };
   if (score >= 40) return { accent: "text-tertiary", bar: "bg-tertiary" };
@@ -87,9 +101,21 @@ export default function IdentityDetailPage() {
           />
         </div>
 
+        <section className="rounded-2xl bg-surface-container-low p-5 ghost-border">
+          <h3 className="font-label text-xs uppercase tracking-[0.3em] text-secondary mb-2">
+            O que é e como avaliamos
+          </h3>
+          <p className="text-sm text-on-surface-variant leading-relaxed">
+            {IDENTITY_INTRO}
+          </p>
+        </section>
+
         <section className="rounded-2xl bg-surface-container-low p-6 ghost-border">
           <h2 className="font-headline text-lg font-bold mb-3">Diagnóstico</h2>
-          <p className="text-sm text-on-surface leading-relaxed">{data.diagnostico}</p>
+          <p className="text-sm text-on-surface leading-relaxed first-letter:uppercase">
+            {DIAGNOSTIC_LABELS[data.diagnostico] ??
+              data.diagnostico.replace(/_/g, " ")}
+          </p>
         </section>
 
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">

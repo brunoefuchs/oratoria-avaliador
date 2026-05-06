@@ -8,6 +8,7 @@ interface TimelineEvent {
     | "filler"
     | "pausa_hesitacao"
     | "pausa_estrategica"
+    | "pausa_respiracao"
     | "monotono"
     | "alta_performance";
   start: number;
@@ -44,6 +45,11 @@ const EVENT_STYLES: Record<
     bg: "bg-secondary",
     dot: "bg-secondary",
     label: "Pausa estratégica",
+  },
+  pausa_respiracao: {
+    bg: "bg-outline-variant",
+    dot: "bg-outline-variant",
+    label: "Respiração",
   },
   monotono: {
     bg: "bg-tertiary/60",
@@ -105,6 +111,8 @@ export function VideoPlayer({ videoUrl, events, duration }: VideoPlayerProps) {
           ? "estrategicas"
           : ev.type === "pausa_hesitacao"
           ? "hesitacoes"
+          : ev.type === "pausa_respiracao"
+          ? "respiracoes"
           : "outros";
       if (!acc[cat]) acc[cat] = [];
       acc[cat].push(ev);
@@ -133,6 +141,11 @@ export function VideoPlayer({ videoUrl, events, duration }: VideoPlayerProps) {
       label: "Hesitações",
       data: groupedEvents.hesitacoes,
     },
+    {
+      key: "respiracoes",
+      label: "Respirações",
+      data: groupedEvents.respiracoes,
+    },
   ];
 
   return (
@@ -148,21 +161,28 @@ export function VideoPlayer({ videoUrl, events, duration }: VideoPlayerProps) {
         />
       </div>
 
-      {hoveredEvent && (
-        <div className="rounded-xl bg-surface-container-high p-3 text-xs ghost-border">
-          <span
-            className={`inline-block w-2 h-2 rounded-full mr-2 align-middle ${
-              getStyle(hoveredEvent.type).dot
-            }`}
-          />
-          <span className="font-semibold text-on-surface">
-            {hoveredEvent.label || getStyle(hoveredEvent.type).label}
-          </span>
-          <span className="text-on-surface-variant ml-2">
+      <div
+        className={`rounded-xl bg-surface-container-high px-3 py-2 text-xs ghost-border transition-opacity h-9 flex items-center whitespace-nowrap overflow-hidden ${
+          hoveredEvent ? "opacity-100" : "opacity-0"
+        }`}
+        aria-hidden={!hoveredEvent}
+      >
+        <span
+          className={`inline-block w-2 h-2 rounded-full mr-2 shrink-0 ${
+            hoveredEvent ? getStyle(hoveredEvent.type).dot : "bg-transparent"
+          }`}
+        />
+        <span className="font-semibold text-on-surface truncate">
+          {hoveredEvent
+            ? hoveredEvent.label || getStyle(hoveredEvent.type).label
+            : " "}
+        </span>
+        {hoveredEvent && (
+          <span className="text-on-surface-variant ml-2 shrink-0">
             — {formatTime(hoveredEvent.start)}
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="rounded-2xl bg-surface-container-low p-5 space-y-4 ghost-border">
         <div className="flex items-center justify-between text-xs font-label uppercase tracking-[0.2em] text-on-surface-variant">
@@ -204,7 +224,7 @@ export function VideoPlayer({ videoUrl, events, duration }: VideoPlayerProps) {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
         <span className="flex items-center gap-2 rounded-lg bg-surface-container-low p-2.5 ghost-border">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-error" />
           <span className="text-on-surface-variant">Cluster (3+ vícios)</span>
@@ -220,6 +240,10 @@ export function VideoPlayer({ videoUrl, events, duration }: VideoPlayerProps) {
         <span className="flex items-center gap-2 rounded-lg bg-surface-container-low p-2.5 ghost-border">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-tertiary/70" />
           <span className="text-on-surface-variant">Hesitação</span>
+        </span>
+        <span className="flex items-center gap-2 rounded-lg bg-surface-container-low p-2.5 ghost-border">
+          <span className="inline-block w-2.5 h-2.5 rounded-full bg-outline-variant" />
+          <span className="text-on-surface-variant">Respiração</span>
         </span>
       </div>
     </div>
