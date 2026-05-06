@@ -314,11 +314,15 @@ def _compute_posture_metrics(video_path: str) -> dict:
     # de "presença dinâmica". Combina variância + propositalidade.
     variancia = movimento["variancia"]
     proposital = movimento["proposital_score"]
-    # B5-real: em videos curtos (<120s) ficar parado e normal, nao monotonia.
-    # Escala thresholds baseado em duration_seconds (frames @ 2fps).
     duration_seconds = len(frames) / 2.0
     short_video = duration_seconds < 120
-    if variancia > 0.002 and proposital >= 70:
+
+    # 2026-05-05: SELFIE awareness — em vídeo selfie (variancia<0.001) o
+    # dinamismo postural não tem o que medir (câmera fixa, corpo plantado
+    # por design). Neutralizar pra 75 — não pune nem premia.
+    if variancia < 0.001 or is_bust_video:
+        dinamismo_postural = 75
+    elif variancia > 0.002 and proposital >= 70:
         dinamismo_postural = 90
     elif variancia > 0.001 and proposital >= 50:
         dinamismo_postural = 70
@@ -327,7 +331,7 @@ def _compute_posture_metrics(video_path: str) -> dict:
     elif proposital >= 60:
         dinamismo_postural = 60
     else:
-        dinamismo_postural = 60 if short_video else 30  # neutral pra video curto
+        dinamismo_postural = 60 if short_video else 30
 
     # =============================================
     # SCORE DE POSTURA (0-100) — 5 componentes

@@ -49,7 +49,7 @@ const METRIC_LABELS: Record<
     },
     cv_velocidade: {
       label: "Variação de velocidade",
-      reference: "0.08-0.30 = ideal",
+      reference: "0.05-0.30 = ideal",
       description: "Quanto a cadência muda ao longo da fala. Anytime anything becomes default, it becomes non-functional.",
     },
     monotonia_score: {
@@ -125,11 +125,9 @@ const METRIC_LABELS: Record<
       label: "Padrão de movimento",
       description: "Categoria detectada: estático, oscilante, intencional, etc.",
     },
-    shoulder_to_ear_ratio: {
-      label: "Razão orelha→ombro / largura ombros",
-      reference: ">1.0 = relaxado",
-      description: "Body-relative (não depende do crop da câmera). Tenso <0.7. Killer da presença.",
-    },
+    // shoulder_to_ear_ratio e shoulder_relax_score: experimentais — não exibir
+    // ate calibrar com video studio-grade (mobile MediaPipe Pose 2D nao tem
+    // resolucao pra discriminar tensao muscular real).
     shoulder_relax_score: {
       label: "Soltura de ombros (0-100)",
       reference: "85+ = relaxado",
@@ -139,8 +137,8 @@ const METRIC_LABELS: Record<
   gesture: {
     eye_contact_pct: {
       label: "% contato visual",
-      reference: "Zona ideal: 70-90%",
-      description: "Tempo olhando pra câmera. Audiência precisa sentir que você está com ela.",
+      reference: "Selfie ideal: 70-100%",
+      description: "Tempo olhando pra câmera. Em selfie, foco alto é engajamento (não fixação).",
     },
     olhar_baixo_pct: {
       label: "% olhar para baixo",
@@ -149,8 +147,8 @@ const METRIC_LABELS: Record<
     },
     gesticulation_pct: {
       label: "% tempo gesticulando",
-      reference: "Zona ideal: 40-70%",
-      description: "Mãos visíveis e ativas. Mãos paradas = energia parada. Mãos demais = distrai.",
+      reference: "Zona ideal: 40-85%",
+      description: "Mãos visíveis e ativas. Mentor TEDx engajado fica naturalmente em 70-90%. Acima de 95% pode distrair.",
     },
     gesto_zona: {
       label: "Zona de gesticulação",
@@ -167,9 +165,9 @@ const METRIC_LABELS: Record<
       description: "Quantas regiões diferentes você ocupa. Mais posições = mais 'paleta' visual.",
     },
     distribuicao_olhar: {
-      label: "Distribuição do olhar",
-      reference: "1.0 = bem distribuído",
-      description: "Quão equilibradamente você varre a audiência ou enquadra a câmera.",
+      label: "Variação natural do olhar",
+      reference: "Selfie ideal: 0.10-0.30",
+      description: "Em selfie, foco na câmera é o IDEAL. Valor baixo (0.10-0.30) = engajado natural com micro-variações. Valor alto = olhar disperso (perdendo conexão).",
     },
   },
   variety: {
@@ -314,7 +312,7 @@ const SUB_SCORE_LABELS: Record<string, string> = {
   alinhamento: "Alinhamento",
   postura_aberta: "Postura Aberta",
   movimento_proposital: "Movimento Proposital",
-  ombros_relaxados: "Ombros Relaxados",
+  // ombros_relaxados removido do UI ate calibracao studio-grade
   zona: "Zona",
   duas_maos: "Duas Mãos",
   gesticulacao: "Gesticulação",

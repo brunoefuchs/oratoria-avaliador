@@ -323,23 +323,39 @@ def _compute_tonality_metrics(audio_path: str) -> dict:
     textura_positiva = textura_dominante in ("confiante", "entusiasmado")
     textura_negativa = textura_dominante in ("tenso", "apatico", "hesitante")
 
+    # 2026-05-05 v3: scoring DURATION-AWARE (mesma logica de storytelling).
+    # <90s (Reel): 1 textura positiva = ideal, sem cobrar diversidade.
+    # 90-180s: 2 texturas comecam a fazer sentido.
+    # >180s: 3+ texturas esperadas (palestra com cycling).
+    is_short = duration < 90
+    is_medium = 90 <= duration < 180
+
     # Baseline por qualidade da textura dominante
     if textura_positiva:
-        score = 75  # textura "certa" — autoridade/energia
+        # Em Reel curto, textura positiva unica vale TUDO (sem cobrar variacao)
+        score = 90 if is_short else 80 if is_medium else 75
     elif textura_dominante == "neutro":
-        score = 55
+        score = 60 if is_short else 55
     elif textura_negativa:
         score = 35  # textura "errada" — corrigir
     else:
         score = 50
 
-    # Bonus por diversidade (variar é sempre bom)
-    if num_texturas_usadas >= 4:
-        score += 15
-    elif num_texturas_usadas == 3:
-        score += 10
-    elif num_texturas_usadas == 2:
-        score += 5
+    # Bonus por diversidade (variar é sempre bom EM VIDEOS LONGOS).
+    # Em Reel <90s, diversidade nao e cobrada.
+    if not is_short:
+        if num_texturas_usadas >= 4:
+            score += 15
+        elif num_texturas_usadas == 3:
+            score += 10
+        elif num_texturas_usadas == 2:
+            score += 5
+    else:
+        # Reel: bonus pequeno se conseguir variar (raro em 60s)
+        if num_texturas_usadas >= 3:
+            score += 8
+        elif num_texturas_usadas == 2:
+            score += 4
 
     # Penalty SO se a textura negativa toma o video todo
     if textura_negativa and pct_dominante > 70:

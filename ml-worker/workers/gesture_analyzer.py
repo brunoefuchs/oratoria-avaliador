@@ -489,12 +489,23 @@ def _compute_gesture_metrics(video_path: str) -> dict:
     #    Gestos acima da cintura = zona de poder
     zona_score = min(100, zona_ideal_pct * 1.1)
 
-    # 5. Distribuicao do olhar — peso 10% (reduzido per mentor)
-    #    Olhar bem distribuido = conecta com toda a audiencia
-    #    Floor: contato visual alto com camera unica nao deve zerar distribuicao
-    distribuicao_score = min(100, distribuicao_olhar * 100)
-    if eye_contact_pct >= 80 and distribuicao_score < 50:
-        distribuicao_score = 50
+    # 5. Distribuicao do olhar — peso 10%
+    # 2026-05-05: refatorado pra SELFIE/talking-head.
+    # Antes: entropia simples (5 direcoes) — premiava distribuicao alta,
+    # punia speaker que fica 95% camera (que e o IDEAL pra selfie).
+    # Agora: BELL CURVE pelo eye_contact_pct.
+    # 100% camera (robotico, sem piscar/variar) = 70
+    # 85-95% (engajado natural com micro-variacao) = 100
+    # 70-85% = 80
+    # <70% = perdendo conexao, decay linear
+    if eye_contact_pct >= 100:
+        distribuicao_score = 70  # robotico — total absence of variacao natural
+    elif eye_contact_pct >= 85:
+        distribuicao_score = 100  # sweet spot natural
+    elif eye_contact_pct >= 70:
+        distribuicao_score = 80
+    else:
+        distribuicao_score = max(0, eye_contact_pct * (80 / 70))
 
     gesture_score = round(
         contato_score * 0.35
