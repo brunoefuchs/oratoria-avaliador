@@ -99,9 +99,9 @@ const METRIC_LABELS: Record<
       description: "Distância do seu tom mais grave ao mais agudo. Range maior = mais repertório vocal em uso.",
     },
     monotonia_score: {
-      label: "Pontuação anti-monotonia (0-100)",
-      reference: "70+ = ótima variação",
-      description: "Composto de variação de tom, volume, velocidade e pausas estratégicas.",
+      label: "Variação Global da Voz",
+      reference: "70+ = boa amplitude geral",
+      description: "Visão estatística do vídeo inteiro: o quanto seu tom, volume e velocidade variaram em média ao longo da fala. É complementar à Variedade Vocal — enquanto esta detecta trechos específicos planos, esta mostra a amplitude geral de variação.",
     },
     pitch_accent_per_minute: {
       label: "Ênfases vocais por minuto",

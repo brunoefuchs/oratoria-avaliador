@@ -35,7 +35,7 @@ export const METRICS = {
   volume: "Volume",
   volume_mean_db: "Volume médio (dB)",
   cv_velocidade: "Variação de velocidade",
-  monotonia_score: "Pontuação anti-monotonia",
+  monotonia_score: "Variação Global da Voz",
   // Vícios de Linguagem
   vicios_por_minuto: "Vícios de Linguagem por Minuto",
   fillers_per_minute: "Vícios de Linguagem por Minuto", // alias compat

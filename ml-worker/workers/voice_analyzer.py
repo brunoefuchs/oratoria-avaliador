@@ -190,12 +190,12 @@ def transcribe_audio(audio_path: str, model_name: str | None = None) -> dict:
             except (ImportError, RuntimeError):
                 pass
 
-    # 2026-05-06: filtro por confidence pra reduzir contaminacao por babble
-    # (burburinho de fundo). Whisper "chuta" palavras pra fragmentos baixos
-    # que parecem PT — descartar < 0.4 limpa transcript pra fillers/wpm/etc.
-    # Threshold conservador: palavras genuinas costumam ter > 0.5; babble
-    # tipicamente fica < 0.3.
-    WORD_CONFIDENCE_THRESHOLD = 0.4
+    # 2026-05-06: filtro por confidence MUITO conservador (0.15) pra remover
+    # apenas fragmentos absurdos de babble. Threshold 0.4 derrubava palavras
+    # curtas legitimas (hesitacoes "ahn", "uhm", muletas "ne", "tipo") que
+    # SAO os fillers que queremos detectar — caso ALUNO MONO: score fillers
+    # 17 → 89 falso positivo. 0.15 mantem fillers e remove so ruido extremo.
+    WORD_CONFIDENCE_THRESHOLD = 0.15
     words = []
     words_filtered_count = 0
     for segment in result.get("segments", []):
@@ -577,16 +577,26 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
     cv_pitch = prosody.get("cv_pitch", 0)
     cv_volume = prosody.get("cv_volume", 0)
 
-    monotonia_score = 0
-    if cv_pitch > 0.05:
-        monotonia_score += 30
-    if cv_volume > 0.03:
-        monotonia_score += 30
-    if cv_velocidade > 0.08:
-        monotonia_score += 20
-    if pausas["ratio_estrategicas"] > 0.15:
-        monotonia_score += 20
-    monotonia_score = min(100, monotonia_score)
+    # 2026-05-06: score CONTINUO (nao binario). Antes era threshold passa/nao
+    # passa que dava sempre 70 em smartphone (cv_volume < 0.03 hardcoded
+    # falhava em todos). Agora cada componente contribui proporcional ao
+    # quao acima do piso ideal (CV_RANGES min_ideal) ate uma faixa "boa".
+    # Faixa: floor → 2x floor mapeia 0 → max_pts. Acima de 2x floor satura.
+    def _contrib(value: float, floor: float, max_pts: float) -> float:
+        if value <= floor * 0.3:
+            return 0.0  # quase zero variacao
+        if value >= floor * 2.0:
+            return max_pts  # variacao saudavel ou alta
+        # interp linear entre floor*0.3 e floor*2.0
+        return max_pts * (value - floor * 0.3) / (floor * 1.7)
+
+    monotonia_score = round(
+        _contrib(cv_pitch, 0.03, 30)  # pitch — peso maior
+        + _contrib(cv_volume, 0.015, 30)  # volume — peso maior
+        + _contrib(cv_velocidade, 0.05, 20)  # velocidade — peso medio
+        + (20 if pausas["ratio_estrategicas"] > 0.15 else 10 if pausas["ratio_estrategicas"] > 0.05 else 0)  # pausas
+    )
+    monotonia_score = max(0, min(100, monotonia_score))
 
     # =============================================
     # SCORE DE VOZ (0-100) — 3 componentes
