@@ -464,6 +464,26 @@ export default function DimensionDetailPage() {
     load();
   }, [id, dimension]);
 
+  // Articulation está em pesquisa — métrica espectral não confiável em
+  // áudio mobile (codec AAC corta 4-8kHz, AGC suprime consoantes). Backend
+  // continua coletando, mas frontend não expõe pra evitar diagnóstico falso.
+  if (dimension === "articulation") {
+    return (
+      <AppShell maxWidth="lg" showBack backHref={`/report/${id}`} backLabel="Voltar ao relatório">
+        <div className="min-h-[40vh] flex flex-col items-center justify-center text-center space-y-3 px-6">
+          <span className="material-symbols-outlined text-5xl text-on-surface-variant">science</span>
+          <h2 className="font-headline text-xl font-bold">Articulação — em pesquisa</h2>
+          <p className="text-sm text-on-surface-variant max-w-md leading-relaxed">
+            A medição espectral de articulação ainda não é confiável em áudio
+            de smartphone (codec corta a banda das consoantes em 4-8kHz). Estamos
+            coletando dados para liberar essa dimensão quando tivermos calibração
+            studio-grade.
+          </p>
+        </div>
+      </AppShell>
+    );
+  }
+
   if (loading) {
     return (
       <AppShell maxWidth="lg" showBack backHref={`/report/${id}`}>
