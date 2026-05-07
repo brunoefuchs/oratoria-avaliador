@@ -75,6 +75,23 @@ def _load_wav2vec2_emotion() -> Any:
     return bundle
 
 
+def _load_wavlm_emotion() -> Any:
+    """Story 10.1: carrega WavLM-base+ via workers._wavlm_emotion.
+
+    Path 1 v2 (re-escopada): feature extractor only, sem classifier head.
+    Substitui infraestrutura wav2vec2 (legacy) mas NÃO substitui o classifier
+    pra emotion classification (não há checkpoint emotion drop-in pra PT/EN).
+    """
+    from workers._wavlm_emotion import load_wavlm_emotion
+
+    bundle = load_wavlm_emotion()
+    if bundle is None:
+        raise RuntimeError(
+            "WavLM-base+ indisponivel — verificar transformers + torch"
+        )
+    return bundle
+
+
 def _load_pyfeat() -> Any:
     """Story 9.5: carrega py-feat FACS Detector via workers._facs_ml.
 
@@ -92,6 +109,7 @@ MODEL_FACTORIES: dict[str, Callable[[], Any]] = {
     "whisper_turbo": _load_whisper_turbo,
     "whisper_medium": _load_whisper_medium,
     "wav2vec2_emotion": _load_wav2vec2_emotion,
+    "wavlm_emotion": _load_wavlm_emotion,  # Story 10.1 — feature extractor only
     "pyfeat": _load_pyfeat,
 }
 

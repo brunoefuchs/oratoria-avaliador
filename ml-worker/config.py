@@ -102,6 +102,22 @@ def is_tonality_ml_enabled() -> bool:
     return os.getenv("TONALITY_ML_ENABLED", "false").strip().lower() == "true"
 
 
+# Feature flag Story 10.1 — WavLM-base+ infra (Path 1 v2).
+# Default false — feature extractor only, sem consumer atual.
+# Clientes futuros: vocal_resonance dim, speaker style, custom VAD head Epic 11+.
+WAVLM_EMOTION_ENABLED = os.getenv("WAVLM_EMOTION_ENABLED", "false").lower() == "true"
+
+
+def is_wavlm_emotion_enabled() -> bool:
+    """Helper testavel pra flag WavLM-base+ infra (Story 10.1).
+
+    NOTA: WavLM atualmente NÃO substitui wav2vec2-emotion no tonality_analyzer
+    (não há classifier emotion drop-in pra PT/EN). Story 10.1 disponibiliza
+    infra; consumers em Epic 11+.
+    """
+    return os.getenv("WAVLM_EMOTION_ENABLED", "false").strip().lower() == "true"
+
+
 # Feature flag Story 9.5 — py-feat FACS (20 AUs + 6 emocoes).
 # Default false — requer pip install -e ".[facs]".
 PYFEAT_ENABLED = os.getenv("PYFEAT_ENABLED", "false").lower() == "true"
