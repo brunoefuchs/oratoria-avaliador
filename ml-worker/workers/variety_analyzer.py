@@ -36,8 +36,12 @@ logger = structlog.get_logger()
 CV_RANGES = {
     # B12-real calibration: thresholds rebaixados pra AGC de smartphone
     # (AGC comprime dynamic range em 6-10dB → CV cai ~30-40% vs mic studio).
+    # 2026-05-06: volume.min_ideal 0.015 → 0.010 apos validacao em 7 videos
+    # bench. 4/5 mentores tinham cv_volume 0.012-0.013 (voz boa/otima) sendo
+    # classificados como "pouca_variacao" (score ~44). Threshold 0.010 captura
+    # disciplina vocal de mentor sem perder discriminacao vs ALUNO MONO (0.006).
     "velocidade": {"min_ideal": 0.05, "max_ideal": 0.30, "label": "Velocidade de Fala"},
-    "volume": {"min_ideal": 0.015, "max_ideal": 0.25, "label": "Volume"},
+    "volume": {"min_ideal": 0.010, "max_ideal": 0.25, "label": "Volume"},
     "pitch": {"min_ideal": 0.03, "max_ideal": 0.20, "label": "Entonacao"},
 }
 

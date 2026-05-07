@@ -250,6 +250,27 @@ def _compute_filler_metrics(transcription: dict) -> dict:
     penalidade_clusters = len(clusters) * 10
     filler_score = max(0, min(100, filler_score - penalidade_clusters))
 
+    # 2026-05-06: penalidade por REPETICAO da mesma muleta. Vinh: a
+    # audiencia percebe muito mais quando voce repete a MESMA palavra
+    # (ex: 5x "entao") do que quando varia (ex: 1 "ne", 1 "tipo", 1
+    # "entao", etc). 60%+ concentracao = padrao notavel.
+    total_count = len(fillers_found)
+    if total_count >= 4:
+        # Top filler com >= 60% do total
+        from collections import Counter
+        word_counts = Counter(f.get("word", "").lower().rstrip(",.") for f in fillers_found)
+        top_word, top_n = word_counts.most_common(1)[0] if word_counts else ("", 0)
+        if top_n / total_count >= 0.6:
+            penalidade_repeticao = 10
+            filler_score = max(0, min(100, filler_score - penalidade_repeticao))
+            logger.info(
+                "filler_repetition_penalty",
+                top_word=top_word,
+                top_count=top_n,
+                total=total_count,
+                penalty=penalidade_repeticao,
+            )
+
     # Bonus diversidade lexical (compensacao parcial se vocabulario e rico)
     if type_token_ratio > 0.6:
         bonus_diversidade = 5

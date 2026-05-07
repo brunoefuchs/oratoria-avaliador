@@ -157,6 +157,12 @@ def transcribe_audio(audio_path: str, model_name: str | None = None) -> dict:
 
     model = _load_whisper_with_fallback(resolved_model)
     try:
+        # 2026-05-06: temperature=0 pra determinismo. Whisper default usa
+        # fallback stochastic (0.0 → 0.2 → 0.4 → ... → 1.0) que torna trans-
+        # cripts nao-reproduziveis em palavras de confidence baixa, especial-
+        # mente em inicio de fala. Caso ALUNA MORENA: "Então" às 5.68s
+        # (conf 0.213) entrava em uma execucao mas nao em outra. Turbo eh
+        # robusto suficiente pra dispensar o fallback.
         result = model.transcribe(
             audio_path,
             language="pt",
@@ -167,6 +173,7 @@ def transcribe_audio(audio_path: str, model_name: str | None = None) -> dict:
                 "Nao corrija nem omita marcadores de hesitacao."
             ),
             condition_on_previous_text=False,
+            temperature=0.0,
         )
     finally:
         # Story 9.2: unload explicito quando orchestrator ativo, libera VRAM
@@ -592,7 +599,7 @@ def _compute_voice_metrics(transcription: dict, prosody: dict) -> dict:
 
     monotonia_score = round(
         _contrib(cv_pitch, 0.03, 30)  # pitch — peso maior
-        + _contrib(cv_volume, 0.015, 30)  # volume — peso maior
+        + _contrib(cv_volume, 0.010, 30)  # volume — alinhado com CV_RANGES
         + _contrib(cv_velocidade, 0.05, 20)  # velocidade — peso medio
         + (20 if pausas["ratio_estrategicas"] > 0.15 else 10 if pausas["ratio_estrategicas"] > 0.05 else 0)  # pausas
     )
