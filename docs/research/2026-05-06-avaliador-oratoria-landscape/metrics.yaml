@@ -1,0 +1,44 @@
+metrics:
+  date: "2026-05-06"
+  query: "avaliador de oratoria / comunicacao (4 tracks)"
+  waves_executed: 1
+  max_waves: 3
+  sub_queries: 12
+  tools_used:
+    - WebSearch (12 calls, parallel)
+  sources_collected: ~60
+  coverage_score: 78
+  coverage_breakdown:
+    track_1_sota: 80
+    track_2_concorrentes: 85
+    track_3_rubricas: 70
+    track_4_tech: 78
+  source_quality:
+    arxiv_papers: 7
+    commercial_pages: 12
+    rubric_official_docs: 4
+    other: ~37
+  rubrics:
+    information_recall: pass
+    analysis: pass
+    presentation: pass
+  citations_verified: partial
+  stop_reason: "coverage_sufficient_for_roadmap_decision"
+  artifacts_generated:
+    - README.md
+    - 00-query-original.md
+    - 01-deep-research-prompt.md
+    - 02-research-report.md
+    - 03-recommendations.md
+    - curiosity_queue.yaml
+    - evolving_report.md
+    - metrics.yaml
+    - pipeline-state.yaml
+    - execution-log.jsonl
+    - 04-deep-read-openface-hubert.md
+    - 05-mediapipe-au-bridge-spec.md
+  artifacts_count: 12
+  follow_ups: 1   # 04
+  manual_specs: 1 # 05
+  no_implementation: true
+  scope_boundary_respected: true

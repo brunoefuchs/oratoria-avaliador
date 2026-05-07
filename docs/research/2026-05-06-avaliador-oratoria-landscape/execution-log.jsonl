@@ -1,0 +1,9 @@
+{"ts":"2026-05-06T00:00:01Z","phase":"pre_flight","action":"load_guardrails","status":"ok"}
+{"ts":"2026-05-06T00:00:02Z","phase":"phase_1_5_decompose","action":"decompose","sub_queries":12,"tracks":4}
+{"ts":"2026-05-06T00:00:03Z","phase":"phase_2_generate_prompt","action":"write","artifact":"01-deep-research-prompt.md"}
+{"ts":"2026-05-06T00:00:04Z","phase":"phase_3_wave_1","action":"web_search_parallel","queries":12,"tool":"WebSearch","status":"complete"}
+{"ts":"2026-05-06T00:00:05Z","phase":"phase_3_5_evaluate","action":"score","coverage":78,"decision":"stop_sufficient"}
+{"ts":"2026-05-06T00:00:06Z","phase":"phase_4_synthesize","action":"synthesize","artifact":"02-research-report.md"}
+{"ts":"2026-05-06T00:00:07Z","phase":"phase_4_5_verify_citations","action":"verify","status":"partial"}
+{"ts":"2026-05-06T00:00:08Z","phase":"phase_5_document","action":"write_all","artifacts":["README.md","00-query-original.md","01-deep-research-prompt.md","02-research-report.md","03-recommendations.md","curiosity_queue.yaml","evolving_report.md","metrics.yaml","pipeline-state.yaml"]}
+{"ts":"2026-05-06T00:00:09Z","phase":"complete","stop_reason":"coverage_sufficient_for_roadmap_decision"}

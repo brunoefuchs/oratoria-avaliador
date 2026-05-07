@@ -1,0 +1,77 @@
+curiosity_queue:
+  unresolved:
+    - q: "Roger Love tem rubric formal publicada ou só framework qualitativo de coaching?"
+      hypothesis: "Provável só framework; verificar livro 'Set Your Voice Free' diretamente."
+      priority: medium
+
+    - q: "Qual baseline absoluto AVI Challenge 2025 e como compara ao gap 18-38pts vs Gui?"
+      hypothesis: "AVI dims diferentes; recalibração necessária pra comparação direta."
+      priority: high
+
+    - q: "Yoodli/Poised expõem latência ponta-a-ponta? Real-time é claim ou marketing?"
+      hypothesis: "Poised real-time é provável feedback assíncrono em ~1s, não streaming verdadeiro."
+      priority: low
+
+    - q: "Yoodli Roleplay Memory (multi-persona multi-session) é commodity LLM ou diferencial técnico real?"
+      hypothesis: "Provavelmente orchestration camada sobre LLMs comerciais (OpenAI/Claude) + persona prompts + state DB. Replicável, mas exige investimento de produto significativo."
+      priority: high
+      source: "06-test-comparativo-concorrentes.md"
+
+    - q: "Elqo growth trajectory e funding — ameaça B2C real ou nicho?"
+      hypothesis: "PWA + $9.99/mo + multimodal sugere bootstrap; sem dados de tração ainda."
+      priority: medium
+      source: "06-test-comparativo-concorrentes.md"
+
+    - q: "Yoodli vendeu para qual base B2B real? Salesforce/Gong integration tem ARR comprovado?"
+      hypothesis: "Yoodli levantou Series A 2024 ~$15M (Madrona); B2B sales coaching com plataformas grandes é bet principal."
+      priority: medium
+      source: "06-test-comparativo-concorrentes.md"
+
+    - q: "Existe dataset PT-BR público de oratória avaliada por humanos?"
+      hypothesis: "Provavelmente não — Bruno já está construindo o dele com Gui."
+      priority: medium
+
+    - q: "Cross-attention transformer multimodal compensa em datasets pequenos (<100 vídeos)?"
+      hypothesis: "Provavelmente não — late fusion ainda ganha em low-data."
+      priority: medium
+
+    - q: "TOEFL SpeechRater está disponível como API pra benchmark independente?"
+      hypothesis: "Não — ETS proprietary. Talvez 'My Speaking Score' tenha license intermediária."
+      priority: low
+
+    - q: "Lib emotion2vec+ tem suporte production-ready ou está em pesquisa?"
+      hypothesis: "Modelos no HF mas pipeline não tem package mantido tipo SpeechBrain."
+      priority: low
+
+    - q: "Como concorrentes lidam com sotaques regionais (PT-BR vs PT-PT vs español)?"
+      hypothesis: "Provavelmente mal — todos English-first; oportunidade competitiva clara."
+      priority: medium
+
+    - q: "OpenFace 3.0 lista exata de AUs detectadas e cobertura FACS vs py-feat"
+      hypothesis: "Cobertura possivelmente menor que py-feat; validar lendo seção 4 do PDF arXiv:2506.02891 localmente."
+      priority: high
+      source: "04-deep-read-openface-hubert.md"
+
+    - q: "HuBERT/WavLM checkpoint PT-BR ou multilingual SSL (não ASR-tuned) disponível?"
+      hypothesis: "WavLM-base+ é English-centric; multilingual via XLS-R/MMS pode degradar paralinguística — validar."
+      priority: medium
+      source: "04-deep-read-openface-hubert.md"
+
+    - q: "Layer-wise weighted-sum aprendido converge em quais layers para as 14 dims do projeto?"
+      hypothesis: "Padrão SUPERB: paralinguística em layers 3-10 de 12; descobrível experimentalmente nos 7 vídeos."
+      priority: medium
+      source: "04-deep-read-openface-hubert.md"
+
+  resolved:
+    - q: "MediaPipe FaceLandmarker blendshapes mapeiam bem pra AUs FACS canônicos?"
+      answer: "NÃO 1:1. 52 blendshapes ARKit-style 'loosely correspond' a FACS AUs. Bridge aproximado existe (py-feat/mp_blendshapes no HF) mas validação empírica obrigatória contra ground truth."
+      resolved_in: "04-deep-read-openface-hubert.md"
+      resolved_at: "2026-05-06"
+
+    - q: "OpenFace 3.0 license commercial use permitida?"
+      answer: "BLOQUEADO. License CMU é 'Academic or Non-Profit Organization Noncommercial Research Use Only'. Proibido uso comercial, distribuir, sublicenciar. Termina automaticamente em violação. Para uso comercial: contatar CMU Center for Technology Transfer / OTM (rota viável mas tempo de semanas, custo variável)."
+      resolved_in: "session-2026-05-06 (gh api repos/CMU-MultiComp-Lab/OpenFace-3.0/contents/LICENSE)"
+      resolved_at: "2026-05-06"
+      implication: "Plano A (OpenFace 3.0 substituindo py-feat) inviável sem licença comercial CMU. Bridge MediaPipe blendshapes → AUs vira rota tactical default."
+
+  discarded: []

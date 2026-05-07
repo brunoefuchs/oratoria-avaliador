@@ -1,0 +1,36 @@
+pipeline_state:
+  phases:
+    pre_flight: complete
+    phase_0_auto_clarify: skipped (context_provided_by_parent)
+    phase_1_5_decompose: complete (12 sub-queries in 4 tracks)
+    phase_1_clarify: skipped
+    phase_2_generate_prompt: complete
+    phase_3_execute_research:
+      wave_1: complete
+      wave_2: skipped (coverage_sufficient)
+      wave_3: skipped
+    phase_3_2_deep_read: skipped (snippets sufficient)
+    phase_3_5_evaluate_coverage: complete (coverage=78)
+    phase_3_6_compress_wave: skipped (only_one_wave)
+    phase_3_7_playwright_deep_research: skipped (no_--deep_flag)
+    phase_4_synthesize: complete
+    phase_4_5_verify_citations: partial (arxiv IDs verified by URL pattern; commercial pages quoted from snippets)
+    phase_5_document: complete
+  validator_run: not_executed (script_path_unknown_in_skill_directory)
+  follow_up_ready: true
+  follow_up_dir: "docs/research/2026-05-06-avaliador-oratoria-landscape/"
+  post_pipeline_artifacts:
+    - file: "04-deep-read-openface-hubert.md"
+      created_at: "2026-05-06"
+      origin: "follow-up fork — deep-read OpenFace 3.0 + HuBERT/WavLM layer-wise"
+      pipeline_run: true
+    - file: "05-mediapipe-au-bridge-spec.md"
+      created_at: "2026-05-06"
+      origin: "manual spec após resolução license OpenFace 3.0 (bloqueio comercial CMU)"
+      pipeline_run: false
+      reason: "decisão de roadmap pós-license-blocker; spec curto, sem necessidade de wave de busca completa"
+  resolutions_post_pipeline:
+    - topic: "OpenFace 3.0 commercial license"
+      verified_via: "gh api repos/CMU-MultiComp-Lab/OpenFace-3.0/contents/LICENSE"
+      verdict: "BLOCKED for commercial use (CMU non-commercial research only)"
+      resolved_at: "2026-05-06"

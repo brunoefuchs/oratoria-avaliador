@@ -45,3 +45,6 @@ out/
 tmp/
 .tunnel-logs/
 .dev-logs/
+
+# Runtime locks Claude Code
+.claude/scheduled_tasks.lock
