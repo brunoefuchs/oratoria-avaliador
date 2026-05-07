@@ -1,0 +1,211 @@
+# EPIC-10.0-EXECUTION.yaml
+# Wave-based execution plan for Epic 10.0 — Research-Driven Improvements
+# Owner: @pm (Morgan)
+# Formalized: 2026-05-06
+# Related: docs/stories/10.0.epic-research-driven-improvements.md
+
+epic:
+  id: "10.0"
+  name: "Research-Driven Improvements"
+  target_version: "oratoria-avaliador@0.8.0"
+  status: "ready-for-breakdown"
+  predecessors:
+    - { id: "9.0", status: "done" }
+    - { id: "v0.7.0-calibrated-bench", status: "tagged", note: "sprint calibração 2026-05-06" }
+  created: "2026-05-06"
+  formalized_by: "@pm"
+  source_research: "docs/research/2026-05-06-avaliador-oratoria-landscape/"
+  approved_by_user: "Bruno 2026-05-06"
+
+# ─────────────────────────────────────────────────────────────
+# CONSTRAINTS — Constitutional clauses
+# ─────────────────────────────────────────────────────────────
+constraints:
+  immutable_paths:
+    rationale: "Família técnica calibrada (v0.7.0-calibrated-bench) NÃO pode ser tocada"
+    paths:
+      - "ml-worker/workers/voice_analyzer.py — scoring atual preservado"
+      - "ml-worker/workers/variety_analyzer.py — multi-dim AND-2 preservado"
+      - "ml-worker/workers/filler_detector.py — Whisper turbo + penalty repetição preservados"
+      - "ml-worker/workers/gesture_analyzer.py — gaze 0.20 preservado"
+      - "ml-worker/workers/posture_analyzer.py — preservado"
+      - "ml-worker/workers/facial_analyzer.py — scoring atual preservado (Story 10.2 só ADD output_face_blendshapes)"
+    weights:
+      - "PESOS_TECNICA: voice 0.40, variety 0.40, fillers 0.20 — IMUTÁVEL"
+      - "PESOS_PRESENCA: gesture 0.35, posture 0.30, facial 0.35 — IMUTÁVEL"
+
+  pesos_narrativa_change:
+    allowed_only_in: "Story 10.3"
+    new_weights_post_10_3:
+      storytelling: 0.30  # era 0.35
+      archetypes: 0.20    # era 0.25
+      tonality: 0.20      # era 0.25
+      identity: 0.15      # preservado
+      discourse_arc: 0.15 # NOVO
+    rollback_if_failed: "PESOS_NARRATIVA volta ao state pré-10.3 se discourse_arc rejeitado"
+
+  rejected_recommendations:
+    - id: "research_item_5"
+      title: "Presença composta (Patsy 2nd Circle)"
+      reason: "Princípio 'não medir > medir errado'. n=7 GT + score composto = risco feedback genérico"
+      reopens_when: "GT ≥25 vídeos + rating qualitativo separado de presença sentida"
+
+# ─────────────────────────────────────────────────────────────
+# FEATURE FLAGS — Master + per-story
+# ─────────────────────────────────────────────────────────────
+feature_flags:
+  master: "RESEARCH_DRIVEN_IMPROVEMENTS_ENABLED"
+  per_story:
+    - flag: "WAVLM_EMOTION_ENABLED"
+      story: "10.1"
+      default: false
+      promotion_gate: "Pearson VAD ≥0.6 vs heurística em ≥5/7 vídeos"
+      replaces: "TONALITY_ML_ENABLED (legacy wav2vec2 — deprecated)"
+
+    - flag: "BLENDSHAPE_AU_BRIDGE_ENABLED"
+      story: "10.2"
+      default: false
+      promotion_gate: "Pearson ≥0.65, F1 ≥0.70, IoU ≥0.55 nas 10 AUs críticas"
+      modes: ["disabled", "hybrid", "enabled"]
+
+    - flag: "NARRATIVE_FAMILY_ENABLED"
+      story: "10.3"
+      default: false
+      promotion_gate_reinforced:
+        - "Pearson ≥0.6 vs Gui em ≥5/7 vídeos"
+        - "Margin ≥0.15 sobre baseline aleatório"
+        - "Variance entre vídeos >15pts (discriminação real)"
+
+# ─────────────────────────────────────────────────────────────
+# WAVES — Parallelization strategy
+# ─────────────────────────────────────────────────────────────
+waves:
+
+  wave_0:
+    name: "Foundation — WavLM swap"
+    mode: "sequential"
+    rationale: "Story 10.1 é independente mas user pediu primeiro. Drop-in baixo risco."
+    stories:
+      - id: "10.1"
+        title: "WavLM-base+ swap (substitui wav2vec2)"
+        priority: "P0"
+        executor: "@dev"
+        size: "S (~10h)"
+        gate_before_merge: "Pearson VAD ≥0.6 em ≥5/7 vídeos OU flag fica false"
+
+  wave_1:
+    name: "Bridge AU — Phase 0 standalone + Stories 10.2 phases 1-3"
+    mode: "sequential_within_story"
+    rationale: |
+      Story 10.2 tem 4 fases internas. Fase 0 (1 dia) é standalone — entrega
+      valor (CSV blendshapes) independente de promoção. Fases 1-3 sequenciais.
+    stories:
+      - id: "10.2"
+        title: "Bridge MediaPipe blendshapes → AUs"
+        priority: "P0"
+        executor: "@dev"
+        size: "M (~32h em 4 fases)"
+        sub_phases:
+          - phase: "0"
+            duration: "1d"
+            standalone_value: "CSV blendshapes nos 7 vídeos + desbloqueio Py3.12 informacional"
+          - phase: "1"
+            duration: "2d"
+            description: "Bridge module determinístico (_facs_blendshape_bridge.py)"
+          - phase: "2"
+            duration: "1-2d"
+            description: "Validação contra py-feat (4 métricas)"
+          - phase: "3"
+            duration: "varia"
+            description: "Migração condicional (aprovado / hybrid / rejeitado)"
+        gate_before_merge: "Critério Pearson ≥0.65, F1 ≥0.70, IoU ≥0.55 OU modo hybrid documentado"
+
+  wave_2:
+    name: "Discourse Arc — povoa família narrativa"
+    mode: "sequential"
+    depends_on:
+      - "wave_0 (Story 10.1) — opcional, paralelizável mas idealmente após estabilidade"
+      - "wave_1 (Story 10.2) — opcional, não bloqueia"
+    stories:
+      - id: "10.3"
+        title: "Dim discourse_arc na família narrativa"
+        priority: "P0"
+        executor: "@dev"
+        size: "M-L (~40h)"
+        gate_before_merge:
+          - "Pearson ≥0.6 vs Gui em ≥5/7 vídeos"
+          - "Margin ≥0.15 sobre baseline (REFORÇADO PM)"
+          - "Variance entre vídeos >15pts"
+        rollback_if_failed: "Família técnica intocada; PESOS_NARRATIVA volta ao pré-10.3"
+
+  wave_3:
+    name: "Benchmark absoluto — orientação roadmap"
+    mode: "parallel_to_others"
+    rationale: |
+      Story 10.4 é ortogonal — não muda código. Pode rodar em paralelo a
+      qualquer outra wave. Time-box 5 dias úteis.
+    stories:
+      - id: "10.4"
+        title: "Reproduzir AVI Challenge 2025 baseline"
+        priority: "P1"
+        executor: "@analyst (primário) + @dev (suporte)"
+        size: "M (~32h, time-box 5d)"
+        time_box_days: 5
+        defer_if: "Dataset inacessível em 5d úteis"
+        gate_before_merge: "Relatório publicado OU status=deferred"
+
+# ─────────────────────────────────────────────────────────────
+# QUALITY GATES — Constitution Article V
+# ─────────────────────────────────────────────────────────────
+quality_gates:
+  per_story:
+    - "CodeRabbit --prompt-only --base main: 0 CRITICAL"
+    - "Tests passing"
+    - "Regression check: ±5pts overall nos 7 vídeos do bench"
+    - "Critério de promoção numérico avaliado e registrado"
+    - "@qa PASS"
+  per_epic:
+    - "Todas 4 stories mergeadas (ou 10.4 deferred com justificativa)"
+    - "Tag v0.8.0 criada por @devops"
+    - "Memória atualizada (decisões finais, novos eval IDs se aplicável)"
+    - "evolving_report.md research wave atualizado com outcomes"
+
+# ─────────────────────────────────────────────────────────────
+# REGRESSION SUITE — 7 vídeos do bench
+# ─────────────────────────────────────────────────────────────
+regression_suite:
+  bench_videos:
+    - { apelido: "GUI ITAJAI", eval_id: "c6e4d031-e29d-4984-9c76-9169cfd07d41" }
+    - { apelido: "ALUNA MORENA", eval_id: "116286e1-bb33-44ad-9ffc-3832e6b2788d" }
+    - { apelido: "GUI PRIME", eval_id: "27c03fcc-9edf-4e31-bf21-e43c1f1d6de1" }
+    - { apelido: "ALUNO MONO", eval_id: "e4aa647a-4a36-4d39-9876-e16c182f0f4d" }
+    - { apelido: "ALUNA LOIRA", eval_id: "59862d85-5995-411d-a864-fa4d9a7b4068" }
+    - { apelido: "GUI WENDEL", eval_id: "e719cc5d-db15-41b8-8b9d-aa12034ce176" }
+    - { apelido: "GUI ARARANGUA", eval_id: "91663551-6a6c-4b72-be23-f90dc363b762" }
+  pass_criteria:
+    - "Overall score ±5pts vs v0.7.0-calibrated-bench (com flags OFF)"
+    - "Audio quality flags continuam disparando (audio_low GUI ARARANGUA, babble ALUNA MORENA)"
+    - "Multi-dim AND-2 não-regredido (ALUNO MONO continua único com mono detectado)"
+
+# ─────────────────────────────────────────────────────────────
+# DEPENDENCIES — External
+# ─────────────────────────────────────────────────────────────
+external_dependencies:
+  - { name: "HuggingFace Hub", critical_for: "Story 10.1 (WavLM-base+)", risk: "low" }
+  - { name: "MediaPipe FaceLandmarker", critical_for: "Story 10.2", risk: "none — já no stack" }
+  - { name: "Gemini API (gemini-2.5-flash)", critical_for: "Story 10.3", risk: "low — fallback gracioso definido" }
+  - { name: "py-feat 0.6.2 (Py3.11 isolado)", critical_for: "Story 10.2 Fase 2 validação", risk: "low" }
+  - { name: "AVI Challenge 2025 dataset", critical_for: "Story 10.4", risk: "MEDIUM — license/access incerto" }
+
+# ─────────────────────────────────────────────────────────────
+# POST-EPIC ROADMAP (Epic 11 candidates)
+# ─────────────────────────────────────────────────────────────
+post_epic_candidates:
+  - "Identity peso 15→22% (audit Vinh — subutilização)"
+  - "Contexto opcional no upload (palco/podcast/vendas/rede social)"
+  - "Pause MEANINGFULNESS (correlação pausa ↔ momento de impacto)"
+  - "Pitch CONTOUR (slope final, declarativa vs pergunta)"
+  - "Sprint Ground Truth Robusto (10 vídeos blind, mentor scoring) — depends on 10.3"
+  - "Practice mode (gap competitivo identificado em research wave)"
+  - "Cleanup py-feat dependency (depends on 10.2)"
+  - "Cleanup wav2vec2 dead code (depends on 10.1)"
