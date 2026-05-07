@@ -304,7 +304,7 @@ const METRIC_LABELS: Record<
     pct_dominante: {
       label: "% no arquétipo dominante",
       reference: "< 50% = equilibrado",
-      description: "Se um arquétipo passa de 50%, você travou nele. Cycling cria contraste.",
+      description: "Acima de 50% começa a travar. Acima de 70% = audiência percebe. Acima de 80% = audiência adormece. Cycling cria contraste e mantém atenção.",
     },
     num_arquetipos_usados: {
       label: "Arquétipos usados",
@@ -317,9 +317,14 @@ const METRIC_LABELS: Record<
       description: "Frequência de mudança entre arquétipos. Pouca = monotonia. Muita = caos.",
     },
     lock_in: {
-      label: "Lock-in detectado",
+      label: "Lock-in detectado (>70%)",
       reference: "false = bom",
-      description: "Quando você fica preso num único arquétipo. Default = não-funcional.",
+      description: "Quando ≥70% da fala fica num único arquétipo — audiência percebe como personagem único. Default = não-funcional.",
+    },
+    lock_in_critico: {
+      label: "Lock-in crítico (≥80%)",
+      reference: "false = bom",
+      description: "≥80% num único arquétipo — adormece a audiência. Prioridade máxima de cycling.",
     },
   },
   storytelling: {

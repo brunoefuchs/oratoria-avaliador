@@ -261,8 +261,13 @@ def _compute_archetype_metrics(audio_path: str) -> dict:
     trocas_por_minuto = round(trocas / (duracao / 60), 1) if duracao > 0 else 0
     num_arquetipos_unicos = len(set(arquetipos_usados))
 
-    # Lock-in: >70% em um unico arquetipo
+    # Lock-in tiered (2026-05-06):
+    # - lock_in_warning: >50% = sinal de tendencia (audiencia comeca a perceber)
+    # - lock_in: >70% = travamento real (audiencia percebe "personagem unico")
+    # - lock_in_critico: >=80% = audiencia adormece, archetype default total
+    lock_in_warning = pct_dominante > 50
     lock_in = pct_dominante > 70
+    lock_in_critico = pct_dominante >= 80
 
     # =============================================
     # SCORE DE ARQUETIPOS (0-100)
@@ -300,13 +305,15 @@ def _compute_archetype_metrics(audio_path: str) -> dict:
         )  # Demais trocas = inconsistencia
 
     # 3. Anti-lock-in — peso 30%
-    #    Penaliza concentracao excessiva em um arquetipo
-    if pct_dominante > 80:
-        lockin_score = 10
-    elif pct_dominante > 70:
-        lockin_score = 30
+    #    2026-05-06: tiers ajustados pra audit Vinh. Lock-in severo (>=70%)
+    #    e critico (>=80%) penalizados mais — audiencia REALMENTE percebe
+    #    "personagem unico" nesses niveis. >50% e warning leve mas detectavel.
+    if pct_dominante >= 80:
+        lockin_score = 5  # critico — audiencia adormece, era 10
+    elif pct_dominante >= 70:
+        lockin_score = 20  # severo — era 30
     elif pct_dominante > 50:
-        lockin_score = 60
+        lockin_score = 55  # warning — era 60
     elif pct_dominante > 35:
         lockin_score = 90
     else:
@@ -357,6 +364,8 @@ def _compute_archetype_metrics(audio_path: str) -> dict:
             "acessiveis": acessiveis,
             "ausentes": ausentes,
             "lock_in": lock_in,
+            "lock_in_warning": lock_in_warning,
+            "lock_in_critico": lock_in_critico,
             "pct_dominante": pct_dominante,
             "trocas_por_minuto": trocas_por_minuto,
             "num_arquetipos_usados": num_arquetipos_unicos,
