@@ -42,8 +42,9 @@ def test_scoring_dimensions_content_v070():
 
 
 def test_secondary_dimensions_count():
-    """Story 9.1 AC3: 7 secondary dims. Story 9.6: +1 gesture_semantic = 8."""
-    assert len(SECONDARY_DIMENSIONS) == 8
+    """Story 9.1 AC3: 7 secondary dims. +gesture_semantic (9.6) +articulation (2026-04-30)
+    +discourse_arc (10.3) = 10."""
+    assert len(SECONDARY_DIMENSIONS) == 10
 
 
 def test_secondary_dimensions_content():
@@ -56,6 +57,8 @@ def test_secondary_dimensions_content():
         "temporal",
         "congruence",
         "gesture_semantic",  # Story 9.6
+        "articulation",  # 2026-04-30 — coleta passiva
+        "discourse_arc",  # Story 10.3 — Gemini text macro arc
     }
 
 
@@ -101,8 +104,8 @@ def test_augmentation_is_subset_of_secondary():
 def test_all_dimensions_is_complete_union():
     expected = set(SCORING_DIMENSIONS) | set(SECONDARY_DIMENSIONS)
     assert set(ALL_DIMENSIONS) == expected
-    # Story 9.6: 13 dims original + 1 gesture_semantic = 14
-    assert len(ALL_DIMENSIONS) == 14
+    # 6 SCORING + 10 SECONDARY (com articulation, discourse_arc) = 16
+    assert len(ALL_DIMENSIONS) == 16
 
 
 def test_all_dimensions_no_duplicates():
@@ -132,9 +135,11 @@ def test_confidence_distribution():
     baixa = {d for d, c in DIMENSION_CONFIDENCE.items() if c == "baixa"}
 
     assert alta == {"posture", "gesture", "voice", "fillers", "facial"}
-    # Story 9.6: gesture_semantic adicionado como media (LLM structured output)
-    assert media == {"variety", "archetypes", "tonality", "temporal", "gesture_semantic"}
-    assert baixa == {"opening", "identity", "storytelling", "congruence"}
+    # Story 9.6: gesture_semantic media. Story 10.3: discourse_arc media.
+    assert media == {
+        "variety", "archetypes", "tonality", "temporal", "gesture_semantic", "discourse_arc",
+    }
+    assert baixa == {"opening", "identity", "storytelling", "congruence", "articulation"}
 
 
 def test_scoring_dims_are_all_alta_confianca():

@@ -150,9 +150,10 @@ class TestMixSuccessFailure:
         assert "posture" not in agg["dimension_scores"]
 
     def test_renormalized_weight_calculation(self):
-        """Peso renormalizado: se posture (0.18) falha, remaining peso_total < 1.0."""
+        """Peso renormalizado: dims faltando → peso_total < 1.0, normaliza restantes."""
+        from workers.aggregator import PESOS_DEFAULT
+
         results = {}
-        # Apenas variety e voice (pesos: 0.29 + 0.24 = 0.53)
         results["variety"] = make_success("variety", score=100)
         results["voice"] = make_success("voice", score=0)
         for dim in SCORING_DIMENSIONS:
@@ -161,11 +162,12 @@ class TestMixSuccessFailure:
         for dim in AUGMENTATION_DIMENSIONS:
             results[dim] = make_success(dim, score=50)
         agg = aggregate_metrics(EVAL_ID, results, VIDEO_META)
-        # variety=100, voice=0 → pesos 0.29:0.24, normalizado:
-        # (100*0.29 + 0*0.24) / (0.29+0.24) = 29/0.53 ≈ 55
+        # Pesos dinâmicos do PESOS_DEFAULT atual (evita hardcode quebradiço).
+        peso_v = PESOS_DEFAULT["variety"]
+        peso_vo = PESOS_DEFAULT["voice"]
+        expected = round((100 * peso_v + 0 * peso_vo) / (peso_v + peso_vo))
         assert agg["overall_score"] is not None
         assert isinstance(agg["overall_score"], int)
-        expected = round((100 * 0.29 + 0 * 0.24) / (0.29 + 0.24))
         assert agg["overall_score"] == expected
 
     def test_augmentation_failures_not_in_incomplete(self):

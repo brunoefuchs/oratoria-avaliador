@@ -140,6 +140,7 @@ Dimension = Literal[
     "congruence",
     "gesture_semantic",
     "articulation",
+    "discourse_arc",
 ]
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -171,6 +172,8 @@ DIMENSION_CONFIDENCE: dict[str, ConfidenceLevel] = {
     "gesture_semantic": "media",
     # 🔴 Baixa — articulation em mobile (codec corta 4-8kHz, AGC infla jitter)
     "articulation": "baixa",
+    # 🟡 Media — Story 10.3 Gemini text com rubric explícita, n=7 calibração pendente
+    "discourse_arc": "media",
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -199,4 +202,6 @@ DIMENSION_TO_WORKER_MODULE: dict[str, str] = {
     "temporal": "workers.temporal_analyzer",
     "congruence": "workers.congruence_analyzer",
     "gesture_semantic": "workers.gesture_semantic_analyzer",
+    "articulation": "workers.articulation_analyzer",
+    "discourse_arc": "workers.discourse_arc_analyzer",
 }

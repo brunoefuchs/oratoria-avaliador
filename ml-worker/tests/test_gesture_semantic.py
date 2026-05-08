@@ -74,11 +74,12 @@ def test_gesture_semantic_in_worker_module_map():
     assert DIMENSION_TO_WORKER_MODULE["gesture_semantic"] == "workers.gesture_semantic_analyzer"
 
 
-def test_all_dimensions_count_14():
-    """Story 9.6: 13 dims + 1 nova = 14."""
+def test_all_dimensions_count_16():
+    """Story 9.6: 13 dims + gesture_semantic = 14.
+    +articulation (2026-04-30) +discourse_arc (Story 10.3) = 16."""
     from contracts.dimensions import ALL_DIMENSIONS
 
-    assert len(ALL_DIMENSIONS) == 14
+    assert len(ALL_DIMENSIONS) == 16
 
 
 # ─────────────────────────────────────────────────────────────
