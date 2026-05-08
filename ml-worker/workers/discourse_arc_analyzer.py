@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import structlog
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, field_validator
 
 import config
 from contracts import WorkerResult
@@ -85,6 +85,27 @@ class DiscourseArcOutput(BaseModel):
     justificativa: str = Field(max_length=600)  # 400+margem
     confidence: float = Field(ge=0.0, le=1.0)
     criterios_atendidos: dict[str, bool]
+
+    @field_validator("tipo_payoff", mode="before")
+    @classmethod
+    def _normalize_licao_cedilla(cls, v):
+        """QA-02 fix: Gemini PT-BR pode retornar 'lição' (com cedilha) ou variantes
+        de acentuação. Normaliza pra Literal sem acentos."""
+        if v is None:
+            return None
+        if not isinstance(v, str):
+            return v
+        normalized = v.strip().lower()
+        cedilla_map = {"lição": "licao", "liçao": "licao", "lição.": "licao"}
+        return cedilla_map.get(normalized, normalized)
+
+    @field_validator("discourse_type", mode="before")
+    @classmethod
+    def _normalize_argumentacao(cls, v):
+        """Mesma defesa pra discourse_type — Gemini pode emitir 'argumentação'."""
+        if not isinstance(v, str):
+            return v
+        return v.strip().lower().replace("argumentação", "argumentacao").replace("explicação", "explicativo")
 
 
 def _call_gemini(transcript: str, prompt_template: str) -> tuple[dict, dict]:
@@ -181,9 +202,11 @@ def _compute_discourse_arc(transcript: str | None) -> dict:
     last_error: Exception | None = None
     instrumentation: dict[str, Any] = {}
     parsed_dict: dict | None = None
+    successful_attempt: int = -1  # QA-01 fix: track real retry count
     for attempt in (0, 1):
         try:
             parsed_dict, instrumentation = _call_gemini(truncated, prompt_template)
+            successful_attempt = attempt
             break
         except Exception as e:
             last_error = e
@@ -232,7 +255,7 @@ def _compute_discourse_arc(transcript: str | None) -> dict:
         **validated.model_dump(),
         "prompt_sha": prompt_sha,
         "transcript_truncated": was_truncated,
-        "retry_count": 0 if "retry" not in str(last_error).lower() else 1,
+        "retry_count": successful_attempt,  # QA-01 fix: 0 se 1ª tentativa OK, 1 se houve retry
         **instrumentation,
     }
 
@@ -261,11 +284,13 @@ def analyze_discourse_arc(transcript: str | None, evaluation_id: str = "") -> Wo
 
     Args:
         transcript: texto completo do speech (transcrição Whisper)
-        evaluation_id: ID pra logging
+        evaluation_id: ID pra log scoping
 
     Returns:
         WorkerResult (Success com score 0-100 + metrics, ou Failure com reason)
     """
+    if evaluation_id:
+        logger.bind(evaluation_id=evaluation_id, dimension="discourse_arc")
     return wrap_worker_result(
         "discourse_arc",
         _compute_discourse_arc,

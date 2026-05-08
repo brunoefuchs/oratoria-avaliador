@@ -409,6 +409,102 @@ def test_payoff_types_requires_2_hits_in_full_only():
     assert "insight" in result2
 
 
+# ─────────────────────────────────────────────────────────────
+# QA-02 fix: cedilha normalization (Pydantic field_validator)
+# ─────────────────────────────────────────────────────────────
+
+
+def test_schema_normalizes_licao_with_cedilla():
+    """Gemini PT-BR pode retornar 'lição' (cedilha) — validator normaliza."""
+    valid = {
+        "discourse_type": "narrativa",
+        "score": 60,
+        "arc_label": "arco_completo",
+        "tem_payoff": True,
+        "tipo_payoff": "lição",  # com cedilha
+        "callback_abertura_fechamento": False,
+        "justificativa": "x",
+        "confidence": 0.7,
+        "criterios_atendidos": {},
+    }
+    out = DiscourseArcOutput(**valid)
+    assert out.tipo_payoff == "licao"
+
+
+def test_schema_normalizes_argumentacao_with_accent():
+    """Gemini pode retornar 'argumentação' — validator normaliza."""
+    valid = {
+        "discourse_type": "argumentação",  # com acento
+        "score": 60,
+        "arc_label": "linear",
+        "tem_payoff": False,
+        "tipo_payoff": None,
+        "callback_abertura_fechamento": False,
+        "justificativa": "x",
+        "confidence": 0.7,
+        "criterios_atendidos": {},
+    }
+    out = DiscourseArcOutput(**valid)
+    assert out.discourse_type == "argumentacao"
+
+
+# ─────────────────────────────────────────────────────────────
+# QA-01 fix: retry_count tracks real attempt index
+# ─────────────────────────────────────────────────────────────
+
+
+@patch("workers.discourse_arc_analyzer._call_gemini")
+def test_retry_count_zero_on_first_attempt_success(mock_call, monkeypatch):
+    """retry_count=0 quando primeira tentativa OK."""
+    import config
+
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "fake-key")
+    mock_call.return_value = (
+        {
+            "discourse_type": "narrativa",
+            "score": 70,
+            "arc_label": "arco_completo",
+            "tem_payoff": True,
+            "tipo_payoff": "insight",
+            "callback_abertura_fechamento": False,
+            "justificativa": "x",
+            "confidence": 0.8,
+            "criterios_atendidos": {},
+        },
+        {"latency_ms": 2000, "cost_usd": 0.001, "input_tokens": 1000, "output_tokens": 200},
+    )
+    result = _compute_discourse_arc("Texto válido.")
+    assert result["metrics"]["retry_count"] == 0
+
+
+@patch("workers.discourse_arc_analyzer._call_gemini")
+def test_retry_count_one_when_first_fails_429(mock_call, monkeypatch):
+    """retry_count=1 quando primeira tentativa falha 429 e segunda sucesso."""
+    import config
+
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "fake-key")
+    mock_call.side_effect = [
+        Exception("429 quota exceeded"),
+        (
+            {
+                "discourse_type": "narrativa",
+                "score": 70,
+                "arc_label": "arco_completo",
+                "tem_payoff": True,
+                "tipo_payoff": "insight",
+                "callback_abertura_fechamento": False,
+                "justificativa": "x",
+                "confidence": 0.8,
+                "criterios_atendidos": {},
+            },
+            {"latency_ms": 2000, "cost_usd": 0.001, "input_tokens": 1000, "output_tokens": 200},
+        ),
+    ]
+    result = _compute_discourse_arc("Texto válido.")
+    assert result["metrics"]["retry_count"] == 1
+    assert result["score"] == 70
+
+
 def test_payoff_types_returns_sorted_by_frequency():
     """Múltiplos tipos retornam ordenados por hits (mais primeiro)."""
     from workers.storytelling_analyzer import _detect_payoff_types
