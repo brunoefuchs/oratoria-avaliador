@@ -52,6 +52,7 @@ SECONDARY_DIMENSIONS: tuple[str, ...] = (
     "congruence",
     "gesture_semantic",  # Story 9.6 — Gemini Vision gesto semantico (LLM)
     "articulation",  # 2026-04-30 — coleta passiva ate audio studio validar
+    "discourse_arc",  # Story 10.3 — Gemini text macro arco narrativo (NARRATIVE_FAMILY_ENABLED)
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -83,6 +84,7 @@ NARRATIVA_DIMENSIONS: tuple[str, ...] = (
     "archetypes",
     "tonality",
     "identity",
+    "discourse_arc",  # Story 10.3 — entra apenas quando NARRATIVE_FAMILY_ENABLED=true
 )
 
 # 3 augmentation dimensions — subset de SECONDARY consumido pelo report_generator

@@ -118,6 +118,28 @@ def is_wavlm_emotion_enabled() -> bool:
     return os.getenv("WAVLM_EMOTION_ENABLED", "false").strip().lower() == "true"
 
 
+# Feature flag Story 10.3 — Família narrativa + dim discourse_arc.
+# Default false — quando ON: (1) discourse_arc_analyzer roda via Gemini,
+# (2) family_scores.narrativa entra em overall_score com weighted_avg,
+# (3) frontend exibe family narrativa no report.
+# Quando OFF: zero chamadas Gemini, comportamento idêntico v0.7.0 (AC7).
+NARRATIVE_FAMILY_ENABLED = os.getenv("NARRATIVE_FAMILY_ENABLED", "false").lower() == "true"
+
+# Pesos família-família pro overall_score quando flag ON.
+# Default PM signoff (Story 10.3): 0.6 técnica / 0.4 narrativa.
+WEIGHT_TECNICA = float(os.getenv("WEIGHT_TECNICA", "0.6"))
+WEIGHT_NARRATIVA = float(os.getenv("WEIGHT_NARRATIVA", "0.4"))
+
+
+def is_narrative_family_enabled() -> bool:
+    """Helper testavel pra flag Story 10.3 (família narrativa + discourse_arc).
+
+    Quando false: discourse_arc não roda, family narrativa não entra em
+    overall_score. Comportamento bate exato v0.7.0-calibrated-bench (AC7).
+    """
+    return os.getenv("NARRATIVE_FAMILY_ENABLED", "false").strip().lower() == "true"
+
+
 # Feature flag Story 9.5 — py-feat FACS (20 AUs + 6 emocoes).
 # Default false — requer pip install -e ".[facs]".
 PYFEAT_ENABLED = os.getenv("PYFEAT_ENABLED", "false").lower() == "true"
@@ -140,3 +162,13 @@ GEMINI_VISION_MODEL = os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-flash")
 def is_gesture_semantic_enabled() -> bool:
     """Helper testavel pra flag Gemini Vision (Story 9.6)."""
     return os.getenv("GESTURE_SEMANTIC_ENABLED", "false").strip().lower() == "true"
+
+
+# Validação Story 10.3: pesos overall família-família somam 1.0 quando flag ON.
+if NARRATIVE_FAMILY_ENABLED:
+    _total = WEIGHT_TECNICA + WEIGHT_NARRATIVA
+    if abs(_total - 1.0) > 0.001:
+        raise ValueError(
+            f"WEIGHT_TECNICA + WEIGHT_NARRATIVA deve somar 1.0, got {_total}. "
+            f"Atual: tecnica={WEIGHT_TECNICA}, narrativa={WEIGHT_NARRATIVA}"
+        )

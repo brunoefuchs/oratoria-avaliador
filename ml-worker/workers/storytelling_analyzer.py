@@ -652,6 +652,12 @@ def _compute_storytelling_metrics(
         cta_detected=cta["detected"],
     )
 
+    # Story 10.3 — extension info-only: tipos_payoff_detectados (heurística leve).
+    # Callback abertura↔fechamento NÃO é detectado aqui (semântico → fica 100% Gemini
+    # no discourse_arc_analyzer). Estes campos são input cross-feed pro Gemini E
+    # exibição opcional UI; NÃO alteram score atual (AC2 constraint).
+    tipos_payoff = _detect_payoff_types(text_lower, closing_text)
+
     return {
         "disponivel": True,
         "score": score,
@@ -661,7 +667,47 @@ def _compute_storytelling_metrics(
         "cta": cta,
         "chemicals": chemicals,
         "suggestions": suggestions,
+        "tipos_payoff_detectados": tipos_payoff,
     }
+
+
+# Story 10.3 — heurística leve de payoff types (Kindra Hall taxonomy)
+# Callback fica fora — semântico, vira 100% Gemini no discourse_arc_analyzer.
+_PAYOFF_KEYWORDS = {
+    "insight": [
+        "perceba", "percebi", "entendi", "descobri", "aprendi", "a verdade é",
+        "o que importa", "a chave", "o segredo", "o ponto é", "a lição",
+    ],
+    "imagem": [
+        "imagine", "visualize", "como se", "parecia", "soava", "cheirava",
+        "tocava", "pintura", "cena", "quadro",
+    ],
+    "cta": [
+        "faça", "experimente", "comece", "tente", "vá", "pratique",
+        "implemente", "aplique", "teste", "lembre-se",
+    ],
+    "licao": [
+        "moral", "ensinamento", "princípio", "regra", "fundamento",
+        "se você",  "sempre que", "nunca",
+    ],
+}
+
+
+def _detect_payoff_types(full_text_lower: str, closing_text_lower: str) -> list[str]:
+    """Detecta tipos de payoff presentes (heurística keyword).
+
+    Concentra busca no closing_text (peso 2x) — payoff geralmente é fechamento.
+    """
+    found: dict[str, int] = {}
+    for tipo, keywords in _PAYOFF_KEYWORDS.items():
+        # Closing pesa 2x (payoff é fechamento usualmente)
+        closing_hits = sum(1 for kw in keywords if kw in closing_text_lower)
+        full_hits = sum(1 for kw in keywords if kw in full_text_lower)
+        if closing_hits > 0 or full_hits >= 2:
+            found[tipo] = closing_hits * 2 + full_hits
+
+    # Retorna ordenado por frequência (mais provável primeiro)
+    return [t for t, _ in sorted(found.items(), key=lambda x: -x[1])]
 
 
 def _disponivel_false(motivo: str) -> dict:

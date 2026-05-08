@@ -506,6 +506,29 @@ async def _run_pipeline(req: ProcessRequest):
                     "suggestions": [str(e)],
                 }
 
+        # Story 10.3: discourse_arc analyzer (Gemini text macro arc).
+        # Roda APENAS quando NARRATIVE_FAMILY_ENABLED=true (zero custo flag OFF).
+        discourse_arc_result = None
+        if config.is_narrative_family_enabled():
+            try:
+                from workers.discourse_arc_analyzer import analyze_discourse_arc
+
+                full_text = transcription.get("full_text", "")
+                discourse_arc_result = analyze_discourse_arc(
+                    full_text, evaluation_id=req.evaluation_id
+                )
+                logger.info(
+                    "discourse_arc_analyzed",
+                    evaluation_id=req.evaluation_id,
+                    has_result=discourse_arc_result is not None,
+                )
+            except Exception as e:
+                logger.error(
+                    "discourse_arc_analysis_failed",
+                    evaluation_id=req.evaluation_id,
+                    error=str(e),
+                )
+
         # Step 8: Classificacao de arquetipos vocais — NOVO
         # Story 8.2: dispatch via feature flag.
         await _notify_status(req.callback_url, req.evaluation_id, "analyzing_archetypes")
@@ -649,6 +672,7 @@ async def _run_pipeline(req: ProcessRequest):
                 "storytelling": storytelling_result,
                 "congruence": congruence_result,
                 "temporal": temporal_result,
+                "discourse_arc": discourse_arc_result,  # Story 10.3 — None quando flag OFF
             }
 
             from workers.aggregator import aggregate_metrics

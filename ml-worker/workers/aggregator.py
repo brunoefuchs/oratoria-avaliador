@@ -14,7 +14,12 @@ pre-Epic 8 (dict sem WorkerResult).
 
 import structlog
 
-from config import is_state_of_art_enabled
+from config import (
+    WEIGHT_NARRATIVA,
+    WEIGHT_TECNICA,
+    is_narrative_family_enabled,
+    is_state_of_art_enabled,
+)
 from contracts import WorkerFailure, WorkerSuccess
 from contracts.dimensions import (
     AUGMENTATION_DIMENSIONS,
@@ -138,6 +143,17 @@ PESOS_NARRATIVA: dict[str, float] = {
     "archetypes": 0.25,  # Cycling de 4 personas (anti-default)
     "tonality": 0.25,  # VAD emocional (arousal/valence/dominance)
     "identity": 0.15,  # Coerencia da persona ao longo do video
+}
+
+# Story 10.3 — pesos quando NARRATIVE_FAMILY_ENABLED=true.
+# Discourse_arc adicionado, demais redistribuídos pra somar 1.0.
+# Quando flag OFF: PESOS_NARRATIVA acima é usado (intocado, AC7).
+PESOS_NARRATIVA_V103: dict[str, float] = {
+    "storytelling": 0.30,
+    "archetypes": 0.20,
+    "tonality": 0.20,
+    "identity": 0.15,
+    "discourse_arc": 0.15,  # NOVO Story 10.3
 }
 
 PESOS_POR_CONTEXTO_V060: dict[str, dict[str, float]] = {
@@ -328,13 +344,38 @@ def aggregate_metrics(
 
     tecnica_score = _compute_family_score(PESOS_TECNICA)
     presenca_score = _compute_family_score(PESOS_PRESENCA)
-    narrativa_score = _compute_family_score(PESOS_NARRATIVA)
+    # Story 10.3: PESOS_NARRATIVA_V103 inclui discourse_arc quando flag ON.
+    # Quando flag OFF: PESOS_NARRATIVA original (sem discourse_arc) preserva v0.7.0.
+    narrative_pesos = PESOS_NARRATIVA_V103 if is_narrative_family_enabled() else PESOS_NARRATIVA
+    narrativa_score = _compute_family_score(narrative_pesos)
 
     family_scores = {
         "tecnica": tecnica_score,
         "presenca": presenca_score,
         "narrativa": narrativa_score,
     }
+
+    # Story 10.3 AC3: quando flag ON E ambos family scores válidos, overall_score
+    # vira weighted_avg(tecnica, narrativa) com pesos PM signoff (0.6/0.4 default).
+    # Quando flag OFF: comportamento atual preservado (Q1 decisão Bruno 2026-05-08, AC7).
+    if (
+        is_narrative_family_enabled()
+        and tecnica_score is not None
+        and narrativa_score is not None
+    ):
+        overall_score_float = (
+            tecnica_score * WEIGHT_TECNICA + narrativa_score * WEIGHT_NARRATIVA
+        )
+        overall_score = round(overall_score_float)
+        logger.info(
+            "overall_score_narrative_family_override",
+            evaluation_id=evaluation_id,
+            tecnica=tecnica_score,
+            narrativa=narrativa_score,
+            weight_tecnica=WEIGHT_TECNICA,
+            weight_narrativa=WEIGHT_NARRATIVA,
+            overall=overall_score,
+        )
 
     partial_aggregation = len(incomplete_dimensions) > 0
 
