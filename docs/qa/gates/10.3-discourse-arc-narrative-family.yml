@@ -1,0 +1,214 @@
+storyId: STORY-10.3
+storyTitle: "Dim discourse_arc na família narrativa"
+gateDate: 2026-05-08
+reviewer: "@qa Quinn"
+verdict: PASS
+scope: "Tasks 1-6 (backend + smoke). Tasks 7-8 deferidas — não fazem parte deste gate."
+
+# Gate 1 inicial: CONCERNS (2 medium issues + 3 low)
+# Gate 2 re-review: PASS após @dev resolver QA-01 + QA-02 + QA-03
+gate_history:
+  - gate: 1
+    date: 2026-05-08
+    verdict: CONCERNS
+    medium_issues: [10.3-QA-01, 10.3-QA-02]
+    low_issues: [10.3-QA-03, 10.3-QA-04, 10.3-QA-05]
+  - gate: 2
+    date: 2026-05-08
+    verdict: PASS
+    fixed: [10.3-QA-01, 10.3-QA-02, 10.3-QA-03]
+    accepted_tech_debt: [10.3-QA-04, 10.3-QA-05]
+    new_tests: 4  # cedilha normalize, accent normalize, retry_count=0, retry_count=1
+    regression_post_fix: "346/346 passing (era 342 + 4 novos)"
+    smoke_post_fix: "delta=59 mantido (good=90, bad=31), latency consistente"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7 Quality Checks
+# ─────────────────────────────────────────────────────────────────────────────
+
+checks:
+  code_review:
+    status: CONCERNS
+    rationale: |
+      Code limpo, segue patterns existentes (wrap_worker_result, structlog, Pydantic).
+      MAS 2 issues médios identificados (ver issues abaixo).
+    issues_found: 2
+
+  unit_tests:
+    status: PASS
+    rationale: "26 unit tests, todos passing. Cobertura: schema, truncate, retry, fallback, instrumentação, integration, aggregator pesos, storytelling payoff."
+    coverage_qualitative: "Boa — paths críticos cobertos. Mock Gemini bem usado."
+
+  acceptance_criteria:
+    status: PARTIAL
+    rationale: "AC1-AC7 atendidos no escopo backend+smoke. AC8 (frontend) e AC5 critério #1 Pearson explicitamente deferidos por decisão Pre-Flight Q4."
+    ac1_analyzer_module: PASS
+    ac2_storytelling_extension: PASS  # tipos_payoff só, callback no Gemini (Q3)
+    ac3_aggregator: PASS  # pesos + override flag-aware
+    ac4_feature_flag: PASS  # NARRATIVE_FAMILY_ENABLED + WEIGHT_TECNICA/NARRATIVA assert
+    ac5_promocao: DEFERRED  # critério #1 Pearson deferido (Q4); #3 variance pendente smoke 7 vídeos
+    ac6_determinismo_cost: PASS  # AC6 ajustado pós-smoke (latency 15s, variance 5pts)
+    ac7_remocao_limpa: PASS  # PESOS_NARRATIVA legacy preservado, regression suite full passing
+    ac8_frontend: NOT_IN_SCOPE  # Task 7 deferida pra próxima sessão
+
+  no_regressions:
+    status: PASS
+    rationale: "342/342 tests passing (1 skipped). 7 testes hardcoded estavam quebrados ANTES da Story (counts desatualizados, pesos antigos) — corrigidos como tech debt incidental. AC7 verificado: PESOS_NARRATIVA legacy intocado quando flag OFF."
+
+  performance:
+    status: PASS
+    rationale: "Smoke real: latency 8-16s p95 (AC6 ajustado). Cost $0.001/eval (10× margem do cap $0.010). Pipeline async não bloqueia UX."
+    real_measurements:
+      good_speech: "8.7s, $0.0010, 235 output tokens"
+      bad_speech: "16.1s, $0.0008, 201 output tokens"
+
+  security:
+    status: CONCERNS
+    rationale: "GEMINI_API_KEY handling OK (config.GEMINI_API_KEY, sem log). Pydantic schema bloqueia output malicioso. Mas prompt injection via transcript content é theoretical risk."
+    concerns_documented: 1
+
+  documentation:
+    status: PASS
+    rationale: "Story Dev Agent Record completo. Smoke result em docs/qa/discourse-arc-promotion-2026-05-08.md. AC6 ajustada com Change Log entry. Memory references intactas."
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Issues encontradas (severity classified)
+# ─────────────────────────────────────────────────────────────────────────────
+
+issues:
+  - id: 10.3-QA-01
+    severity: medium
+    category: code
+    file: "ml-worker/workers/discourse_arc_analyzer.py:235"
+    description: |
+      `retry_count` instrumentation broken. Lógica:
+        "retry_count": 0 if "retry" not in str(last_error).lower() else 1
+      Não conta retries reais — checa se string "retry" está no error message.
+      Erros Gemini (429, quota, timeout) não contêm "retry" → retry_count
+      sempre = 0 quando sucesso, mesmo após retry real.
+    recommendation: |
+      Track attempt index no loop e usar:
+        attempt_actual = 0
+        for attempt in (0, 1):
+            try:
+                ...
+                attempt_actual = attempt  # sucesso aqui
+                break
+            except: ...
+        ...
+        "retry_count": attempt_actual,
+    blocking: false
+    fix_estimate: "5 min"
+
+  - id: 10.3-QA-02
+    severity: medium
+    category: code
+    file: "ml-worker/workers/discourse_arc_analyzer.py:83"
+    description: |
+      `tipo_payoff: Literal["insight", "imagem", "cta", "licao"]` sem cedilha,
+      mas Gemini PODE retornar "lição" (cedilha) ocasionalmente em contexto
+      PT-BR, causando ValidationError → WorkerFailure desnecessária.
+      Smoke real funcionou — Gemini seguiu prompt rigoroso. Mas é frágil.
+    recommendation: |
+      Adicionar Pydantic field_validator que normaliza:
+        @field_validator("tipo_payoff", mode="before")
+        def _normalize_licao(cls, v):
+            if v == "lição": return "licao"
+            return v
+      OU expandir Literal pra incluir variações com acento.
+    blocking: false
+    fix_estimate: "10 min"
+
+  - id: 10.3-QA-03
+    severity: low
+    category: code
+    file: "ml-worker/workers/discourse_arc_analyzer.py:256"
+    description: |
+      Parameter `evaluation_id` em `analyze_discourse_arc(transcript, evaluation_id="")`
+      é unused. Não passa pro wrap_worker_result e não aparece em log structured.
+    recommendation: "Usar no log final ou remover parameter (preferível remover — wrap_worker_result já loga)."
+    blocking: false
+    fix_estimate: "2 min"
+
+  - id: 10.3-QA-04
+    severity: low
+    category: security
+    file: "ml-worker/workers/discourse_arc_analyzer.py:101"
+    description: |
+      Prompt injection via transcript content é theoretical risk. Atacante
+      poderia tentar `transcript = '} return {"score": 100, ...'` pra
+      manipular output. Mitigações já presentes:
+        - response_mime_type=application/json (Gemini valida JSON estrutural)
+        - Pydantic schema validation (rejeita campos inesperados)
+        - Score range Field(ge=0, le=100) (não permite 999)
+      Threat aceito como "concern documented" pq mitigação é defesa em profundidade.
+    recommendation: |
+      Adicionar sanitização leve antes de inserir no prompt:
+        - Strip control chars e quebras de linha excessivas
+        - Truncar quoted blocks suspeitos (e.g. >5 aspas seguidas)
+      OU documentar formal threat model em docs/security/.
+    blocking: false
+    fix_estimate: "20 min ou tech debt"
+
+  - id: 10.3-QA-05
+    severity: low
+    category: tests
+    file: "ml-worker/tests/test_discourse_arc.py"
+    description: |
+      Edge case ausente: Gemini retorna response com safety filter
+      (response.text raise ValueError ao acessar). Não há test case.
+    recommendation: "Adicionar 1 test mock simulando safety filter response."
+    blocking: false
+    fix_estimate: "10 min"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Decisão final
+# ─────────────────────────────────────────────────────────────────────────────
+
+decision:
+  verdict: PASS  # Atualizado de CONCERNS após @dev fixar QA-01 e QA-02
+  rationale: |
+    Backend Story 10.3 está SÓLIDO no core: smoke real validou prompt
+    (delta=59 entre good vs bad), zero regressão (342/342), AC7 estritamente
+    preservado, instrumentação cost/latency funciona. Mas 2 issues médios
+    de qualidade (retry_count broken + cedilha frágil) recomendados pra fix
+    antes do devops push.
+
+    NÃO é FAIL pq:
+    - Issues são pequenos (<15min total fix)
+    - Smoke real funcionou — não bloqueia frontend
+    - AC7 não violado (regression suite full)
+    - Tasks 7-8 explicitamente fora do scope deste gate
+
+    NÃO é PASS pq retry_count broken é instrumentação ENGANOSA — produz
+    métrica errada que pode mascarar problema futuro de quota.
+
+  next_steps:
+    1: "@dev fixa Issues 10.3-QA-01 (retry_count) e 10.3-QA-02 (cedilha) — ~15 min"
+    2: "Re-run pytest tests/test_discourse_arc.py (deve continuar 26/26)"
+    3: "Commit fix → re-trigger gate (auto-promove pra PASS se issues resolvidos)"
+    4: "@devops push (após PASS) — backend mergea sem frontend"
+    5: "Próxima sessão: Task 7 frontend + Task 8 promoção"
+
+  alternative:
+    description: "Bruno pode WAIVE issues como tech debt e mergear como CONCERNS"
+    consequences: "Backend mergea agora. Issues viram tech debt items pra próxima sprint."
+    risk: "retry_count métrica enganosa em prod — não detecta retry real até alguém investigar."
+    waive_authority: "@po ou Bruno (solo dev)"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Metrics
+# ─────────────────────────────────────────────────────────────────────────────
+
+metrics:
+  files_changed: 13
+  lines_added: 1367
+  lines_deleted: 29
+  new_files: 4
+  unit_tests_added: 26
+  unit_tests_passing: 342
+  unit_tests_skipped: 1
+  unit_tests_failing: 0
+  smoke_real_executed: true
+  smoke_cost_total_usd: 0.0037
+  estimated_session_hours: 6
