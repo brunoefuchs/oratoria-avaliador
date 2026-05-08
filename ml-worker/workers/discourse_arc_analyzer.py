@@ -101,18 +101,25 @@ def _call_gemini(transcript: str, prompt_template: str) -> tuple[dict, dict]:
     prompt_filled = prompt_template.replace("{TRANSCRIPT}", transcript)
 
     t0 = time.time()
+    # NOTA: Gemini 2.5 Flash usa "thinking tokens" que consomem max_output_tokens
+    # antes do output visível. 1024 é insuficiente (corta JSON em ~70 chars).
+    # 4096 dá margem pra thinking + JSON completo (~500 tokens output real).
     response = model.generate_content(
         prompt_filled,
         generation_config={
             "temperature": 0.0,
             "top_p": 0.0,
             "response_mime_type": "application/json",
-            "max_output_tokens": 1024,
+            "max_output_tokens": 4096,
         },
     )
     latency_ms = int((time.time() - t0) * 1000)
 
     raw_text = response.text
+    if not raw_text or not raw_text.strip():
+        raise ValueError(
+            f"empty_response finish_reason={response.candidates[0].finish_reason if response.candidates else 'none'}"
+        )
     parsed = json.loads(raw_text)
 
     # Instrumentação cost: usage_metadata pode não existir em todas versões SDK
