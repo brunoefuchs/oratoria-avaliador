@@ -26,6 +26,7 @@ const DIMENSION_LABELS: Record<string, string> = {
   archetypes: "Arquétipos Vocais",
   tonality: "Tonalidade",
   identity: "Identidade",
+  discourse_arc: "Arco do Discurso",
 };
 
 const DIMENSION_DESC: Record<string, string> = {
@@ -39,6 +40,7 @@ const DIMENSION_DESC: Record<string, string> = {
   archetypes: "Alternância entre os 4 modos de falar: Coach, Educador, Motivador e Amigo.",
   tonality: "Carga emocional da voz — o quanto transmite confiança, calor, energia ou tensão.",
   identity: "Coerência da persona ao longo do vídeo.",
+  discourse_arc: "Estrutura macro: tem início, desenvolvimento e fechamento? Há callback ou payoff que conecta ponta a ponta?",
 };
 
 const DIMENSION_ORDER = ["variety", "voice", "gesture", "facial", "posture", "fillers"];
@@ -123,7 +125,7 @@ const FAMILIES: Array<{
     label: "Narrativa",
     icon: "auto_stories",
     desc: "Se sua mensagem está conectando ou só ocupando ar.\nMede o poder de prender atenção pela forma como o conteúdo é apresentado.",
-    dims: ["storytelling", "archetypes", "tonality", "identity"],
+    dims: ["storytelling", "archetypes", "tonality", "identity", "discourse_arc"],
     feedback: (s) =>
       s >= 85
         ? "Sua mensagem prende e transforma — abertura, estrutura e tonalidade alinhados."
