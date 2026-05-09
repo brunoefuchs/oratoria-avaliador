@@ -18,9 +18,42 @@ gate_history:
     verdict: PASS
     fixed: [10.3-QA-01, 10.3-QA-02, 10.3-QA-03]
     accepted_tech_debt: [10.3-QA-04, 10.3-QA-05]
-    new_tests: 4  # cedilha normalize, accent normalize, retry_count=0, retry_count=1
+    new_tests: 4
     regression_post_fix: "346/346 passing (era 342 + 4 novos)"
     smoke_post_fix: "delta=59 mantido (good=90, bad=31), latency consistente"
+  - gate: 3
+    date: 2026-05-09
+    verdict: PASS
+    scope: "Task 7 — Frontend dimension page + render condicional (apps/web)"
+    files_reviewed: ["apps/web/src/app/report/[id]/discourse_arc/page.tsx", "apps/web/src/app/report/[id]/page.tsx"]
+    checks:
+      typescript_compile: PASS  # 0 erros
+      eslint: PASS  # 0 warnings
+      ac7_layout_idempotent_flag_off: PASS  # Bruno validou manualmente em /report/cbefdb97 — layout idêntico v0.7.0
+      ac8_render_condicional: PASS  # if (dimScore == null) return null linha 356
+      edge_cases:
+        - "data null → mostra 'indisponível' ✓"
+        - "score null → mostra 'indisponível' ✓"
+        - "arc_label undefined → seção não renderiza ✓"
+        - "criterios_atendidos null → seção não renderiza ✓"
+        - "tipo_payoff null → fallback genérico ✓"
+      pattern_consistency: PASS  # Espelha identity/page.tsx, opening/page.tsx
+      lines_of_code: 254  # comparable: identity 201, opening 179, shared 282
+    low_issues_added:
+      - id: 10.3-QA-06
+        severity: low
+        category: a11y
+        description: "Material symbols icons (check_circle/cancel) sem aria-label. Screen readers leem só literal."
+        recommendation: "aria-label={value ? 'Critério atendido' : 'Critério não atendido'} no span do icon"
+        fix_estimate: "5 min"
+        blocking: false
+      - id: 10.3-QA-07
+        severity: low
+        category: tests
+        description: "Sem unit/integration test pra dimension page. Mas codebase não tem testes pra outras dim pages (identity/opening) — pattern consistente."
+        recommendation: "Adicionar Playwright E2E pra rota /report/[id]/discourse_arc quando E2E suite for criada"
+        fix_estimate: "1h tech debt"
+        blocking: false
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 7 Quality Checks
